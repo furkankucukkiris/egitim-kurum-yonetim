@@ -4,16 +4,32 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export async function login(formData: FormData) {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  if (
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  ) {
     redirect(
-      "/giris?error=Supabase bağlantısı henüz yapılandırılmadı",
+      `/giris?error=${encodeURIComponent(
+        "Supabase bağlantısı henüz yapılandırılmadı.",
+      )}`,
     );
   }
 
   const supabase = await createClient();
 
-  const email = String(formData.get("email") || "");
-  const password = String(formData.get("password") || "");
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLocaleLowerCase("tr-TR");
+
+  const password = String(formData.get("password") ?? "");
+
+  if (!email || !password) {
+    redirect(
+      `/giris?error=${encodeURIComponent(
+        "E-posta ve parola zorunludur.",
+      )}`,
+    );
+  }
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -21,8 +37,12 @@ export async function login(formData: FormData) {
   });
 
   if (error) {
-    redirect(`/giris?error=${encodeURIComponent(error.message)}`);
+    redirect(
+      `/giris?error=${encodeURIComponent(
+        "E-posta veya parola hatalı.",
+      )}`,
+    );
   }
 
-  redirect("/kurulum");
+  redirect("/");
 }

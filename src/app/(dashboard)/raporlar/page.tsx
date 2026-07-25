@@ -1,8 +1,9 @@
 import { PageHeader } from "@/components/page-header";
 import { courses } from "@/lib/mock-data";
 import { formatTry } from "@/lib/utils";
-
-export default function ReportsPage() {
+import { requireRole } from "@/lib/auth";
+export default async function ReportsPage() {
+  await requireRole(["admin", "finance", "viewer"]);
   return (
     <>
       <PageHeader title="Aylık Raporlar" description="Ders bazlı öğrenci artışı, tahsilat ve yönetimsel gelir görünümü." action={<button className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold">Raporu dışa aktar</button>} />

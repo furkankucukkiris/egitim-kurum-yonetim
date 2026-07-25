@@ -1,8 +1,9 @@
 import { PageHeader } from "@/components/page-header";
 import { teachers } from "@/lib/mock-data";
 import { formatTry } from "@/lib/utils";
-
-export default function TeachersPage() {
+import { requireRole } from "@/lib/auth";
+export default async function TeachersPage() {
+  await requireRole(["admin"]);
   return (
     <>
       <PageHeader title="Öğretmenler" description="Planlanan ve yapılan dersler ile aylık hak ediş özeti." action={<button className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">+ Öğretmen ekle</button>} />

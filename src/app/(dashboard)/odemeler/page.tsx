@@ -2,8 +2,9 @@ import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { recentPayments } from "@/lib/mock-data";
 import { formatTry } from "@/lib/utils";
-
-export default function PaymentsPage() {
+import { requireRole } from "@/lib/auth";
+export default async function PaymentsPage() {
+  await requireRole(["admin", "finance"]);
   return (
     <>
       <PageHeader title="Ödemeler" description="Tahakkuk, tahsilat, açık borç ve kasaya alınan nakit hareketleri." action={<button className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">+ Ödeme al</button>} />

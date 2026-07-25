@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/page-header";
-
+import { requireRole } from "@/lib/auth";
 const sessions = [
   { time: "11:00", course: "Resim", teacher: "Nisa", count: 8, room: "Atölye 1" },
   { time: "12:00", course: "Piyano", teacher: "Latife Eda", count: 1, room: "Piyano 1" },
@@ -7,7 +7,8 @@ const sessions = [
   { time: "16:00", course: "Resim", teacher: "Nisa", count: 7, room: "Atölye 1" },
 ];
 
-export default function AttendancePage() {
+export default async function AttendancePage() {
+  await requireRole(["admin", "teacher"]);
   return (
     <>
       <PageHeader title="Yoklama" description="Bugünkü dersleri açın, öğrenci katılımını ve telafi durumunu kaydedin." />

@@ -1,8 +1,10 @@
 import { PageHeader } from "@/components/page-header";
 import { students } from "@/lib/mock-data";
 import { formatTry } from "@/lib/utils";
-
-export default function StudentsPage() {
+import { requireRole } from "@/lib/auth";
+  
+export default async function StudentsPage() {
+  await requireRole(["admin", "finance"]);
   return (
     <>
       <PageHeader title="Öğrenciler" description="Öğrenci, veli, ders kaydı ve kalan bakiye bilgileri." action={<button className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">+ Öğrenci ekle</button>} />

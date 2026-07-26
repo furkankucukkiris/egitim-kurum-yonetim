@@ -254,10 +254,13 @@ export default async function StudentsPage({
                       className="hover:bg-slate-50"
                     >
                       <td className="px-5 py-4">
-                        <p className="font-semibold">
+                        <Link
+                          href={`/ogrenciler/${student.id}`}
+                          className="font-semibold text-slate-950 hover:underline"
+                        >
                           {student.first_name}{" "}
                           {student.last_name}
-                        </p>
+                        </Link>
 
                         {student.birth_date && (
                           <p className="mt-1 text-xs text-slate-500">
@@ -290,9 +293,8 @@ export default async function StudentsPage({
 
                       <td className="px-5 py-4">
                         <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                            statusClasses[student.status]
-                          }`}
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[student.status]
+                            }`}
                         >
                           {statusLabels[student.status]}
                         </span>

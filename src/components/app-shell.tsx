@@ -28,6 +28,18 @@ const navigation: NavigationItem[] = [
     roles: ["admin", "finance"],
   },
   {
+    href: "/dersler",
+    label: "Dersler",
+    icon: "▦",
+    roles: ["admin"],
+  },
+  {
+    href: "/program",
+    label: "Ders Programı",
+    icon: "◫",
+    roles: ["admin"],
+  },
+  {
     href: "/odemeler",
     label: "Ödemeler",
     icon: "₺",
@@ -50,6 +62,22 @@ const navigation: NavigationItem[] = [
     label: "Raporlar",
     icon: "↗",
     roles: ["admin", "finance", "viewer"],
+  },
+  {
+    href: "/meb-yoklama",
+    label: "MEB Yoklama",
+    icon: "✓",
+    roles: [
+      "admin",
+      "finance",
+      "teacher",
+    ],
+  },
+  {
+    href: "/meb",
+    label: "MEB Yönetimi",
+    icon: "M",
+    roles: ["admin"],
   },
 ];
 

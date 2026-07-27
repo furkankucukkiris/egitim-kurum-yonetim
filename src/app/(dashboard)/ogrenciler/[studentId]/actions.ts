@@ -233,6 +233,269 @@ export async function archiveStudent(
   );
 }
 
+type AddGuardianState = {
+  error: string | null;
+};
+
+export async function addGuardian(
+  _previousState: AddGuardianState,
+  formData: FormData,
+): Promise<AddGuardianState> {
+  await requireRole(["admin", "finance"]);
+
+  const studentId = readText(
+    formData,
+    "studentId",
+  );
+
+  const identityNumber = readText(
+    formData,
+    "guardianIdentityNumber",
+  ).replace(/\D/g, "");
+
+  const fullName = readText(
+    formData,
+    "guardianFullName",
+  );
+
+  const phone = readText(
+    formData,
+    "guardianPhone",
+  );
+
+  const secondaryPhone = readText(
+    formData,
+    "guardianSecondaryPhone",
+  );
+
+  const email = readText(
+    formData,
+    "guardianEmail",
+  );
+
+  const relationship = readText(
+    formData,
+    "relationship",
+  );
+
+  const isPrimary =
+    formData.get("isPrimary") === "on";
+
+  const mayReceiveFinancialMessages =
+    formData.get(
+      "mayReceiveFinancialMessages",
+    ) === "on";
+
+  if (!studentId) {
+    return {
+      error:
+        "Öğrenci kimliği bulunamadı.",
+    };
+  }
+
+  if (!/^[1-9][0-9]{10}$/.test(identityNumber)) {
+    return {
+      error:
+        "Veli T.C. kimlik numarası 11 rakamdan oluşmalı ve sıfırla başlamamalıdır.",
+    };
+  }
+
+  if (fullName.length < 2) {
+    return {
+      error:
+        "Veli adı en az 2 karakter olmalıdır.",
+    };
+  }
+
+  if (phone.replace(/\D/g, "").length < 10) {
+    return {
+      error:
+        "Geçerli bir veli telefon numarası girin.",
+    };
+  }
+
+  if (
+    email &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  ) {
+    return {
+      error:
+        "Geçerli bir e-posta adresi girin.",
+    };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc(
+    "add_student_guardian",
+    {
+      p_student_id: studentId,
+
+      p_guardian_identity_number:
+        identityNumber,
+
+      p_guardian_full_name:
+        fullName,
+
+      p_guardian_phone:
+        phone,
+
+      p_guardian_secondary_phone:
+        secondaryPhone || null,
+
+      p_guardian_email:
+        email || null,
+
+      p_relationship:
+        relationship || "Veli",
+
+      p_is_primary:
+        isPrimary,
+
+      p_may_receive_financial_messages:
+        mayReceiveFinancialMessages,
+    },
+  );
+
+  if (error) {
+    console.error(
+      "Veli eklenemedi:",
+      error,
+    );
+
+    return {
+      error:
+        process.env.NODE_ENV === "development"
+          ? `Veritabanı hatası: ${error.message}`
+          : "Veli eklenemedi.",
+    };
+  }
+
+  revalidatePath(
+    `/ogrenciler/${studentId}`,
+  );
+
+  redirect(
+    `/ogrenciler/${studentId}?success=${encodeURIComponent(
+      "Veli bağlantısı başarıyla oluşturuldu.",
+    )}`,
+  );
+}
+
+export async function setPrimaryGuardian(
+  formData: FormData,
+) {
+  await requireRole(["admin", "finance"]);
+
+  const studentId = readText(
+    formData,
+    "studentId",
+  );
+
+  const guardianId = readText(
+    formData,
+    "guardianId",
+  );
+
+  if (!studentId || !guardianId) {
+    redirect("/ogrenciler");
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc(
+    "set_primary_student_guardian",
+    {
+      p_student_id: studentId,
+      p_guardian_id: guardianId,
+    },
+  );
+
+  if (error) {
+    console.error(
+      "Birincil veli değiştirilemedi:",
+      error,
+    );
+
+    redirect(
+      `/ogrenciler/${studentId}?error=${encodeURIComponent(
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Birincil veli değiştirilemedi.",
+      )}`,
+    );
+  }
+
+  revalidatePath(
+    `/ogrenciler/${studentId}`,
+  );
+
+  revalidatePath("/ogrenciler");
+
+  redirect(
+    `/ogrenciler/${studentId}?success=${encodeURIComponent(
+      "Birincil veli değiştirildi.",
+    )}`,
+  );
+}
+
+export async function removeGuardian(
+  formData: FormData,
+) {
+  await requireRole(["admin", "finance"]);
+
+  const studentId = readText(
+    formData,
+    "studentId",
+  );
+
+  const guardianId = readText(
+    formData,
+    "guardianId",
+  );
+
+  if (!studentId || !guardianId) {
+    redirect("/ogrenciler");
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc(
+    "remove_student_guardian",
+    {
+      p_student_id: studentId,
+      p_guardian_id: guardianId,
+    },
+  );
+
+  if (error) {
+    console.error(
+      "Veli bağlantısı kaldırılamadı:",
+      error,
+    );
+
+    redirect(
+      `/ogrenciler/${studentId}?error=${encodeURIComponent(
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Veli bağlantısı kaldırılamadı.",
+      )}`,
+    );
+  }
+
+  revalidatePath(
+    `/ogrenciler/${studentId}`,
+  );
+
+  revalidatePath("/ogrenciler");
+
+  redirect(
+    `/ogrenciler/${studentId}?success=${encodeURIComponent(
+      "Veli bağlantısı kaldırıldı.",
+    )}`,
+  );
+}
+
 function readText(
   formData: FormData,
   name: string,

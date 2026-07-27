@@ -55,7 +55,7 @@ const navigation: NavigationItem[] = [
     href: "/yoklama",
     label: "Yoklama",
     icon: "✓",
-    roles: ["admin"],
+    roles: ["admin", "teacher"],
   },
   {
     href: "/ogretmenler",

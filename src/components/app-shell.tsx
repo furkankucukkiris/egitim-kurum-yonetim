@@ -19,7 +19,13 @@ const navigation: NavigationItem[] = [
     href: "/",
     label: "Genel Bakış",
     icon: "⌂",
-    roles: ["admin", "finance", "teacher", "viewer"],
+    roles: ["admin", "finance", "viewer"],
+  },
+  {
+    href: "/ogretmen-paneli",
+    label: "Programım",
+    icon: "◫",
+    roles: ["teacher"],
   },
   {
     href: "/ogrenciler",
@@ -49,7 +55,7 @@ const navigation: NavigationItem[] = [
     href: "/yoklama",
     label: "Yoklama",
     icon: "✓",
-    roles: ["admin", "teacher"],
+    roles: ["admin"],
   },
   {
     href: "/ogretmenler",

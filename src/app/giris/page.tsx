@@ -32,7 +32,7 @@ export default async function LoginPage({
         </p>
 
         <h1 className="mt-3 text-2xl font-bold">
-          Yönetim hesabı
+          Kurum hesabı
         </h1>
 
         <p className="mt-2 text-sm leading-6 text-slate-500">

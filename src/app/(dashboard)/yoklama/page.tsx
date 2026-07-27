@@ -8,7 +8,7 @@ const sessions = [
 ];
 
 export default async function AttendancePage() {
-  await requireRole(["admin", "teacher"]);
+  await requireRole(["admin"]);
   return (
     <>
       <PageHeader title="Yoklama" description="Bugünkü dersleri açın, öğrenci katılımını ve telafi durumunu kaydedin." />

@@ -32,7 +32,7 @@ Tarayıcıda `http://localhost:3000` adresini açın.
 ## 3. Supabase bulut projesi bağlama
 
 1. Supabase üzerinde yeni proje oluşturun.
-2. Project URL ve Publishable Key değerlerini `.env.local` içine yazın.
+2. Project URL, Publishable Key ve `service_role` anahtarını `.env.local` içine yazın.
 3. CLI ile giriş yapın ve projeyi bağlayın:
 
 ```bash
@@ -40,6 +40,10 @@ npx supabase login
 npx supabase link --project-ref PROJE_REF
 npx supabase db push
 ```
+
+`SUPABASE_SERVICE_ROLE_KEY` yalnızca sunucuda öğretmen Auth hesabı
+oluşturmak için kullanılır. Bu değişkene `NEXT_PUBLIC_` öneki
+eklemeyin; anahtarı tarayıcı koduna veya Git deposuna koymayın.
 
 ## 4. Yerel Supabase ile geliştirme
 
@@ -79,7 +83,21 @@ src/lib/supabase/        Supabase istemci ve oturum kodları
 supabase/migrations/     Veritabanı şeması ve RLS politikaları
 ```
 
-## 7. Mevcut başlangıç ekranları
+## 7. Öğretmen hesabı akışı
+
+1. Yönetici, **Öğretmenler** ekranından ad, e-posta ve telefonla
+   gerçek öğretmen hesabı oluşturur.
+2. Sistem bir defaya mahsus geçici parola gösterir.
+3. Öğretmen e-posta ve geçici parolayla giriş yapar.
+4. İlk girişte kendi güçlü parolasını belirlemeden panele geçemez.
+5. Öğretmen yalnızca kendisine atanmış seansları, öğrencileri ve
+   ders bazlı MEB kayıt durumlarını görür.
+
+Geçici parola kaybolursa yönetici aynı ekrandan yeni bir geçici
+parola üretebilir. Öğretmen hesabını silmek yerine pasife alma
+seçeneği kullanılır; böylece geçmiş kayıtların bağlantıları korunur.
+
+## 8. Mevcut başlangıç ekranları
 
 - Yönetim paneli
 - Öğrenciler
@@ -89,7 +107,7 @@ supabase/migrations/     Veritabanı şeması ve RLS politikaları
 - Raporlar
 - Giriş ekranı
 
-## 8. Sonraki geliştirme sırası
+## 9. Sonraki geliştirme sırası
 
 1. Gerçek kullanıcı/rol akışı
 2. Öğrenci ve veli CRUD işlemleri

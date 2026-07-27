@@ -1,9 +1,17 @@
+import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { courses, dashboardStats, recentPayments } from "@/lib/mock-data";
 import { formatTry } from "@/lib/utils";
+import { requireProfile } from "@/lib/auth";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const profile = await requireProfile();
+
+  if (profile.role === "teacher") {
+    redirect("/ogretmen-paneli");
+  }
+
   return (
     <>
       <PageHeader

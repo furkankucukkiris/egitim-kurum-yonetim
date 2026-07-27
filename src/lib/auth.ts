@@ -10,10 +10,22 @@ export type CurrentProfile = {
   organizationId: string;
   organizationName: string;
   fullName: string;
+  email: string | null;
   role: AppRole;
+  mustChangePassword: boolean;
 };
 
 export async function requireProfile(): Promise<CurrentProfile> {
+  return loadProfile(false);
+}
+
+export async function requirePasswordChangeProfile(): Promise<CurrentProfile> {
+  return loadProfile(true);
+}
+
+async function loadProfile(
+  allowRequiredPasswordChange: boolean,
+): Promise<CurrentProfile> {
   const supabase = await createClient();
 
   const {
@@ -32,17 +44,21 @@ export async function requireProfile(): Promise<CurrentProfile> {
     error: profileError,
   } = await supabase
     .from("profiles")
-    .select("id, organization_id, full_name, role, is_active")
+    .select(`
+      id,
+      organization_id,
+      full_name,
+      email,
+      role,
+      is_active,
+      must_change_password
+    `)
     .eq("id", userId)
     .eq("is_active", true)
     .maybeSingle();
 
   if (profileError || !profile) {
-    redirect(
-      `/giris?error=${encodeURIComponent(
-        "Hesabınız aktif bir kurum profiline bağlı değil.",
-      )}`,
-    );
+    redirect("/hesap-erisimi");
   }
 
   const {
@@ -55,11 +71,14 @@ export async function requireProfile(): Promise<CurrentProfile> {
     .single();
 
   if (organizationError || !organization) {
-    redirect(
-      `/giris?error=${encodeURIComponent(
-        "Kurum bilgisi bulunamadı.",
-      )}`,
-    );
+    redirect("/hesap-erisimi");
+  }
+
+  if (
+    profile.must_change_password &&
+    !allowRequiredPasswordChange
+  ) {
+    redirect("/parola-yenile");
   }
 
   return {
@@ -67,7 +86,10 @@ export async function requireProfile(): Promise<CurrentProfile> {
     organizationId: profile.organization_id,
     organizationName: organization.name,
     fullName: profile.full_name,
+    email: profile.email,
     role: profile.role as AppRole,
+    mustChangePassword:
+      profile.must_change_password,
   };
 }
 

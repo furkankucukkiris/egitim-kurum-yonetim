@@ -6,6 +6,7 @@ import { type ReactNode, useState } from "react";
 import { logout } from "@/app/auth/actions";
 import type { AppRole } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+import { Avatar } from "@/components/ui/Avatar";
 
 type NavigationItem = {
   href: string;
@@ -19,7 +20,13 @@ const navigation: NavigationItem[] = [
     href: "/",
     label: "Genel Bakış",
     icon: "⌂",
-    roles: ["admin", "finance", "teacher", "viewer"],
+    roles: ["admin", "finance", "viewer"],
+  },
+  {
+    href: "/ogretmen-paneli",
+    label: "Programım",
+    icon: "◫",
+    roles: ["teacher"],
   },
   {
     href: "/ogrenciler",
@@ -108,11 +115,9 @@ export function AppShell({
     item.roles.includes(userRole),
   );
 
-  const initials = getInitials(userName);
-
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-slate-800 bg-slate-950 text-white lg:flex lg:flex-col">
+    <div className="min-h-screen bg-brand-50/40 text-brand-900">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-brand-900 bg-brand-900 text-white lg:flex lg:flex-col">
         <Brand institution={institution} />
 
         <Navigation
@@ -132,11 +137,11 @@ export function AppShell({
           <button
             type="button"
             aria-label="Menüyü kapat"
-            className="absolute inset-0 bg-slate-950/55"
+            className="absolute inset-0 bg-brand-900/55"
             onClick={() => setOpen(false)}
           />
 
-          <aside className="relative flex h-full w-[85%] max-w-80 flex-col bg-slate-950 text-white shadow-2xl">
+          <aside className="relative flex h-full w-[85%] max-w-80 flex-col bg-brand-900 text-white shadow-2xl">
             <Brand institution={institution} />
 
             <Navigation
@@ -154,24 +159,21 @@ export function AppShell({
       )}
 
       <div className="lg:pl-72">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur md:px-8">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-brand-100 bg-white/95 px-4 backdrop-blur md:px-8">
           <button
             type="button"
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm lg:hidden"
+            className="rounded-lg border border-brand-200 px-3 py-2 text-sm text-brand-700 lg:hidden"
             onClick={() => setOpen(true)}
           >
             Menü
           </button>
 
-          <div className="hidden text-sm text-slate-500 sm:block">
+          <div className="hidden text-sm text-brand-500 sm:block">
             Kurum Yönetim Sistemi
           </div>
 
-          <div
-            className="grid h-9 w-9 place-items-center rounded-full bg-slate-900 text-sm font-bold text-white"
-            title={userName}
-          >
-            {initials}
+          <div title={userName}>
+            <Avatar name={userName} size={36} />
           </div>
         </header>
 
@@ -187,12 +189,12 @@ function Brand({
   institution: string;
 }) {
   return (
-    <div className="border-b border-slate-800 p-6">
-      <div className="mb-3 grid h-11 w-11 place-items-center rounded-2xl bg-amber-400 font-black text-slate-950">
+    <div className="border-b border-white/10 p-6">
+      <div className="mb-3 grid h-11 w-11 place-items-center rounded-2xl bg-honey-500 font-black text-brand-900">
         ŞS
       </div>
 
-      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+      <p className="text-xs uppercase tracking-[0.2em] text-brand-200">
         Yönetim Paneli
       </p>
 
@@ -228,8 +230,8 @@ function Navigation({
             className={cn(
               "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition",
               active
-                ? "bg-amber-400 text-slate-950"
-                : "text-slate-300 hover:bg-white/10 hover:text-white",
+                ? "bg-honey-500 text-brand-900"
+                : "text-brand-100 hover:bg-white/10 hover:text-white",
             )}
           >
             <span className="grid h-7 w-7 place-items-center rounded-lg bg-current/10 text-base">
@@ -252,15 +254,19 @@ function AccountSection({
   userRole: AppRole;
 }) {
   return (
-    <div className="mt-auto border-t border-slate-800 p-5">
-      <div className="mb-4">
-        <p className="truncate text-sm font-semibold text-white">
-          {userName}
-        </p>
+    <div className="mt-auto border-t border-white/10 p-5">
+      <div className="mb-4 flex items-center gap-3">
+        <Avatar name={userName} size={32} />
 
-        <p className="mt-1 text-xs text-slate-400">
-          {roleLabels[userRole]}
-        </p>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-white">
+            {userName}
+          </p>
+
+          <p className="mt-0.5 text-xs text-brand-200">
+            {roleLabels[userRole]}
+          </p>
+        </div>
       </div>
 
       <form action={logout}>
@@ -272,24 +278,5 @@ function AccountSection({
         </button>
       </form>
     </div>
-  );
-}
-
-function getInitials(fullName: string) {
-  const names = fullName
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean);
-
-  if (names.length === 0) {
-    return "Y";
-  }
-
-  if (names.length === 1) {
-    return names[0].slice(0, 2).toLocaleUpperCase("tr-TR");
-  }
-
-  return `${names[0][0]}${names[names.length - 1][0]}`.toLocaleUpperCase(
-    "tr-TR",
   );
 }

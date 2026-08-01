@@ -28,6 +28,13 @@ export const students = [
   { name: "Aras Çelik", guardian: "Derya Çelik", course: "İngilizce", phone: "05•• ••• •• 82", balance: 4400, status: "Donduruldu" },
 ];
 
+export const todaySessions = [
+  { time: "09:00", course: "Piyano", teacher: "Latife Eda Uncuuoğlu", room: "A1", status: "Planlandı" },
+  { time: "10:30", course: "Yaratıcı Drama", teacher: "Seda Nur", room: "B2", status: "Planlandı" },
+  { time: "13:00", course: "Resim", teacher: "Nisa", room: "A3", status: "Telafi" },
+  { time: "15:30", course: "Gitar", teacher: "Latife Eda Uncuuoğlu", room: "A1", status: "İptal" },
+] as const;
+
 export const teachers = [
   { name: "Latife Eda Uncuuoğlu", branch: "Piyano", students: 35, planned: 40, completed: 37, payment: 52000 },
   { name: "Seda Nur", branch: "Yaratıcı Drama", students: 18, planned: 16, completed: 15, payment: 18000 },

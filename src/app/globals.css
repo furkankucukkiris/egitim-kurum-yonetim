@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-50: #E7EFF8;
+  --color-brand-100: #C4D8ED;
+  --color-brand-200: #A9C6E5;
+  --color-brand-500: #21466E;
+  --color-brand-700: #15263F;
+  --color-brand-900: #0B1623;
+
+  --color-terra-50: #F8EFEC;
+  --color-terra-100: #EFD8D2;
+  --color-terra-500: #D69C8C;
+  --color-terra-700: #783C2B;
+
+  --color-honey-50: #FEF6E6;
+  --color-honey-100: #FDE5B4;
+  --color-honey-500: #FAB933;
+  --color-honey-700: #956604;
+}
+
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;

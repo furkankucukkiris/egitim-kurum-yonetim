@@ -46,8 +46,13 @@ http://localhost:3000
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://PROJE_REF.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YAYINLANABILIR_ANAHTAR
+SUPABASE_SERVICE_ROLE_KEY=SERVICE_ROLE_ANAHTARI
 NEXT_PUBLIC_INSTITUTION_NAME=Şermin Şahin Kişisel Gelişim Kursu
 ```
+
+`SUPABASE_SERVICE_ROLE_KEY` yalnızca sunucuda kullanılmalıdır.
+Değişken adının başına `NEXT_PUBLIC_` eklemeyin ve `.env.local`
+dosyasını Git'e göndermeyin.
 
 ## 4. Veritabanını kurun
 

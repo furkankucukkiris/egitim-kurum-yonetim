@@ -41,7 +41,7 @@ export default async function NewClassGroupPage() {
       .from("profiles")
       .select("id, full_name")
       .eq("is_active", true)
-      .in("role", ["teacher", "admin"])
+      .eq("role", "teacher")
       .order("full_name"),
   ]);
 

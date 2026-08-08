@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { createStudent } from "./actions";
+import { StudentPhotoField } from "@/components/students/StudentPhotoField";
 
 type CreateStudentState = {
   error: string | null;
@@ -96,6 +97,10 @@ export function StudentForm({
           <p className="mt-1 text-sm text-muted">
             Öğrencinin kimlik ve kurum kayıt bilgileri.
           </p>
+        </div>
+
+        <div className="mt-5">
+          <StudentPhotoField />
         </div>
 
         <div className="mt-5 grid gap-5 md:grid-cols-2">

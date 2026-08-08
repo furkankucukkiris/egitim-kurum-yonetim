@@ -9,6 +9,7 @@ export type CurrentProfile = {
   id: string;
   organizationId: string;
   organizationName: string;
+  organizationLogoUrl: string | null;
   fullName: string;
   email: string | null;
   role: AppRole;
@@ -58,7 +59,16 @@ async function loadProfile(
     .maybeSingle();
 
   if (profileError || !profile) {
-    redirect("/hesap-erisimi");
+    // Bu kullanıcının hiç profili yoksa (yeni bir kurum için
+    // oluşturulmuş yeni bir kullanıcı olabilir — sistemde başka
+    // kurumlar olsa bile) kendi kurulumuna yönlendirilir. Profili
+    // var ama pasifse (RLS bunu normal sorgudan gizler) hesap
+    // erişimi ekranı gösterilir.
+    const { data: hasOwnProfile } = await supabase.rpc(
+      "current_user_profile_exists",
+    );
+
+    redirect(hasOwnProfile ? "/hesap-erisimi" : "/kurulum");
   }
 
   const {
@@ -66,7 +76,7 @@ async function loadProfile(
     error: organizationError,
   } = await supabase
     .from("organizations")
-    .select("name")
+    .select("name, logo_path")
     .eq("id", profile.organization_id)
     .single();
 
@@ -81,10 +91,17 @@ async function loadProfile(
     redirect("/parola-yenile");
   }
 
+  const organizationLogoUrl = organization.logo_path
+    ? supabase.storage
+        .from("organization-logos")
+        .getPublicUrl(organization.logo_path).data.publicUrl
+    : null;
+
   return {
     id: profile.id,
     organizationId: profile.organization_id,
     organizationName: organization.name,
+    organizationLogoUrl,
     fullName: profile.full_name,
     email: profile.email,
     role: profile.role as AppRole,

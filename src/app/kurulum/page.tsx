@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { LogoField } from "@/components/settings/LogoField";
 import { completeInitialSetup } from "./actions";
 
 type SetupPageProps = {
@@ -79,6 +80,8 @@ export default async function SetupPage({
               className="mt-2 w-full rounded-xl border border-line px-4 py-3 outline-none focus:border-terra-500"
             />
           </label>
+
+          <LogoField currentLogoUrl={null} />
 
           <button
             type="submit"

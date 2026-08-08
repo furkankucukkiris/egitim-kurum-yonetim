@@ -430,12 +430,21 @@ export default async function StudentDetailPage({
           statusLabels[student.status]
         }`}
         action={
-          <Link
-            href="/ogrenciler"
-            className="rounded-xl border border-line bg-panel px-4 py-3 text-sm font-semibold text-brand-700 transition hover:bg-fill"
-          >
-            Öğrenci listesine dön
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/ogrenciler/${student.id}/kayit-formu`}
+              className="rounded-xl border border-line bg-panel px-4 py-3 text-sm font-semibold text-brand-700 transition hover:bg-fill dark:text-brand-100"
+            >
+              Kayıt formu
+            </Link>
+
+            <Link
+              href="/ogrenciler"
+              className="rounded-xl border border-line bg-panel px-4 py-3 text-sm font-semibold text-brand-700 transition hover:bg-fill dark:text-brand-100"
+            >
+              Öğrenci listesine dön
+            </Link>
+          </div>
         }
       />
 

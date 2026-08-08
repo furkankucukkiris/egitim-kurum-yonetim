@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
+import { SessionComments, type SessionComment } from "@/components/yoklama/SessionComments";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -17,6 +18,7 @@ type PageProps = {
 type SessionRow = {
   id: string;
   class_group_id: string | null;
+  teacher_profile_id: string | null;
   starts_at: string;
   ends_at: string;
   room_name: string | null;
@@ -43,6 +45,14 @@ type EnrollmentRow = {
   class_group_id: string | null;
   starts_on: string;
   ends_on: string | null;
+};
+
+type CommentRow = {
+  id: string;
+  lesson_session_id: string;
+  body: string;
+  created_at: string;
+  author: { full_name: string; role: string } | null;
 };
 
 export default async function AttendancePage({
@@ -80,6 +90,7 @@ export default async function AttendancePage({
     .select(`
       id,
       class_group_id,
+      teacher_profile_id,
       starts_at,
       ends_at,
       room_name,
@@ -175,6 +186,43 @@ export default async function AttendancePage({
     enrollments =
       (result.data ??
         []) as EnrollmentRow[];
+  }
+
+  const sessionIds = sessions.map((session) => session.id);
+  const commentsBySession = new Map<string, SessionComment[]>();
+
+  if (sessionIds.length > 0) {
+    const commentsResult = await supabase
+      .from("lesson_session_comments")
+      .select(`
+        id,
+        lesson_session_id,
+        body,
+        created_at,
+        author:profiles ( full_name, role )
+      `)
+      .in("lesson_session_id", sessionIds)
+      .order("created_at", { ascending: true });
+
+    if (commentsResult.error) {
+      console.error("Oturum yorumları alınamadı:", commentsResult.error);
+    }
+
+    const comments = (commentsResult.data ?? []) as unknown as CommentRow[];
+
+    for (const comment of comments) {
+      const list = commentsBySession.get(comment.lesson_session_id) ?? [];
+
+      list.push({
+        id: comment.id,
+        body: comment.body,
+        createdAt: comment.created_at,
+        authorName: comment.author?.full_name ?? "Bilinmiyor",
+        authorRole: comment.author?.role ?? "",
+      });
+
+      commentsBySession.set(comment.lesson_session_id, list);
+    }
   }
 
   const enrollmentCountByGroup =
@@ -510,6 +558,17 @@ export default async function AttendancePage({
                   Yoklama girişi sonraki pakette
                   açılacak
                 </button>
+
+                <SessionComments
+                  sessionId={session.id}
+                  date={selectedDate}
+                  comments={commentsBySession.get(session.id) ?? []}
+                  canComment={
+                    profile.role === "admin" ||
+                    session.teacher_profile_id === profile.id
+                  }
+                  canDelete={profile.role === "admin"}
+                />
               </article>
             );
           })}

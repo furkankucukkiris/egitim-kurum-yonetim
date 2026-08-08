@@ -11,6 +11,7 @@ export default async function DashboardLayout({
   return (
     <AppShell
       institution={profile.organizationName}
+      institutionLogoUrl={profile.organizationLogoUrl}
       userName={profile.fullName}
       userRole={profile.role}
     >

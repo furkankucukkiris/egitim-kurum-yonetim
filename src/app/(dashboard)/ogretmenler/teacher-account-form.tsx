@@ -20,13 +20,13 @@ export function TeacherAccountForm() {
     );
 
   return (
-    <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-6">
+    <section className="mb-6 rounded-2xl border border-brand-100 bg-white p-5 shadow-sm md:p-6">
       <div className="max-w-2xl">
         <h2 className="text-lg font-bold">
           Yeni öğretmen hesabı
         </h2>
 
-        <p className="mt-1 text-sm leading-6 text-slate-500">
+        <p className="mt-1 text-sm leading-6 text-gray-500">
           Öğretmen geçici bilgilerle giriş yapar ve
           ilk girişte kendi parolasını belirler.
         </p>
@@ -52,7 +52,7 @@ export function TeacherAccountForm() {
               <dt className="text-emerald-700">
                 E-posta
               </dt>
-              <dd className="mt-1 break-all font-mono font-bold text-slate-950">
+              <dd className="mt-1 break-all font-mono font-bold text-brand-900">
                 {state.credentials.email}
               </dd>
             </div>
@@ -61,7 +61,7 @@ export function TeacherAccountForm() {
               <dt className="text-emerald-700">
                 Geçici parola
               </dt>
-              <dd className="mt-1 break-all font-mono font-bold text-slate-950">
+              <dd className="mt-1 break-all font-mono font-bold text-brand-900">
                 {
                   state.credentials
                     .temporaryPassword
@@ -96,7 +96,7 @@ export function TeacherAccountForm() {
             required
             minLength={2}
             autoComplete="name"
-            className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-slate-400"
+            className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400"
           />
         </label>
 
@@ -111,7 +111,7 @@ export function TeacherAccountForm() {
             type="email"
             required
             autoComplete="email"
-            className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-slate-400"
+            className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400"
           />
         </label>
 
@@ -122,7 +122,7 @@ export function TeacherAccountForm() {
             name="phone"
             type="tel"
             autoComplete="tel"
-            className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-slate-400"
+            className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400"
           />
         </label>
 
@@ -130,7 +130,7 @@ export function TeacherAccountForm() {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 md:w-auto"
+            className="w-full rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90 disabled:opacity-60 md:w-auto"
           >
             {isPending
               ? "Hesap oluşturuluyor..."

@@ -432,7 +432,7 @@ export default async function StudentDetailPage({
         action={
           <Link
             href="/ogrenciler"
-            className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
           >
             Öğrenci listesine dön
           </Link>
@@ -453,13 +453,13 @@ export default async function StudentDetailPage({
 
       {student.status ===
         "archived" && (
-        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
-          <p className="font-semibold text-amber-800">
+        <div className="mb-6 rounded-2xl border border-honey-100 bg-honey-50 p-5">
+          <p className="font-semibold text-honey-700">
             Bu öğrenci arşivlenmiş
             durumda.
           </p>
 
-          <p className="mt-2 text-sm text-amber-700">
+          <p className="mt-2 text-sm text-honey-700">
             Arşiv tarihi:{" "}
             {student.exit_date
               ? formatDate(
@@ -469,7 +469,7 @@ export default async function StudentDetailPage({
           </p>
 
           {student.exit_reason && (
-            <p className="mt-1 text-sm text-amber-700">
+            <p className="mt-1 text-sm text-honey-700">
               Neden:{" "}
               {student.exit_reason}
             </p>
@@ -748,7 +748,7 @@ export default async function StudentDetailPage({
 
       {student.status !==
         "archived" && (
-        <div className="mt-8 border-t border-slate-200 pt-8">
+        <div className="mt-8 border-t border-brand-100 pt-8">
           <ArchiveStudentForm
             studentId={student.id}
           />

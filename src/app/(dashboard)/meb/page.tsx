@@ -181,7 +181,7 @@ export default async function MebManagementPage({
             Derslerin MEB durumu
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             Ders programının kurumunuz adına MEB sisteminde tanımlı olup olmadığını belirtin.
           </p>
         </div>
@@ -190,7 +190,7 @@ export default async function MebManagementPage({
           <form
             key={course.id}
             action={updateCourseMebInfo}
-            className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm"
           >
             <input
               type="hidden"
@@ -272,7 +272,7 @@ export default async function MebManagementPage({
             <div className="mt-4 flex justify-end">
               <button
                 type="submit"
-                className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white"
+                className="rounded-xl bg-terra-700 px-4 py-3 text-sm font-semibold text-white"
               >
                 Ders MEB bilgisini kaydet
               </button>
@@ -287,13 +287,13 @@ export default async function MebManagementPage({
             Öğretmen–ders çalışma izinleri
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             Öğretmenin yalnızca ilgili ders için MEB çalışma izni bulunup bulunmadığını takip edin.
           </p>
         </div>
 
         {teacherCoursePairs.length === 0 ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+          <div className="rounded-2xl border border-honey-100 bg-honey-50 p-5 text-sm text-honey-700">
             Öğretmen atanmış bir ders seansı bulunmuyor.
           </div>
         ) : (
@@ -309,7 +309,7 @@ export default async function MebManagementPage({
                 action={
                   updateTeacherCourseMeb
                 }
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm"
               >
                 <input
                   type="hidden"
@@ -388,7 +388,7 @@ export default async function MebManagementPage({
                 <div className="mt-4 flex justify-end">
                   <button
                     type="submit"
-                    className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white"
+                    className="rounded-xl bg-terra-700 px-4 py-3 text-sm font-semibold text-white"
                   >
                     Öğretmen MEB bilgisini kaydet
                   </button>
@@ -438,7 +438,7 @@ function SelectField({
       <select
         name={name}
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
+        className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
       >
         {mebStatusOptions.map(
           ([value, text]) => (
@@ -474,7 +474,7 @@ function Field({
         name={name}
         type={type}
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"
+        className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm"
       />
     </label>
   );

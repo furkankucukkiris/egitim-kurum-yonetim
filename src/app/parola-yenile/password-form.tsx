@@ -40,7 +40,7 @@ export function PasswordForm() {
           required
           minLength={12}
           autoComplete="new-password"
-          className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-slate-400"
+          className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 outline-none focus:border-gray-400"
         />
       </label>
 
@@ -53,11 +53,11 @@ export function PasswordForm() {
           required
           minLength={12}
           autoComplete="new-password"
-          className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-slate-400"
+          className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 outline-none focus:border-gray-400"
         />
       </label>
 
-      <p className="text-xs leading-5 text-slate-500">
+      <p className="text-xs leading-5 text-gray-500">
         En az 12 karakter; bir büyük harf,
         bir küçük harf ve bir rakam kullanın.
       </p>
@@ -65,7 +65,7 @@ export function PasswordForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-xl bg-slate-950 px-4 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+        className="w-full rounded-xl bg-terra-700 px-4 py-3 font-semibold text-white transition hover:bg-terra-700/90 disabled:opacity-60"
       >
         {isPending
           ? "Kaydediliyor..."

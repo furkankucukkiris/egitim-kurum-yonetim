@@ -27,7 +27,7 @@ export function TeacherAccessControls({
     );
 
   return (
-    <div className="mt-5 border-t border-slate-100 pt-4">
+    <div className="mt-5 border-t border-brand-50 pt-4">
       {state.error && (
         <div
           role="alert"
@@ -40,7 +40,7 @@ export function TeacherAccessControls({
       {state.credentials && (
         <div
           role="status"
-          className="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"
+          className="mb-3 rounded-xl border border-honey-100 bg-honey-50 p-3 text-xs text-honey-700"
         >
           <p className="font-bold">
             Yeni geçici giriş bilgileri
@@ -54,7 +54,7 @@ export function TeacherAccessControls({
                 .temporaryPassword
             }
           </p>
-          <p className="mt-2 leading-5 text-amber-800">
+          <p className="mt-2 leading-5 text-honey-700">
             Parola bu sayfadan ayrıldıktan sonra
             tekrar gösterilmez.
           </p>
@@ -101,7 +101,7 @@ export function TeacherAccessControls({
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-60"
+            className="rounded-lg border border-brand-100 bg-white px-3 py-2 text-xs font-semibold text-brand-700 disabled:opacity-60"
           >
             {isPending
               ? "Yenileniyor..."

@@ -75,14 +75,14 @@ export function GuardianManagement({
   }
 
   return (
-    <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-center sm:justify-between">
+    <section className="mt-8 rounded-2xl border border-brand-100 bg-white p-6 shadow-sm">
+      <div className="flex flex-col gap-4 border-b border-brand-50 pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-bold">
             Veli bağlantıları
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             Öğrenciye bağlı anne, baba, vasi ve diğer iletişim kişileri.
           </p>
         </div>
@@ -93,7 +93,7 @@ export function GuardianManagement({
             onClick={() =>
               setAddFormOpen((current) => !current)
             }
-            className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white"
+            className="rounded-xl bg-terra-700 px-4 py-3 text-sm font-semibold text-white"
           >
             {addFormOpen
               ? "Formu kapat"
@@ -106,7 +106,7 @@ export function GuardianManagement({
         {guardians.map((guardian) => (
           <article
             key={guardian.id}
-            className="rounded-2xl border border-slate-200 p-5"
+            className="rounded-2xl border border-brand-100 p-5"
           >
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -114,13 +114,13 @@ export function GuardianManagement({
                   {guardian.fullName}
                 </h3>
 
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-gray-500">
                   {guardian.relationship}
                 </p>
               </div>
 
               {guardian.isPrimary && (
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                <span className="rounded-full bg-honey-100 px-3 py-1 text-xs font-semibold text-honey-700">
                   Birincil veli
                 </span>
               )}
@@ -128,7 +128,7 @@ export function GuardianManagement({
 
             <dl className="mt-4 space-y-2 text-sm">
               <div className="flex gap-2">
-                <dt className="font-medium text-slate-500">
+                <dt className="font-medium text-gray-500">
                   Telefon:
                 </dt>
 
@@ -139,7 +139,7 @@ export function GuardianManagement({
 
               {guardian.secondaryPhone && (
                 <div className="flex gap-2">
-                  <dt className="font-medium text-slate-500">
+                  <dt className="font-medium text-gray-500">
                     İkinci telefon:
                   </dt>
 
@@ -151,7 +151,7 @@ export function GuardianManagement({
 
               {guardian.email && (
                 <div className="flex gap-2">
-                  <dt className="font-medium text-slate-500">
+                  <dt className="font-medium text-gray-500">
                     E-posta:
                   </dt>
 
@@ -162,7 +162,7 @@ export function GuardianManagement({
               )}
 
               <div className="flex gap-2">
-                <dt className="font-medium text-slate-500">
+                <dt className="font-medium text-gray-500">
                   Finansal mesaj:
                 </dt>
 
@@ -175,7 +175,7 @@ export function GuardianManagement({
             </dl>
 
             {!isArchived && (
-              <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+              <div className="mt-5 flex flex-wrap gap-2 border-t border-brand-50 pt-4">
                 {!guardian.isPrimary && (
                   <form action={setPrimaryGuardian}>
                     <input
@@ -192,7 +192,7 @@ export function GuardianManagement({
 
                     <button
                       type="submit"
-                      className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800"
+                      className="rounded-lg border border-honey-100 bg-honey-50 px-3 py-2 text-xs font-semibold text-honey-700"
                     >
                       Birincil yap
                     </button>
@@ -239,7 +239,7 @@ export function GuardianManagement({
       </div>
 
       {guardians.length === 1 && !isArchived && (
-        <p className="mt-4 text-xs text-slate-500">
+        <p className="mt-4 text-xs text-gray-500">
           Öğrencinin tek veli bağlantısı kaldırılamaz. Önce ikinci bir veli ekleyin.
         </p>
       )}
@@ -247,7 +247,7 @@ export function GuardianManagement({
       {addFormOpen && !isArchived && (
         <form
           action={formAction}
-          className="mt-7 rounded-2xl border border-slate-200 bg-slate-50 p-5"
+          className="mt-7 rounded-2xl border border-brand-100 bg-brand-50 p-5"
         >
           <input
             type="hidden"
@@ -259,7 +259,7 @@ export function GuardianManagement({
             Yeni veli bağlantısı
           </h3>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             Aynı T.C. kimlik numarası daha önce kaydedilmişse mevcut veli kullanılır.
           </p>
 
@@ -319,7 +319,7 @@ export function GuardianManagement({
                     event.target.value,
                   )
                 }
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
+                className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
               >
                 <option value="Anne">
                   Anne
@@ -422,7 +422,7 @@ export function GuardianManagement({
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+              className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
             >
               {isPending
                 ? "Veli ekleniyor..."
@@ -489,7 +489,7 @@ function Field({
         onChange={(event) =>
           onChange(event.target.value)
         }
-        className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-slate-400"
+        className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm outline-none focus:border-gray-400"
       />
     </label>
   );
@@ -511,7 +511,7 @@ function CheckboxField({
   description,
 }: CheckboxFieldProps) {
   return (
-    <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-4">
+    <label className="flex items-start gap-3 rounded-xl border border-brand-100 bg-white p-4">
       <input
         type="checkbox"
         name={name}
@@ -527,7 +527,7 @@ function CheckboxField({
           {title}
         </span>
 
-        <span className="mt-1 block text-xs leading-5 text-slate-500">
+        <span className="mt-1 block text-xs leading-5 text-gray-500">
           {description}
         </span>
       </span>

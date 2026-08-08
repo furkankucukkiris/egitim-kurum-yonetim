@@ -33,8 +33,8 @@ export default async function SetupPage({
 
   return (
     <div className="mx-auto max-w-xl py-10">
-      <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
+      <div className="rounded-3xl border border-brand-100 bg-white p-7 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-honey-700">
           İlk kurulum
         </p>
 
@@ -42,7 +42,7 @@ export default async function SetupPage({
           Kurum hesabını oluşturun
         </h2>
 
-        <p className="mt-2 text-sm leading-6 text-slate-500">
+        <p className="mt-2 text-sm leading-6 text-gray-500">
           Bu işlem yalnızca bir kez gerçekleştirilebilir. Oturum açan
           kullanıcı kurumun ilk yöneticisi olarak kaydedilecektir.
         </p>
@@ -63,7 +63,7 @@ export default async function SetupPage({
               required
               minLength={2}
               defaultValue="Şermin Şahin Kişisel Gelişim Kursu"
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-slate-400"
+              className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 outline-none focus:border-gray-400"
             />
           </label>
 
@@ -76,13 +76,13 @@ export default async function SetupPage({
               required
               minLength={2}
               placeholder="Adınız ve soyadınız"
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-slate-400"
+              className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 outline-none focus:border-gray-400"
             />
           </label>
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-slate-950 px-4 py-3 font-semibold text-white hover:bg-slate-800"
+            className="w-full rounded-xl bg-terra-700 px-4 py-3 font-semibold text-white hover:bg-terra-700/90"
           >
             Kurulumu tamamla
           </button>

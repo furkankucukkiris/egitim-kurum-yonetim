@@ -37,22 +37,22 @@ export default async function DashboardPage() {
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
         <Card className="overflow-hidden p-0">
-          <div className="border-b border-brand-100 px-5 py-4">
-            <h3 className="font-semibold text-brand-900">Son ödemeler</h3>
-            <p className="mt-1 text-sm text-gray-500">Tahsilatların son hareketleri</p>
+          <div className="border-b border-line px-5 py-4">
+            <h3 className="font-semibold text-ink">Son ödemeler</h3>
+            <p className="mt-1 text-sm text-muted">Tahsilatların son hareketleri</p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px] text-left text-sm">
-              <thead className="bg-brand-50 text-xs uppercase tracking-wide text-gray-500">
+              <thead className="bg-fill text-xs uppercase tracking-wide text-muted">
                 <tr><th className="px-5 py-3">Öğrenci</th><th className="px-5 py-3">Ders</th><th className="px-5 py-3">Yöntem</th><th className="px-5 py-3">Tutar</th><th className="px-5 py-3">Durum</th></tr>
               </thead>
-              <tbody className="divide-y divide-brand-100">
+              <tbody className="divide-y divide-line">
                 {recentPayments.map((payment) => (
-                  <tr key={payment.student} className="hover:bg-brand-50/50">
-                    <td className="px-5 py-4 font-medium text-brand-900">{payment.student}</td>
-                    <td className="px-5 py-4 text-gray-600">{payment.course}</td>
-                    <td className="px-5 py-4 text-gray-600">{payment.method}</td>
-                    <td className="px-5 py-4 font-semibold text-brand-900">{formatTry(payment.amount)}</td>
+                  <tr key={payment.student} className="hover:bg-fill/50">
+                    <td className="px-5 py-4 font-medium text-ink">{payment.student}</td>
+                    <td className="px-5 py-4 text-muted">{payment.course}</td>
+                    <td className="px-5 py-4 text-muted">{payment.method}</td>
+                    <td className="px-5 py-4 font-semibold text-ink">{formatTry(payment.amount)}</td>
                     <td className="px-5 py-4"><StatusBadge label={payment.status} tone={paymentStatusTone[payment.status] ?? "neutral"} /></td>
                   </tr>
                 ))}
@@ -62,16 +62,16 @@ export default async function DashboardPage() {
         </Card>
 
         <Card>
-          <h3 className="font-semibold text-brand-900">Ders performansı</h3>
-          <p className="mt-1 text-sm text-gray-500">Aktif öğrenci ve aylık tahsilat</p>
+          <h3 className="font-semibold text-ink">Ders performansı</h3>
+          <p className="mt-1 text-sm text-muted">Aktif öğrenci ve aylık tahsilat</p>
           <div className="mt-5 space-y-5">
             {courses.map((course) => (
               <div key={course.name}>
                 <div className="mb-2 flex items-center justify-between gap-4 text-sm">
-                  <div><span className="font-semibold text-brand-900">{course.name}</span><span className="ml-2 text-gray-500">{course.students} öğrenci</span></div>
-                  <span className="font-semibold text-brand-900">{formatTry(course.revenue)}</span>
+                  <div><span className="font-semibold text-ink">{course.name}</span><span className="ml-2 text-muted">{course.students} öğrenci</span></div>
+                  <span className="font-semibold text-ink">{formatTry(course.revenue)}</span>
                 </div>
-                <div className="h-2 rounded-full bg-brand-50"><div className="h-2 rounded-full bg-terra-500" style={{ width: `${Math.min(100, course.students * 2.4)}%` }} /></div>
+                <div className="h-2 rounded-full bg-fill"><div className="h-2 rounded-full bg-terra-500" style={{ width: `${Math.min(100, course.students * 2.4)}%` }} /></div>
               </div>
             ))}
           </div>
@@ -79,7 +79,7 @@ export default async function DashboardPage() {
       </section>
 
       <section className="mt-6">
-        <h3 className="mb-3 font-semibold text-brand-900">Bugünün ders akışı</h3>
+        <h3 className="mb-3 font-semibold text-ink">Bugünün ders akışı</h3>
         <TodaySessionsList sessions={todaySessions.map((session) => ({ ...session }))} />
       </section>
     </>

@@ -234,26 +234,26 @@ export default async function AttendancePage({
       />
 
       {params.success && (
-        <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+        <div className="mb-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
           {params.success}
         </div>
       )}
 
       {params.error && (
-        <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
           {params.error}
         </div>
       )}
 
       {profile.role === "admin" && (
-        <section className="mb-6 rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
+        <section className="mb-6 rounded-2xl border border-line bg-panel p-5 shadow-sm">
           <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <h2 className="font-bold">
                 Aylık oturumları oluştur
               </h2>
 
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">
                 Aktif programların haftalık gün ve
                 saatlerinden seçilen ayın gerçek
                 oturumları oluşturulur. Aynı işlem
@@ -277,13 +277,13 @@ export default async function AttendancePage({
                     0,
                     7,
                   )}
-                  className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm"
+                  className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm"
                 />
               </label>
 
               <button
                 type="submit"
-                className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white"
+                className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white"
               >
                 Ayın oturumlarını oluştur
               </button>
@@ -293,21 +293,21 @@ export default async function AttendancePage({
       )}
 
       {profile.role === "teacher" && (
-        <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm leading-6 text-blue-800">
+        <div className="mb-6 rounded-2xl border border-blue-200 dark:border-blue-800/40 bg-blue-50 dark:bg-blue-500/10 p-4 text-sm leading-6 text-blue-800 dark:text-blue-400">
           Aylık oturumları yönetici oluşturur. Size
           atanmış oturumlar oluşturulduğu anda bu
           ekranda görünür.
         </div>
       )}
 
-      <section className="mb-6 rounded-2xl border border-brand-100 bg-white p-4 shadow-sm">
+      <section className="mb-6 rounded-2xl border border-line bg-panel p-4 shadow-sm">
         <form
           method="get"
           className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-end"
         >
           <Link
             href={`/yoklama?date=${previousDate}`}
-            className="rounded-xl border border-brand-100 bg-white px-4 py-3 text-center text-sm font-semibold text-brand-700"
+            className="rounded-xl border border-line bg-panel px-4 py-3 text-center text-sm font-semibold text-brand-700"
           >
             ← Önceki gün
           </Link>
@@ -320,13 +320,13 @@ export default async function AttendancePage({
               name="date"
               required
               defaultValue={selectedDate}
-              className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm"
+              className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm"
             />
           </label>
 
           <button
             type="submit"
-            className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white"
+            className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white"
           >
             Tarihe git
           </button>
@@ -335,14 +335,14 @@ export default async function AttendancePage({
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <Link
             href={`/yoklama?date=${today}`}
-            className="rounded-xl border border-honey-100 bg-honey-50 px-4 py-2.5 text-center text-sm font-semibold text-honey-700"
+            className="rounded-xl border border-honey-100 bg-honey-50 dark:bg-honey-500/10 px-4 py-2.5 text-center text-sm font-semibold text-honey-700 dark:text-honey-500"
           >
             Bugüne dön
           </Link>
 
           <Link
             href={`/yoklama?date=${nextDate}`}
-            className="rounded-xl border border-brand-100 bg-white px-4 py-2.5 text-center text-sm font-semibold text-brand-700"
+            className="rounded-xl border border-line bg-panel px-4 py-2.5 text-center text-sm font-semibold text-brand-700"
           >
             Sonraki gün →
           </Link>
@@ -371,7 +371,7 @@ export default async function AttendancePage({
           {formatLongDate(selectedDate)}
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted">
           {selectedDate === today
             ? "Bugünün gerçek ders akışı"
             : "Seçilen tarihin gerçek ders akışı"}
@@ -380,15 +380,15 @@ export default async function AttendancePage({
 
       {(sessionsResult.error ||
         enrollmentsError) && (
-        <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
           Oturum verilerinin bir kısmı
           alınamadı.
         </div>
       )}
 
       {sessions.length === 0 ? (
-        <div className="rounded-2xl border border-brand-100 bg-white px-6 py-16 text-center shadow-sm">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand-50 text-2xl">
+        <div className="rounded-2xl border border-line bg-panel px-6 py-16 text-center shadow-sm">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-fill text-2xl">
             ◫
           </div>
 
@@ -396,7 +396,7 @@ export default async function AttendancePage({
             Bu tarihte ders oturumu yok
           </h3>
 
-          <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-gray-500">
+          <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted">
             {profile.role === "admin"
               ? "Seçilen ayın oturumları henüz oluşturulmadıysa yukarıdaki bölümden oluşturun. Programda o güne ait ders yoksa farklı bir tarih seçin."
               : "Yöneticinin oluşturduğu ve size atanmış bir oturum bulunmuyor. Farklı bir tarih seçebilirsiniz."}
@@ -415,15 +415,15 @@ export default async function AttendancePage({
             return (
               <article
                 key={session.id}
-                className={`rounded-2xl border bg-white p-5 shadow-sm ${
+                className={`rounded-2xl border bg-panel p-5 shadow-sm ${
                   session.cancelled_at
-                    ? "border-rose-200 bg-rose-50/30"
-                    : "border-brand-100"
+                    ? "border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10/30"
+                    : "border-line"
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-bold text-honey-700">
+                    <p className="text-sm font-bold text-honey-700 dark:text-honey-500">
                       {formatTime(
                         session.starts_at,
                       )}{" "}
@@ -438,7 +438,7 @@ export default async function AttendancePage({
                         "Ders bilgisi yok"}
                     </h3>
 
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-muted">
                       {session.class_group?.name ??
                         "Program bilgisi yok"}
                     </p>
@@ -450,8 +450,8 @@ export default async function AttendancePage({
                 </div>
 
                 <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-xl bg-brand-50 p-3">
-                    <dt className="text-gray-500">
+                  <div className="rounded-xl bg-fill p-3">
+                    <dt className="text-muted">
                       Öğretmen
                     </dt>
                     <dd className="mt-1 font-semibold">
@@ -461,8 +461,8 @@ export default async function AttendancePage({
                     </dd>
                   </div>
 
-                  <div className="rounded-xl bg-brand-50 p-3">
-                    <dt className="text-gray-500">
+                  <div className="rounded-xl bg-fill p-3">
+                    <dt className="text-muted">
                       Derslik
                     </dt>
                     <dd className="mt-1 font-semibold">
@@ -471,8 +471,8 @@ export default async function AttendancePage({
                     </dd>
                   </div>
 
-                  <div className="rounded-xl bg-brand-50 p-3">
-                    <dt className="text-gray-500">
+                  <div className="rounded-xl bg-fill p-3">
+                    <dt className="text-muted">
                       Kalıcı öğrenci
                     </dt>
                     <dd className="mt-1 font-semibold">
@@ -480,8 +480,8 @@ export default async function AttendancePage({
                     </dd>
                   </div>
 
-                  <div className="rounded-xl bg-brand-50 p-3">
-                    <dt className="text-gray-500">
+                  <div className="rounded-xl bg-fill p-3">
+                    <dt className="text-muted">
                       Öğretmen onayı
                     </dt>
                     <dd className="mt-1 font-semibold">
@@ -494,7 +494,7 @@ export default async function AttendancePage({
 
                 {session.cancelled_at &&
                   session.cancellation_reason && (
-                    <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                    <div className="mt-4 rounded-xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-400">
                       İptal nedeni:{" "}
                       {
                         session.cancellation_reason
@@ -505,7 +505,7 @@ export default async function AttendancePage({
                 <button
                   type="button"
                   disabled
-                  className="mt-5 w-full rounded-xl bg-brand-50 px-4 py-3 text-sm font-semibold text-gray-500"
+                  className="mt-5 w-full rounded-xl bg-fill px-4 py-3 text-sm font-semibold text-muted"
                 >
                   Yoklama girişi sonraki pakette
                   açılacak
@@ -527,8 +527,8 @@ function SummaryCard({
   value: number;
 }) {
   return (
-    <div className="rounded-2xl border border-brand-100 bg-white p-4 shadow-sm">
-      <p className="text-sm text-gray-500">
+    <div className="rounded-2xl border border-line bg-panel p-4 shadow-sm">
+      <p className="text-sm text-muted">
         {label}
       </p>
 
@@ -546,7 +546,7 @@ function SessionBadge({
 }) {
   if (session.cancelled_at) {
     return (
-      <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-800">
+      <span className="rounded-full bg-rose-100 dark:bg-rose-500/15 px-3 py-1 text-xs font-bold text-rose-800 dark:text-rose-400">
         İptal
       </span>
     );
@@ -554,14 +554,14 @@ function SessionBadge({
 
   if (session.is_makeup) {
     return (
-      <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">
+      <span className="rounded-full bg-blue-100 dark:bg-blue-500/15 px-3 py-1 text-xs font-bold text-blue-800 dark:text-blue-400">
         TELAFİ
       </span>
     );
   }
 
   return (
-    <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+    <span className="rounded-full bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-800 dark:text-emerald-400">
       Planlandı
     </span>
   );

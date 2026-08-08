@@ -232,14 +232,14 @@ export function StudentEnrollmentManagement({
   }
 
   return (
-    <section className="mt-8 rounded-2xl border border-brand-100 bg-white p-6 shadow-sm">
+    <section className="mt-8 rounded-2xl border border-line bg-panel p-6 shadow-sm">
       <div className="flex flex-col gap-4 border-b border-brand-50 pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-bold">
             Ders kayıtları
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted">
             Öğrencinin ders, seans, ücret ve MEB kayıt durumlarını yönetin.
           </p>
         </div>
@@ -254,7 +254,7 @@ export function StudentEnrollmentManagement({
                     !current,
                 )
               }
-              className="rounded-xl bg-terra-700 px-4 py-3 text-sm font-semibold text-white"
+              className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white"
             >
               {formOpen
                 ? "Formu kapat"
@@ -264,7 +264,7 @@ export function StudentEnrollmentManagement({
       </div>
 
       {enrollments.length === 0 ? (
-        <div className="mt-5 rounded-xl bg-brand-50 p-6 text-center text-sm text-gray-500">
+        <div className="mt-5 rounded-xl bg-fill p-6 text-center text-sm text-muted">
           Öğrencinin henüz bir ders kaydı bulunmuyor.
         </div>
       ) : (
@@ -273,7 +273,7 @@ export function StudentEnrollmentManagement({
             (enrollment) => (
               <article
                 key={enrollment.id}
-                className="rounded-2xl border border-brand-100 p-5"
+                className="rounded-2xl border border-line p-5"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -283,7 +283,7 @@ export function StudentEnrollmentManagement({
                       }
                     </h3>
 
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-muted">
                       {
                         enrollment.groupName
                       }
@@ -359,7 +359,7 @@ export function StudentEnrollmentManagement({
 
                     {enrollment
                       .mebNonRegistrationReason && (
-                      <span className="text-xs text-rose-700">
+                      <span className="text-xs text-rose-700 dark:text-rose-400">
                         {
                           enrollment
                             .mebNonRegistrationReason
@@ -368,7 +368,7 @@ export function StudentEnrollmentManagement({
                     )}
                   </div>
 
-                  <details className="mt-4 rounded-xl bg-brand-50">
+                  <details className="mt-4 rounded-xl bg-fill">
                     <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">
                       MEB kaydını güncelle
                     </summary>
@@ -377,7 +377,7 @@ export function StudentEnrollmentManagement({
                       action={
                         updateEnrollmentMeb
                       }
-                      className="grid gap-4 border-t border-brand-100 p-4 md:grid-cols-2"
+                      className="grid gap-4 border-t border-line p-4 md:grid-cols-2"
                     >
                       <input
                         type="hidden"
@@ -453,7 +453,7 @@ export function StudentEnrollmentManagement({
                       <div className="md:col-span-2 flex justify-end">
                         <button
                           type="submit"
-                          className="rounded-xl bg-terra-700 px-4 py-3 text-sm font-semibold text-white"
+                          className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white"
                         >
                           MEB durumunu kaydet
                         </button>
@@ -470,7 +470,7 @@ export function StudentEnrollmentManagement({
       {formOpen && !isArchived && (
         <form
           action={formAction}
-          className="mt-7 rounded-2xl border border-brand-100 bg-brand-50 p-5"
+          className="mt-7 rounded-2xl border border-line bg-fill p-5"
         >
           <input
             type="hidden"
@@ -483,7 +483,7 @@ export function StudentEnrollmentManagement({
           </h3>
 
           {state.error && (
-            <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+            <div className="mt-4 rounded-xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
               {state.error}
             </div>
           )}
@@ -491,7 +491,7 @@ export function StudentEnrollmentManagement({
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <label className="block text-sm font-medium">
               Ders
-              <span className="ml-1 text-rose-600">
+              <span className="ml-1 text-rose-600 dark:text-rose-400">
                 *
               </span>
 
@@ -504,7 +504,7 @@ export function StudentEnrollmentManagement({
                     event.target.value,
                   )
                 }
-                className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
+                className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
               >
                 {courses.map(
                   (course) => (
@@ -519,7 +519,7 @@ export function StudentEnrollmentManagement({
               </select>
 
               {selectedCourse && (
-                <span className="mt-2 block text-xs text-gray-500">
+                <span className="mt-2 block text-xs text-muted">
                   Dersin genel MEB durumu:{" "}
                   {translateCourseMebStatus(
                     selectedCourse.mebStatus,
@@ -530,7 +530,7 @@ export function StudentEnrollmentManagement({
 
             <label className="block text-sm font-medium">
               Ders seansı
-              <span className="ml-1 text-rose-600">
+              <span className="ml-1 text-rose-600 dark:text-rose-400">
                 *
               </span>
 
@@ -546,7 +546,7 @@ export function StudentEnrollmentManagement({
                     event.target.value,
                   )
                 }
-                className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
+                className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
               >
                 <option value="">
                   Seans seçin
@@ -635,7 +635,7 @@ export function StudentEnrollmentManagement({
                     event.target.value,
                   )
                 }
-                className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
+                className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
               >
                 <option value="none">
                   İndirim yok
@@ -695,12 +695,12 @@ export function StudentEnrollmentManagement({
               }
             />
 
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-              <p className="text-xs font-semibold uppercase text-emerald-700">
+            <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 p-4">
+              <p className="text-xs font-semibold uppercase text-emerald-700 dark:text-emerald-400">
                 Net aylık ücret
               </p>
 
-              <p className="mt-1 text-xl font-bold text-emerald-900">
+              <p className="mt-1 text-xl font-bold text-emerald-900 dark:text-emerald-300">
                 {formatMoney(
                   netMonthlyFee,
                 )}
@@ -722,12 +722,12 @@ export function StudentEnrollmentManagement({
             </div>
           </div>
 
-          <div className="mt-7 border-t border-brand-100 pt-6">
+          <div className="mt-7 border-t border-line pt-6">
             <h4 className="font-bold">
               Öğrencinin bu dersteki MEB durumu
             </h4>
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-muted">
               Bu bilgi öğrencinin genel profiline değil, seçilen ders kaydına aittir.
             </p>
 
@@ -746,7 +746,7 @@ export function StudentEnrollmentManagement({
                       event.target.value,
                     )
                   }
-                  className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
+                  className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
                 >
                   {mebStatusOptions.map(
                     ([value, label]) => (
@@ -846,7 +846,7 @@ export function StudentEnrollmentManagement({
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+              className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
             >
               {isPending
                 ? "Ders kaydı oluşturuluyor..."
@@ -892,7 +892,7 @@ function ControlledField({
       {label}
 
       {required && (
-        <span className="ml-1 text-rose-600">
+        <span className="ml-1 text-rose-600 dark:text-rose-400">
           *
         </span>
       )}
@@ -911,11 +911,11 @@ function ControlledField({
             event.target.value,
           )
         }
-        className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm read-only:bg-brand-50"
+        className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm read-only:bg-fill"
       />
 
       {helperText && (
-        <span className="mt-2 block text-xs text-gray-500">
+        <span className="mt-2 block text-xs text-muted">
           {helperText}
         </span>
       )}
@@ -942,7 +942,7 @@ function Field({
         name={name}
         type={type}
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
+        className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
       />
     </label>
   );
@@ -960,7 +960,7 @@ function SelectMebStatus({
       <select
         name="mebStatus"
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
+        className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
       >
         {mebStatusOptions.map(
           ([value, label]) => (
@@ -988,7 +988,7 @@ function Info({
 }) {
   return (
     <div>
-      <dt className="text-gray-500">
+      <dt className="text-muted">
         {label}
       </dt>
 
@@ -1020,7 +1020,7 @@ function EnrollmentStatusBadge({
           : "İptal edildi";
 
   return (
-    <span className="rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+    <span className="rounded-full bg-fill px-3 py-1 text-xs font-semibold text-brand-700">
       {label}
     </span>
   );
@@ -1033,7 +1033,7 @@ function MebBadge({
 }) {
   if (status === "registered") {
     return (
-      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+      <span className="rounded-full bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-800 dark:text-emerald-400">
         Öğrenci MEB kayıtlı
       </span>
     );
@@ -1044,14 +1044,14 @@ function MebBadge({
     status === "unchecked"
   ) {
     return (
-      <span className="rounded-full bg-honey-100 px-3 py-1 text-xs font-bold text-honey-700">
+      <span className="rounded-full bg-honey-100 dark:bg-honey-500/15 px-3 py-1 text-xs font-bold text-honey-700 dark:text-honey-500">
         MEB kontrolü gerekli
       </span>
     );
   }
 
   return (
-    <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-800">
+    <span className="rounded-full bg-rose-100 dark:bg-rose-500/15 px-3 py-1 text-xs font-bold text-rose-800 dark:text-rose-400">
       MEB defterine ekleme
     </span>
   );

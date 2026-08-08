@@ -66,7 +66,7 @@ export default async function CoursesPage({
         action={
           <Link
             href="/dersler/yeni"
-            className="rounded-xl bg-terra-700 px-4 py-3 text-sm font-semibold text-white"
+            className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white"
           >
             + Ders ekle
           </Link>
@@ -74,36 +74,36 @@ export default async function CoursesPage({
       />
 
       {messages.success && (
-        <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+        <div className="mb-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
           {messages.success}
         </div>
       )}
 
       {messages.error && (
-        <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
           {messages.error}
         </div>
       )}
 
       {error && (
-        <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
           Ders kayıtları alınamadı.
         </div>
       )}
 
       {courses.length === 0 ? (
-        <div className="rounded-2xl border border-brand-100 bg-white px-6 py-16 text-center shadow-sm">
+        <div className="rounded-2xl border border-line bg-panel px-6 py-16 text-center shadow-sm">
           <h2 className="text-lg font-bold">
             Henüz ders tanımı yok
           </h2>
 
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-muted">
             İlk olarak piyano, resim veya drama gibi kurum derslerini oluşturun.
           </p>
 
           <Link
             href="/dersler/yeni"
-            className="mt-6 inline-block rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white"
+            className="mt-6 inline-block rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white"
           >
             İlk dersi oluştur
           </Link>
@@ -113,10 +113,10 @@ export default async function CoursesPage({
           {courses.map((course) => (
             <article
               key={course.id}
-              className={`rounded-2xl border bg-white p-5 shadow-sm ${
+              className={`rounded-2xl border bg-panel p-5 shadow-sm ${
                 course.is_active
-                  ? "border-brand-100"
-                  : "border-brand-100 opacity-65"
+                  ? "border-line"
+                  : "border-line opacity-65"
               }`}
             >
               <div className="flex items-start justify-between gap-4">
@@ -128,7 +128,7 @@ export default async function CoursesPage({
                     {course.name}
                   </Link>
 
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-sm text-muted">
                     {course.code ||
                       "Ders kodu yok"}
                   </p>
@@ -137,8 +137,8 @@ export default async function CoursesPage({
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold ${
                     course.is_active
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "bg-brand-50 text-gray-600"
+                      ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                      : "bg-fill text-muted"
                   }`}
                 >
                   {course.is_active
@@ -149,7 +149,7 @@ export default async function CoursesPage({
 
               <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <dt className="text-gray-500">
+                  <dt className="text-muted">
                     Ders türü
                   </dt>
 
@@ -162,7 +162,7 @@ export default async function CoursesPage({
                 </div>
 
                 <div>
-                  <dt className="text-gray-500">
+                  <dt className="text-muted">
                     Ders süresi
                   </dt>
 
@@ -175,7 +175,7 @@ export default async function CoursesPage({
                 </div>
 
                 <div className="col-span-2">
-                  <dt className="text-gray-500">
+                  <dt className="text-muted">
                     Varsayılan aylık ücret
                   </dt>
 
@@ -192,7 +192,7 @@ export default async function CoursesPage({
               <div className="mt-5 flex flex-wrap gap-2 border-t border-brand-50 pt-4">
                 <Link
                   href={`/dersler/${course.id}`}
-                  className="rounded-lg border border-brand-100 px-3 py-2 text-xs font-semibold text-brand-700"
+                  className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-brand-700"
                 >
                   Düzenle
                 </Link>
@@ -218,8 +218,8 @@ export default async function CoursesPage({
                     type="submit"
                     className={`rounded-lg border px-3 py-2 text-xs font-semibold ${
                       course.is_active
-                        ? "border-rose-200 bg-rose-50 text-rose-700"
-                        : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        ? "border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400"
+                        : "border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                     }`}
                   >
                     {course.is_active

@@ -75,7 +75,7 @@ export default async function NewClassGroupPage() {
       />
 
       {courses.length === 0 ? (
-        <div className="rounded-2xl border border-honey-100 bg-honey-50 p-5 text-sm text-honey-700">
+        <div className="rounded-2xl border border-honey-100 bg-honey-50 dark:bg-honey-500/10 p-5 text-sm text-honey-700 dark:text-honey-500">
           Seans oluşturabilmek için önce aktif bir ders tanımı oluşturmalısınız.
         </div>
       ) : (

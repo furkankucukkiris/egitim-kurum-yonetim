@@ -140,13 +140,13 @@ export default async function TeachersPage({
       />
 
       {messages.success && (
-        <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+        <div className="mb-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
           {messages.success}
         </div>
       )}
 
       {messages.error && (
-        <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
           {messages.error}
         </div>
       )}
@@ -154,8 +154,8 @@ export default async function TeachersPage({
       <TeacherAccountForm />
 
       {teachers.length === 0 ? (
-        <div className="rounded-2xl border border-brand-100 bg-white px-6 py-16 text-center shadow-sm">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand-50 text-2xl">
+        <div className="rounded-2xl border border-line bg-panel px-6 py-16 text-center shadow-sm">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-fill text-2xl">
             ◇
           </div>
 
@@ -163,7 +163,7 @@ export default async function TeachersPage({
             Henüz öğretmen hesabı yok
           </h2>
 
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
             Yukarıdaki formdan ilk öğretmen
             hesabını oluşturabilirsiniz.
           </p>
@@ -225,10 +225,10 @@ export default async function TeachersPage({
             return (
               <article
                 key={teacher.id}
-                className={`rounded-2xl border bg-white p-5 shadow-sm ${
+                className={`rounded-2xl border bg-panel p-5 shadow-sm ${
                   teacher.is_active
-                    ? "border-brand-100"
-                    : "border-brand-100 opacity-65"
+                    ? "border-line"
+                    : "border-line opacity-65"
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -244,7 +244,7 @@ export default async function TeachersPage({
                         {teacher.full_name}
                       </h3>
 
-                      <p className="mt-1 truncate text-sm text-gray-500">
+                      <p className="mt-1 truncate text-sm text-muted">
                         {teacher.email ??
                           "E-posta tanımlı değil"}
                       </p>
@@ -254,8 +254,8 @@ export default async function TeachersPage({
                   <span
                     className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
                       teacher.is_active
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-brand-50 text-gray-600"
+                        ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                        : "bg-fill text-muted"
                     }`}
                   >
                     {teacher.is_active
@@ -265,15 +265,15 @@ export default async function TeachersPage({
                 </div>
 
                 {teacher.must_change_password && (
-                  <div className="mt-4 rounded-xl border border-honey-100 bg-honey-50 px-3 py-2 text-xs font-semibold text-honey-700">
+                  <div className="mt-4 rounded-xl border border-honey-100 bg-honey-50 dark:bg-honey-500/10 px-3 py-2 text-xs font-semibold text-honey-700 dark:text-honey-500">
                     İlk giriş ve parola belirleme
                     bekleniyor
                   </div>
                 )}
 
                 <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-xl bg-brand-50 p-3">
-                    <dt className="text-gray-500">
+                  <div className="rounded-xl bg-fill p-3">
+                    <dt className="text-muted">
                       Aktif öğrenci
                     </dt>
                     <dd className="mt-1 text-lg font-bold">
@@ -281,8 +281,8 @@ export default async function TeachersPage({
                     </dd>
                   </div>
 
-                  <div className="rounded-xl bg-brand-50 p-3">
-                    <dt className="text-gray-500">
+                  <div className="rounded-xl bg-fill p-3">
+                    <dt className="text-muted">
                       Aktif seans
                     </dt>
                     <dd className="mt-1 text-lg font-bold">
@@ -290,8 +290,8 @@ export default async function TeachersPage({
                     </dd>
                   </div>
 
-                  <div className="col-span-2 rounded-xl bg-brand-50 p-3">
-                    <dt className="text-gray-500">
+                  <div className="col-span-2 rounded-xl bg-fill p-3">
+                    <dt className="text-muted">
                       Dersler
                     </dt>
                     <dd className="mt-1 font-semibold">
@@ -302,8 +302,8 @@ export default async function TeachersPage({
                   </div>
 
                   {teacher.phone && (
-                    <div className="col-span-2 rounded-xl bg-brand-50 p-3">
-                      <dt className="text-gray-500">
+                    <div className="col-span-2 rounded-xl bg-fill p-3">
+                      <dt className="text-muted">
                         Telefon
                       </dt>
                       <dd className="mt-1 font-semibold">

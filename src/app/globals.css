@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-brand-50: #E7EFF8;
   --color-brand-100: #C4D8ED;
@@ -17,11 +19,34 @@
   --color-honey-100: #FDE5B4;
   --color-honey-500: #FAB933;
   --color-honey-700: #956604;
+
+  /* semantic surface tokens — repointed per-theme below */
+  --color-surface: var(--surface);
+  --color-panel: var(--panel);
+  --color-fill: var(--fill);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+
+  --shadow-elevated: 0 1px 2px rgb(11 22 35 / 0.04), 0 8px 24px -12px rgb(11 22 35 / 0.16);
 }
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --surface: #F8FAFC;
+  --panel: #FFFFFF;
+  --fill: #E7EFF8;
+  --line: #C4D8ED;
+  --ink: #0B1623;
+  --muted: #64748B;
+}
+
+:root.dark {
+  --surface: #0B1623;
+  --panel: #132540;
+  --fill: #1B2E47;
+  --line: #26405F;
+  --ink: #F1F5F9;
+  --muted: #94A3B8;
 }
 
 * {
@@ -29,13 +54,18 @@
 }
 
 html {
-  background: var(--background);
+  background-color: var(--surface);
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
   margin: 0;
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--surface);
+  color: var(--ink);
   font-family: Arial, Helvetica, sans-serif;
 }
 

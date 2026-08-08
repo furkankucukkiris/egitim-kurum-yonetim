@@ -7,6 +7,7 @@ import { logout } from "@/app/auth/actions";
 import type { AppRole } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type NavigationItem = {
   href: string;
@@ -86,6 +87,12 @@ const navigation: NavigationItem[] = [
     icon: "M",
     roles: ["admin"],
   },
+  {
+    href: "/kurum-ayarlari",
+    label: "Kurum Ayarları",
+    icon: "⚙",
+    roles: ["admin"],
+  },
 ];
 
 const roleLabels: Record<AppRole, string> = {
@@ -98,6 +105,7 @@ const roleLabels: Record<AppRole, string> = {
 type AppShellProps = {
   children: ReactNode;
   institution: string;
+  institutionLogoUrl: string | null;
   userName: string;
   userRole: AppRole;
 };
@@ -105,6 +113,7 @@ type AppShellProps = {
 export function AppShell({
   children,
   institution,
+  institutionLogoUrl,
   userName,
   userRole,
 }: AppShellProps) {
@@ -116,15 +125,17 @@ export function AppShell({
   );
 
   return (
-    <div className="min-h-screen bg-brand-50/40 text-brand-900">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-brand-900 bg-brand-900 text-white lg:flex lg:flex-col">
-        <Brand institution={institution} />
+    <div className="min-h-screen bg-surface text-ink">
+      <aside className="print:hidden fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-black/20 bg-brand-900 text-white lg:flex lg:flex-col">
+        <Brand institution={institution} logoUrl={institutionLogoUrl} />
 
         <Navigation
           items={visibleNavigation}
           pathname={pathname}
           onSelect={() => undefined}
         />
+
+        <AppearanceSection />
 
         <AccountSection
           userName={userName}
@@ -137,18 +148,20 @@ export function AppShell({
           <button
             type="button"
             aria-label="Menüyü kapat"
-            className="absolute inset-0 bg-brand-900/55"
+            className="absolute inset-0 bg-black/50"
             onClick={() => setOpen(false)}
           />
 
           <aside className="relative flex h-full w-[85%] max-w-80 flex-col bg-brand-900 text-white shadow-2xl">
-            <Brand institution={institution} />
+            <Brand institution={institution} logoUrl={institutionLogoUrl} />
 
             <Navigation
               items={visibleNavigation}
               pathname={pathname}
               onSelect={() => setOpen(false)}
             />
+
+            <AppearanceSection />
 
             <AccountSection
               userName={userName}
@@ -158,17 +171,17 @@ export function AppShell({
         </div>
       )}
 
-      <div className="lg:pl-72">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-brand-100 bg-white/95 px-4 backdrop-blur md:px-8">
+      <div className="lg:pl-72 print:pl-0">
+        <header className="print:hidden sticky top-0 z-30 flex h-16 items-center justify-between border-b border-line bg-panel/95 px-4 backdrop-blur md:px-8">
           <button
             type="button"
-            className="rounded-lg border border-brand-200 px-3 py-2 text-sm text-brand-700 lg:hidden"
+            className="rounded-lg border border-line bg-panel px-3 py-2 text-sm font-medium text-ink transition hover:bg-fill lg:hidden"
             onClick={() => setOpen(true)}
           >
             Menü
           </button>
 
-          <div className="hidden text-sm text-brand-500 sm:block">
+          <div className="hidden text-sm text-muted sm:block">
             Kurum Yönetim Sistemi
           </div>
 
@@ -177,7 +190,7 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="p-4 md:p-8">{children}</main>
+        <main className="p-4 md:p-8 print:p-0">{children}</main>
       </div>
     </div>
   );
@@ -185,14 +198,25 @@ export function AppShell({
 
 function Brand({
   institution,
+  logoUrl,
 }: {
   institution: string;
+  logoUrl: string | null;
 }) {
   return (
     <div className="border-b border-white/10 p-6">
-      <div className="mb-3 grid h-11 w-11 place-items-center rounded-2xl bg-honey-500 font-black text-brand-900">
-        ŞS
-      </div>
+      {logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={logoUrl}
+          alt={institution}
+          className="mb-3 h-11 w-11 rounded-2xl object-cover"
+        />
+      ) : (
+        <div className="mb-3 grid h-11 w-11 place-items-center rounded-2xl bg-honey-500 font-black text-brand-900">
+          {getInitials(institution)}
+        </div>
+      )}
 
       <p className="text-xs uppercase tracking-[0.2em] text-brand-200">
         Yönetim Paneli
@@ -203,6 +227,20 @@ function Brand({
       </h1>
     </div>
   );
+}
+
+function getInitials(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+
+  if (words.length === 0) {
+    return "?";
+  }
+
+  if (words.length === 1) {
+    return words[0].slice(0, 2).toLocaleUpperCase("tr-TR");
+  }
+
+  return `${words[0][0]}${words[words.length - 1][0]}`.toLocaleUpperCase("tr-TR");
 }
 
 function Navigation({
@@ -230,7 +268,7 @@ function Navigation({
             className={cn(
               "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition",
               active
-                ? "bg-honey-500 text-brand-900"
+                ? "bg-honey-500 text-brand-900 shadow-sm shadow-honey-500/30"
                 : "text-brand-100 hover:bg-white/10 hover:text-white",
             )}
           >
@@ -243,6 +281,18 @@ function Navigation({
         );
       })}
     </nav>
+  );
+}
+
+function AppearanceSection() {
+  return (
+    <div className="border-t border-white/10 px-5 py-4">
+      <p className="mb-2.5 text-xs font-medium uppercase tracking-[0.15em] text-brand-200">
+        Görünüm
+      </p>
+
+      <ThemeToggle />
+    </div>
   );
 }
 

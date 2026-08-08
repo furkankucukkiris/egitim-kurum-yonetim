@@ -243,7 +243,7 @@ export default async function StudentDetailPage({
           description="Öğrenci kaydına bağlı birincil veli bulunamadı."
         />
 
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
+        <div className="rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-5 text-sm text-rose-700 dark:text-rose-400">
           Bu öğrencinin veli ilişkisinde
           eksiklik bulunuyor.
         </div>
@@ -430,36 +430,45 @@ export default async function StudentDetailPage({
           statusLabels[student.status]
         }`}
         action={
-          <Link
-            href="/ogrenciler"
-            className="rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
-          >
-            Öğrenci listesine dön
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/ogrenciler/${student.id}/kayit-formu`}
+              className="rounded-xl border border-line bg-panel px-4 py-3 text-sm font-semibold text-brand-700 transition hover:bg-fill dark:text-brand-100"
+            >
+              Kayıt formu
+            </Link>
+
+            <Link
+              href="/ogrenciler"
+              className="rounded-xl border border-line bg-panel px-4 py-3 text-sm font-semibold text-brand-700 transition hover:bg-fill dark:text-brand-100"
+            >
+              Öğrenci listesine dön
+            </Link>
+          </div>
         }
       />
 
       {messages.success && (
-        <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+        <div className="mb-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
           {messages.success}
         </div>
       )}
 
       {messages.error && (
-        <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
           {messages.error}
         </div>
       )}
 
       {student.status ===
         "archived" && (
-        <div className="mb-6 rounded-2xl border border-honey-100 bg-honey-50 p-5">
-          <p className="font-semibold text-honey-700">
+        <div className="mb-6 rounded-2xl border border-honey-100 bg-honey-50 dark:bg-honey-500/10 p-5">
+          <p className="font-semibold text-honey-700 dark:text-honey-500">
             Bu öğrenci arşivlenmiş
             durumda.
           </p>
 
-          <p className="mt-2 text-sm text-honey-700">
+          <p className="mt-2 text-sm text-honey-700 dark:text-honey-500">
             Arşiv tarihi:{" "}
             {student.exit_date
               ? formatDate(
@@ -469,7 +478,7 @@ export default async function StudentDetailPage({
           </p>
 
           {student.exit_reason && (
-            <p className="mt-1 text-sm text-honey-700">
+            <p className="mt-1 text-sm text-honey-700 dark:text-honey-500">
               Neden:{" "}
               {student.exit_reason}
             </p>
@@ -748,7 +757,7 @@ export default async function StudentDetailPage({
 
       {student.status !==
         "archived" && (
-        <div className="mt-8 border-t border-brand-100 pt-8">
+        <div className="mt-8 border-t border-line pt-8">
           <ArchiveStudentForm
             studentId={student.id}
           />

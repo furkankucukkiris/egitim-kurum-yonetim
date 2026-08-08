@@ -31,7 +31,7 @@ export function TeacherAccessControls({
       {state.error && (
         <div
           role="alert"
-          className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+          className="mb-3 rounded-xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-3 text-xs text-rose-700 dark:text-rose-400"
         >
           {state.error}
         </div>
@@ -40,7 +40,7 @@ export function TeacherAccessControls({
       {state.credentials && (
         <div
           role="status"
-          className="mb-3 rounded-xl border border-honey-100 bg-honey-50 p-3 text-xs text-honey-700"
+          className="mb-3 rounded-xl border border-honey-100 bg-honey-50 dark:bg-honey-500/10 p-3 text-xs text-honey-700 dark:text-honey-500"
         >
           <p className="font-bold">
             Yeni geçici giriş bilgileri
@@ -54,7 +54,7 @@ export function TeacherAccessControls({
                 .temporaryPassword
             }
           </p>
-          <p className="mt-2 leading-5 text-honey-700">
+          <p className="mt-2 leading-5 text-honey-700 dark:text-honey-500">
             Parola bu sayfadan ayrıldıktan sonra
             tekrar gösterilmez.
           </p>
@@ -81,8 +81,8 @@ export function TeacherAccessControls({
             type="submit"
             className={`rounded-lg border px-3 py-2 text-xs font-semibold ${
               isActive
-                ? "border-rose-200 bg-rose-50 text-rose-700"
-                : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                ? "border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400"
+                : "border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
             }`}
           >
             {isActive
@@ -101,7 +101,7 @@ export function TeacherAccessControls({
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-lg border border-brand-100 bg-white px-3 py-2 text-xs font-semibold text-brand-700 disabled:opacity-60"
+            className="rounded-lg border border-line bg-panel px-3 py-2 text-xs font-semibold text-brand-700 disabled:opacity-60"
           >
             {isPending
               ? "Yenileniyor..."

@@ -13,7 +13,9 @@ export async function createStudent(
   _previousState: CreateStudentState,
   formData: FormData,
 ): Promise<CreateStudentState> {
-  await requireRole(["admin", "finance"]);
+  const profile = await requireRole(["admin", "finance"]);
+
+  const studentPhoto = formData.get("studentPhoto");
 
   const studentIdentityNumber = normalizeIdentityNumber(
     readText(formData, "studentIdentityNumber"),
@@ -160,7 +162,7 @@ export async function createStudent(
 
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc(
+  const { data: studentId, error } = await supabase.rpc(
     "create_student_with_guardian",
     {
       p_student_identity_number:
@@ -217,13 +219,30 @@ export async function createStudent(
     };
   }
 
+  if (studentPhoto instanceof File && studentPhoto.size > 0 && studentId) {
+    const path = `${profile.organizationId}/${studentId}/photo.png`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("student-photos")
+      .upload(path, studentPhoto, { upsert: true, contentType: "image/png" });
+
+    if (uploadError) {
+      console.error("Öğrenci fotoğrafı yüklenemedi:", uploadError);
+    } else {
+      const { error: linkError } = await supabase.rpc("set_student_photo", {
+        p_student_id: studentId,
+        p_photo_path: path,
+      });
+
+      if (linkError) {
+        console.error("Öğrenci fotoğrafı kaydına bağlanamadı:", linkError);
+      }
+    }
+  }
+
   revalidatePath("/ogrenciler");
 
-  redirect(
-    `/ogrenciler?success=${encodeURIComponent(
-      "Öğrenci ve veli kaydı başarıyla oluşturuldu.",
-    )}`,
-  );
+  redirect(`/ogrenciler/${studentId}/kayit-formu?created=true`);
 }
 
 function readText(

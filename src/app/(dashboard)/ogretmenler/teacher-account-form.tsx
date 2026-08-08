@@ -20,13 +20,13 @@ export function TeacherAccountForm() {
     );
 
   return (
-    <section className="mb-6 rounded-2xl border border-brand-100 bg-white p-5 shadow-sm md:p-6">
+    <section className="mb-6 rounded-2xl border border-line bg-panel p-5 shadow-sm md:p-6">
       <div className="max-w-2xl">
         <h2 className="text-lg font-bold">
           Yeni öğretmen hesabı
         </h2>
 
-        <p className="mt-1 text-sm leading-6 text-gray-500">
+        <p className="mt-1 text-sm leading-6 text-muted">
           Öğretmen geçici bilgilerle giriş yapar ve
           ilk girişte kendi parolasını belirler.
         </p>
@@ -35,33 +35,33 @@ export function TeacherAccountForm() {
       {state.credentials && (
         <div
           role="status"
-          className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4"
+          className="mt-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 p-4"
         >
-          <p className="font-bold text-emerald-900">
+          <p className="font-bold text-emerald-900 dark:text-emerald-300">
             Öğretmen hesabı oluşturuldu
           </p>
 
-          <p className="mt-1 text-sm leading-6 text-emerald-800">
+          <p className="mt-1 text-sm leading-6 text-emerald-800 dark:text-emerald-400">
             Bu geçici bilgileri öğretmene güvenli
             şekilde iletin. Parola bu ekrandan
             ayrıldıktan sonra tekrar gösterilmez.
           </p>
 
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-            <div className="rounded-xl bg-white/80 p-3">
-              <dt className="text-emerald-700">
+            <div className="rounded-xl bg-panel/80 p-3">
+              <dt className="text-emerald-700 dark:text-emerald-400">
                 E-posta
               </dt>
-              <dd className="mt-1 break-all font-mono font-bold text-brand-900">
+              <dd className="mt-1 break-all font-mono font-bold text-ink">
                 {state.credentials.email}
               </dd>
             </div>
 
-            <div className="rounded-xl bg-white/80 p-3">
-              <dt className="text-emerald-700">
+            <div className="rounded-xl bg-panel/80 p-3">
+              <dt className="text-emerald-700 dark:text-emerald-400">
                 Geçici parola
               </dt>
-              <dd className="mt-1 break-all font-mono font-bold text-brand-900">
+              <dd className="mt-1 break-all font-mono font-bold text-ink">
                 {
                   state.credentials
                     .temporaryPassword
@@ -79,7 +79,7 @@ export function TeacherAccountForm() {
         {state.error && (
           <div
             role="alert"
-            className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700 md:col-span-3"
+            className="rounded-xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-400 md:col-span-3"
           >
             {state.error}
           </div>
@@ -87,7 +87,7 @@ export function TeacherAccountForm() {
 
         <label className="block text-sm font-medium">
           Ad soyad
-          <span className="ml-1 text-rose-600">
+          <span className="ml-1 text-rose-600 dark:text-rose-400">
             *
           </span>
 
@@ -96,13 +96,13 @@ export function TeacherAccountForm() {
             required
             minLength={2}
             autoComplete="name"
-            className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400"
+            className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-terra-500"
           />
         </label>
 
         <label className="block text-sm font-medium">
           E-posta
-          <span className="ml-1 text-rose-600">
+          <span className="ml-1 text-rose-600 dark:text-rose-400">
             *
           </span>
 
@@ -111,7 +111,7 @@ export function TeacherAccountForm() {
             type="email"
             required
             autoComplete="email"
-            className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400"
+            className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-terra-500"
           />
         </label>
 
@@ -122,7 +122,7 @@ export function TeacherAccountForm() {
             name="phone"
             type="tel"
             autoComplete="tel"
-            className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400"
+            className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-terra-500"
           />
         </label>
 
@@ -130,7 +130,7 @@ export function TeacherAccountForm() {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90 disabled:opacity-60 md:w-auto"
+            className="w-full rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90 disabled:opacity-60 md:w-auto"
           >
             {isPending
               ? "Hesap oluşturuluyor..."

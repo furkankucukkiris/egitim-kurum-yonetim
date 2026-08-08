@@ -101,7 +101,7 @@ export default async function MebRosterPage({
 
       <form
         method="get"
-        className="mb-6 flex flex-col gap-3 rounded-2xl border border-brand-100 bg-white p-4 sm:flex-row sm:items-end"
+        className="mb-6 flex flex-col gap-3 rounded-2xl border border-line bg-panel p-4 sm:flex-row sm:items-end"
       >
         <label className="block flex-1 text-sm font-medium">
           Kontrol ayı
@@ -110,31 +110,31 @@ export default async function MebRosterPage({
             type="month"
             name="month"
             defaultValue={month}
-            className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm"
+            className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm"
           />
         </label>
 
         <button
           type="submit"
-          className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white"
+          className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white"
         >
           Ayı kontrol et
         </button>
       </form>
 
       {error && (
-        <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
           MEB kontrol listesi alınamadı.
         </div>
       )}
 
       <section>
         <div className="mb-4">
-          <h2 className="text-xl font-bold text-emerald-800">
+          <h2 className="text-xl font-bold text-emerald-800 dark:text-emerald-400">
             MEB yoklama defterine eklenebilir
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted">
             Ders, öğretmen çalışma izni ve öğrencinin ders bazlı MEB kaydı uygun olanlar.
           </p>
         </div>
@@ -153,11 +153,11 @@ export default async function MebRosterPage({
 
       <section className="mt-10">
         <div className="mb-4">
-          <h2 className="text-xl font-bold text-rose-800">
+          <h2 className="text-xl font-bold text-rose-800 dark:text-rose-400">
             Kurum programında var, MEB defterine eklenmemeli
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted">
             Bu öğrenciler gerçek ders programında kalır; ancak eksiklik giderilmeden MEB yoklama listesine alınmamalıdır.
           </p>
         </div>
@@ -185,10 +185,10 @@ function RosterTable({
   included: boolean;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-line bg-panel shadow-sm">
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
-          <thead className="bg-brand-50">
+          <thead className="bg-fill">
             <tr>
               <th className="px-4 py-3">
                 Öğrenci
@@ -217,7 +217,7 @@ function RosterTable({
                   </p>
 
                   {!included && (
-                    <span className="mt-2 inline-block rounded-full bg-rose-100 px-2.5 py-1 text-xs font-bold text-rose-800">
+                    <span className="mt-2 inline-block rounded-full bg-rose-100 dark:bg-rose-500/15 px-2.5 py-1 text-xs font-bold text-rose-800 dark:text-rose-400">
                       MEB defterine ekleme
                     </span>
                   )}
@@ -228,7 +228,7 @@ function RosterTable({
                     {row.course_name}
                   </p>
 
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-muted">
                     {row.class_group_name ??
                       "Seans belirtilmedi"}
 
@@ -263,7 +263,7 @@ function RosterTable({
 
                   {!included &&
                     row.compliance_reason && (
-                      <p className="mt-2 max-w-md text-xs leading-5 text-rose-700">
+                      <p className="mt-2 max-w-md text-xs leading-5 text-rose-700 dark:text-rose-400">
                         {
                           row.compliance_reason
                         }
@@ -271,7 +271,7 @@ function RosterTable({
                     )}
 
                   {row.student_meb_valid_until && (
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="mt-2 text-xs text-muted">
                       Öğrenci MEB bitişi:{" "}
                       {
                         row.student_meb_valid_until
@@ -295,7 +295,7 @@ function StatusBadge({
 }) {
   if (status === "compliant") {
     return (
-      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800">
+      <span className="rounded-full bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-800 dark:text-emerald-400">
         MEB uyumlu
       </span>
     );
@@ -303,14 +303,14 @@ function StatusBadge({
 
   if (status === "pending") {
     return (
-      <span className="rounded-full bg-honey-100 px-3 py-1 text-xs font-bold text-honey-700">
+      <span className="rounded-full bg-honey-100 dark:bg-honey-500/15 px-3 py-1 text-xs font-bold text-honey-700 dark:text-honey-500">
         Kontrol/bekleme gerekli
       </span>
     );
   }
 
   return (
-    <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-bold text-rose-800">
+    <span className="rounded-full bg-rose-100 dark:bg-rose-500/15 px-3 py-1 text-xs font-bold text-rose-800 dark:text-rose-400">
       MEB uygun değil
     </span>
   );
@@ -322,7 +322,7 @@ function EmptyState({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-brand-100 bg-white p-8 text-center text-sm text-gray-500">
+    <div className="rounded-2xl border border-line bg-panel p-8 text-center text-sm text-muted">
       {children}
     </div>
   );

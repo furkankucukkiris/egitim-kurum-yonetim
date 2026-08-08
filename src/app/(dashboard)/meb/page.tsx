@@ -181,7 +181,7 @@ export default async function MebManagementPage({
             Derslerin MEB durumu
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted">
             Ders programının kurumunuz adına MEB sisteminde tanımlı olup olmadığını belirtin.
           </p>
         </div>
@@ -190,7 +190,7 @@ export default async function MebManagementPage({
           <form
             key={course.id}
             action={updateCourseMebInfo}
-            className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm"
+            className="rounded-2xl border border-line bg-panel p-5 shadow-sm"
           >
             <input
               type="hidden"
@@ -272,7 +272,7 @@ export default async function MebManagementPage({
             <div className="mt-4 flex justify-end">
               <button
                 type="submit"
-                className="rounded-xl bg-terra-700 px-4 py-3 text-sm font-semibold text-white"
+                className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white"
               >
                 Ders MEB bilgisini kaydet
               </button>
@@ -287,13 +287,13 @@ export default async function MebManagementPage({
             Öğretmen–ders çalışma izinleri
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted">
             Öğretmenin yalnızca ilgili ders için MEB çalışma izni bulunup bulunmadığını takip edin.
           </p>
         </div>
 
         {teacherCoursePairs.length === 0 ? (
-          <div className="rounded-2xl border border-honey-100 bg-honey-50 p-5 text-sm text-honey-700">
+          <div className="rounded-2xl border border-honey-100 bg-honey-50 dark:bg-honey-500/10 p-5 text-sm text-honey-700 dark:text-honey-500">
             Öğretmen atanmış bir ders seansı bulunmuyor.
           </div>
         ) : (
@@ -309,7 +309,7 @@ export default async function MebManagementPage({
                 action={
                   updateTeacherCourseMeb
                 }
-                className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm"
+                className="rounded-2xl border border-line bg-panel p-5 shadow-sm"
               >
                 <input
                   type="hidden"
@@ -388,7 +388,7 @@ export default async function MebManagementPage({
                 <div className="mt-4 flex justify-end">
                   <button
                     type="submit"
-                    className="rounded-xl bg-terra-700 px-4 py-3 text-sm font-semibold text-white"
+                    className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white"
                   >
                     Öğretmen MEB bilgisini kaydet
                   </button>
@@ -413,8 +413,8 @@ function Message({
     <div
       className={`mb-5 rounded-2xl border p-4 text-sm ${
         type === "success"
-          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-          : "border-rose-200 bg-rose-50 text-rose-700"
+          ? "border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+          : "border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400"
       }`}
     >
       {children}
@@ -438,7 +438,7 @@ function SelectField({
       <select
         name={name}
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
+        className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
       >
         {mebStatusOptions.map(
           ([value, text]) => (
@@ -474,7 +474,7 @@ function Field({
         name={name}
         type={type}
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm"
+        className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm"
       />
     </label>
   );

@@ -162,7 +162,7 @@ export default async function ProgramPage({
         action={
           <Link
             href="/program/yeni"
-            className="rounded-xl bg-terra-700 px-4 py-3 text-sm font-semibold text-white"
+            className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white"
           >
             + Seans ekle
           </Link>
@@ -170,30 +170,30 @@ export default async function ProgramPage({
       />
 
       {messages.success && (
-        <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
+        <div className="mb-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
           {messages.success}
         </div>
       )}
 
       {messages.error && (
-        <div className="mb-5 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
           {messages.error}
         </div>
       )}
 
       {groups.length === 0 ? (
-        <div className="rounded-2xl border border-brand-100 bg-white px-6 py-16 text-center shadow-sm">
+        <div className="rounded-2xl border border-line bg-panel px-6 py-16 text-center shadow-sm">
           <h2 className="text-lg font-bold">
             Henüz ders seansı yok
           </h2>
 
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-muted">
             Haftalık ders günlerini ve saatlerini oluşturarak programı başlatın.
           </p>
 
           <Link
             href="/program/yeni"
-            className="mt-6 inline-block rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white"
+            className="mt-6 inline-block rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white"
           >
             İlk seansı oluştur
           </Link>
@@ -209,10 +209,10 @@ export default async function ProgramPage({
             return (
               <article
                 key={group.id}
-                className={`rounded-2xl border bg-white p-5 shadow-sm ${
+                className={`rounded-2xl border bg-panel p-5 shadow-sm ${
                   group.is_active
-                    ? "border-brand-100"
-                    : "border-brand-100 opacity-60"
+                    ? "border-line"
+                    : "border-line opacity-60"
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -224,7 +224,7 @@ export default async function ProgramPage({
                       {group.name}
                     </Link>
 
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-muted">
                       {group.course?.name ??
                         "Ders bulunamadı"}
                     </p>
@@ -233,8 +233,8 @@ export default async function ProgramPage({
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold ${
                       group.is_active
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-brand-50 text-gray-600"
+                        ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                        : "bg-fill text-muted"
                     }`}
                   >
                     {group.is_active
@@ -245,7 +245,7 @@ export default async function ProgramPage({
 
                 <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <dt className="text-gray-500">
+                    <dt className="text-muted">
                       Gün ve saat
                     </dt>
 
@@ -263,7 +263,7 @@ export default async function ProgramPage({
                   </div>
 
                   <div>
-                    <dt className="text-gray-500">
+                    <dt className="text-muted">
                       Süre
                     </dt>
 
@@ -276,7 +276,7 @@ export default async function ProgramPage({
                   </div>
 
                   <div>
-                    <dt className="text-gray-500">
+                    <dt className="text-muted">
                       Öğretmen
                     </dt>
 
@@ -288,7 +288,7 @@ export default async function ProgramPage({
                   </div>
 
                   <div>
-                    <dt className="text-gray-500">
+                    <dt className="text-muted">
                       Derslik
                     </dt>
 
@@ -299,7 +299,7 @@ export default async function ProgramPage({
                   </div>
 
                   <div>
-                    <dt className="text-gray-500">
+                    <dt className="text-muted">
                       Kontenjan
                     </dt>
 
@@ -310,7 +310,7 @@ export default async function ProgramPage({
                   </div>
 
                   <div>
-                    <dt className="text-gray-500">
+                    <dt className="text-muted">
                       Ders türü
                     </dt>
 
@@ -327,7 +327,7 @@ export default async function ProgramPage({
                 <div className="mt-5 flex gap-2 border-t border-brand-50 pt-4">
                   <Link
                     href={`/program/${group.id}`}
-                    className="rounded-lg border border-brand-100 px-3 py-2 text-xs font-semibold text-brand-700"
+                    className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-brand-700"
                   >
                     Düzenle
                   </Link>
@@ -357,8 +357,8 @@ export default async function ProgramPage({
                       type="submit"
                       className={`rounded-lg border px-3 py-2 text-xs font-semibold ${
                         group.is_active
-                          ? "border-rose-200 bg-rose-50 text-rose-700"
-                          : "border-emerald-200 bg-emerald-50 text-emerald-700"
+                          ? "border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400"
+                          : "border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                       }`}
                     >
                       {group.is_active

@@ -96,18 +96,18 @@ export function StudentEditForm({
       {state.error && (
         <div
           role="alert"
-          className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"
+          className="rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400"
         >
           {state.error}
         </div>
       )}
 
-      <section className="rounded-2xl border border-brand-100 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-line bg-panel p-6 shadow-sm">
         <h2 className="text-lg font-bold">
           Öğrenci bilgileri
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted">
           T.C. kimlik numarası güvenlik nedeniyle bu ekranda gösterilmez.
         </p>
 
@@ -176,12 +176,12 @@ export function StudentEditForm({
                 event.target.value,
               )
             }
-            className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400"
+            className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-terra-500"
           />
         </label>
       </section>
 
-      <section className="rounded-2xl border border-brand-100 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-line bg-panel p-6 shadow-sm">
         <h2 className="text-lg font-bold">
           Birincil veli
         </h2>
@@ -212,7 +212,7 @@ export function StudentEditForm({
                   event.target.value,
                 )
               }
-              className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
+              className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
             >
               <option value="Anne">Anne</option>
               <option value="Baba">Baba</option>
@@ -267,7 +267,7 @@ export function StudentEditForm({
           </div>
         </div>
 
-        <label className="mt-5 flex items-start gap-3 rounded-xl bg-brand-50 p-4">
+        <label className="mt-5 flex items-start gap-3 rounded-xl bg-fill p-4">
           <input
             type="checkbox"
             name="mayReceiveFinancialMessages"
@@ -288,7 +288,7 @@ export function StudentEditForm({
               Finansal mesajları alabilir
             </span>
 
-            <span className="mt-1 block text-xs leading-5 text-gray-500">
+            <span className="mt-1 block text-xs leading-5 text-muted">
               Ödeme hatırlatmaları ve borç bilgilendirmeleri bu veliye gönderilebilir.
             </span>
           </span>
@@ -299,7 +299,7 @@ export function StudentEditForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
         >
           {isPending
             ? "Kaydediliyor..."
@@ -332,7 +332,7 @@ function Field({
       {label}
 
       {required && (
-        <span className="ml-1 text-rose-600">
+        <span className="ml-1 text-rose-600 dark:text-rose-400">
           *
         </span>
       )}
@@ -345,7 +345,7 @@ function Field({
         onChange={(event) =>
           onChange(event.target.value)
         }
-        className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400"
+        className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-terra-500"
       />
     </label>
   );

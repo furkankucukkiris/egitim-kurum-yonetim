@@ -177,13 +177,13 @@ export function ClassGroupForm({
       {state.error && (
         <div
           role="alert"
-          className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"
+          className="rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400"
         >
           {state.error}
         </div>
       )}
 
-      <section className="rounded-2xl border border-brand-100 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-line bg-panel p-6 shadow-sm">
         <h2 className="text-lg font-bold">
           Ders ve seans bilgileri
         </h2>
@@ -192,7 +192,7 @@ export function ClassGroupForm({
           {mode === "create" ? (
             <label className="block text-sm font-medium md:col-span-2">
               Ders
-              <span className="ml-1 text-rose-600">
+              <span className="ml-1 text-rose-600 dark:text-rose-400">
                 *
               </span>
 
@@ -205,7 +205,7 @@ export function ClassGroupForm({
                     event.target.value,
                   )
                 }
-                className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
+                className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
               >
                 {courses.map((course) => (
                   <option
@@ -229,8 +229,8 @@ export function ClassGroupForm({
                 value={group?.courseId}
               />
 
-              <div className="rounded-xl bg-brand-50 p-4 md:col-span-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              <div className="rounded-xl bg-fill p-4 md:col-span-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                   Ders
                 </p>
 
@@ -268,7 +268,7 @@ export function ClassGroupForm({
                   event.target.value,
                 )
               }
-              className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
+              className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
             >
               <option value="">
                 Daha sonra atanacak
@@ -326,7 +326,7 @@ export function ClassGroupForm({
 
           <label className="block text-sm font-medium">
             Ders günü
-            <span className="ml-1 text-rose-600">
+            <span className="ml-1 text-rose-600 dark:text-rose-400">
               *
             </span>
 
@@ -339,7 +339,7 @@ export function ClassGroupForm({
                   event.target.value,
                 )
               }
-              className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
+              className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
             >
               <option value="1">
                 Pazartesi
@@ -432,7 +432,7 @@ export function ClassGroupForm({
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Link
           href="/program"
-          className="rounded-xl border border-brand-100 bg-white px-5 py-3 text-center text-sm font-semibold text-brand-700"
+          className="rounded-xl border border-line bg-panel px-5 py-3 text-center text-sm font-semibold text-brand-700"
         >
           Vazgeç
         </Link>
@@ -440,7 +440,7 @@ export function ClassGroupForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
         >
           {isPending
             ? "Kaydediliyor..."
@@ -489,7 +489,7 @@ function Field({
       {label}
 
       {required && (
-        <span className="ml-1 text-rose-600">
+        <span className="ml-1 text-rose-600 dark:text-rose-400">
           *
         </span>
       )}
@@ -507,11 +507,11 @@ function Field({
         onChange={(event) =>
           onChange(event.target.value)
         }
-        className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400 read-only:bg-brand-50"
+        className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-terra-500 read-only:bg-fill"
       />
 
       {helperText && (
-        <span className="mt-2 block text-xs leading-5 text-gray-500">
+        <span className="mt-2 block text-xs leading-5 text-muted">
           {helperText}
         </span>
       )}

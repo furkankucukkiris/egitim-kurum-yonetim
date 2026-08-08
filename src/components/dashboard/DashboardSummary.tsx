@@ -19,8 +19,8 @@ export function DashboardSummary({ items }: DashboardSummaryProps) {
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
       {items.map((item) => (
         <Card key={item.label} className="p-3.5">
-          <p className="text-xs text-gray-500 mb-1">{item.label}</p>
-          <p className="text-xl font-medium text-brand-900">{item.value}</p>
+          <p className="text-xs text-muted mb-1">{item.label}</p>
+          <p className="text-xl font-medium text-ink">{item.value}</p>
         </Card>
       ))}
     </div>

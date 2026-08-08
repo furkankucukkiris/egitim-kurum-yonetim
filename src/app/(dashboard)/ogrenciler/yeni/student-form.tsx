@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { createStudent } from "./actions";
+import { StudentPhotoField } from "@/components/students/StudentPhotoField";
 
 type CreateStudentState = {
   error: string | null;
@@ -81,21 +82,25 @@ export function StudentForm({
       {state.error && (
         <div
           role="alert"
-          className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-700"
+          className="rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm leading-6 text-rose-700 dark:text-rose-400"
         >
           {state.error}
         </div>
       )}
 
-      <section className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm md:p-7">
+      <section className="rounded-2xl border border-line bg-panel p-5 shadow-sm md:p-7">
         <div className="border-b border-brand-50 pb-4">
           <h2 className="text-lg font-bold">
             Öğrenci bilgileri
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted">
             Öğrencinin kimlik ve kurum kayıt bilgileri.
           </p>
+        </div>
+
+        <div className="mt-5">
+          <StudentPhotoField />
         </div>
 
         <div className="mt-5 grid gap-5 md:grid-cols-2">
@@ -192,18 +197,18 @@ export function StudentForm({
               )
             }
             placeholder="Kayıt sırasında bilinmesi gereken kısa notlar..."
-            className="mt-2 w-full resize-y rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none transition focus:border-gray-400"
+            className="mt-2 w-full resize-y rounded-xl border border-line px-4 py-3 text-sm outline-none transition focus:border-terra-500"
           />
         </label>
       </section>
 
-      <section className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm md:p-7">
+      <section className="rounded-2xl border border-line bg-panel p-5 shadow-sm md:p-7">
         <div className="border-b border-brand-50 pb-4">
           <h2 className="text-lg font-bold">
             Birincil veli bilgileri
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted">
             Ödeme ve kurum iletişiminde öncelikli kullanılacak veli.
           </p>
         </div>
@@ -257,7 +262,7 @@ export function StudentForm({
                   event.target.value,
                 )
               }
-              className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm outline-none transition focus:border-gray-400"
+              className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm outline-none transition focus:border-terra-500"
             >
               <option value="Anne">
                 Anne
@@ -335,7 +340,7 @@ export function StudentForm({
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Link
           href="/ogrenciler"
-          className="rounded-xl border border-brand-100 bg-white px-5 py-3 text-center text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
+          className="rounded-xl border border-line bg-panel px-5 py-3 text-center text-sm font-semibold text-brand-700 transition hover:bg-fill"
         >
           Vazgeç
         </Link>
@@ -343,7 +348,7 @@ export function StudentForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending
             ? "Öğrenci kaydediliyor..."
@@ -395,7 +400,7 @@ function FormField({
       {label}
 
       {required && (
-        <span className="ml-1 text-rose-600">
+        <span className="ml-1 text-rose-600 dark:text-rose-400">
           *
         </span>
       )}
@@ -413,11 +418,11 @@ function FormField({
         inputMode={inputMode}
         maxLength={maxLength}
         pattern={pattern}
-        className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none transition focus:border-gray-400"
+        className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none transition focus:border-terra-500"
       />
 
       {helperText && (
-        <span className="mt-2 block text-xs leading-5 text-gray-500">
+        <span className="mt-2 block text-xs leading-5 text-muted">
           {helperText}
         </span>
       )}

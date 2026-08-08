@@ -88,25 +88,25 @@ export function CourseForm({
       {state.error && (
         <div
           role="alert"
-          className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700"
+          className="rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400"
         >
           {state.error}
         </div>
       )}
 
-      <section className="rounded-2xl border border-brand-100 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-line bg-panel p-6 shadow-sm">
         <h2 className="text-lg font-bold">
           Ders bilgileri
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-muted">
           Öğrencinin özel fiyatı daha sonra ders kaydı sırasında ayrıca belirlenebilecektir.
         </p>
 
         <div className="mt-6 grid gap-5 md:grid-cols-2">
           <label className="block text-sm font-medium">
             Ders adı
-            <span className="ml-1 text-rose-600">
+            <span className="ml-1 text-rose-600 dark:text-rose-400">
               *
             </span>
 
@@ -122,7 +122,7 @@ export function CourseForm({
                 )
               }
               placeholder="Örneğin: Piyano"
-              className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400"
+              className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-terra-500"
             />
           </label>
 
@@ -139,17 +139,17 @@ export function CourseForm({
                 )
               }
               placeholder="Örneğin: PIYANO"
-              className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm uppercase outline-none focus:border-gray-400"
+              className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm uppercase outline-none focus:border-terra-500"
             />
 
-            <span className="mt-2 block text-xs text-gray-500">
+            <span className="mt-2 block text-xs text-muted">
               İsteğe bağlıdır ancak raporlarda kolaylık sağlar.
             </span>
           </label>
 
           <label className="block text-sm font-medium">
             Ders türü
-            <span className="ml-1 text-rose-600">
+            <span className="ml-1 text-rose-600 dark:text-rose-400">
               *
             </span>
 
@@ -162,7 +162,7 @@ export function CourseForm({
                   event.target.value,
                 )
               }
-              className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm outline-none focus:border-gray-400"
+              className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm outline-none focus:border-terra-500"
             >
               <option value="individual">
                 Birebir ders
@@ -176,7 +176,7 @@ export function CourseForm({
 
           <label className="block text-sm font-medium">
             Varsayılan ders süresi
-            <span className="ml-1 text-rose-600">
+            <span className="ml-1 text-rose-600 dark:text-rose-400">
               *
             </span>
 
@@ -194,10 +194,10 @@ export function CourseForm({
                   event.target.value,
                 )
               }
-              className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400"
+              className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-terra-500"
             />
 
-            <span className="mt-2 block text-xs text-gray-500">
+            <span className="mt-2 block text-xs text-muted">
               Dakika olarak girin. Örneğin birebir piyano için 50.
             </span>
           </label>
@@ -205,12 +205,12 @@ export function CourseForm({
           <div className="md:col-span-2">
             <label className="block text-sm font-medium">
               Varsayılan aylık ücret
-              <span className="ml-1 text-rose-600">
+              <span className="ml-1 text-rose-600 dark:text-rose-400">
                 *
               </span>
 
-              <div className="mt-2 flex rounded-xl border border-brand-100 bg-white focus-within:border-gray-400">
-                <span className="grid place-items-center border-r border-brand-100 px-4 text-sm font-semibold text-gray-500">
+              <div className="mt-2 flex rounded-xl border border-line bg-panel focus-within:border-terra-500">
+                <span className="grid place-items-center border-r border-line px-4 text-sm font-semibold text-muted">
                   TL
                 </span>
 
@@ -230,7 +230,7 @@ export function CourseForm({
                 />
               </div>
 
-              <span className="mt-2 block text-xs text-gray-500">
+              <span className="mt-2 block text-xs text-muted">
                 4400 veya 4400,00 biçiminde girin. Binlik ayırıcı kullanmayın.
               </span>
             </label>
@@ -241,7 +241,7 @@ export function CourseForm({
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Link
           href="/dersler"
-          className="rounded-xl border border-brand-100 bg-white px-5 py-3 text-center text-sm font-semibold text-brand-700"
+          className="rounded-xl border border-line bg-panel px-5 py-3 text-center text-sm font-semibold text-brand-700"
         >
           Vazgeç
         </Link>
@@ -249,7 +249,7 @@ export function CourseForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
         >
           {isPending
             ? "Kaydediliyor..."

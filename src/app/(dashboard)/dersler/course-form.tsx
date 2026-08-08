@@ -94,12 +94,12 @@ export function CourseForm({
         </div>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-brand-100 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-bold">
           Ders bilgileri
         </h2>
 
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-gray-500">
           Öğrencinin özel fiyatı daha sonra ders kaydı sırasında ayrıca belirlenebilecektir.
         </p>
 
@@ -122,7 +122,7 @@ export function CourseForm({
                 )
               }
               placeholder="Örneğin: Piyano"
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-slate-400"
+              className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400"
             />
           </label>
 
@@ -139,10 +139,10 @@ export function CourseForm({
                 )
               }
               placeholder="Örneğin: PIYANO"
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm uppercase outline-none focus:border-slate-400"
+              className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm uppercase outline-none focus:border-gray-400"
             />
 
-            <span className="mt-2 block text-xs text-slate-500">
+            <span className="mt-2 block text-xs text-gray-500">
               İsteğe bağlıdır ancak raporlarda kolaylık sağlar.
             </span>
           </label>
@@ -162,7 +162,7 @@ export function CourseForm({
                   event.target.value,
                 )
               }
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-slate-400"
+              className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm outline-none focus:border-gray-400"
             >
               <option value="individual">
                 Birebir ders
@@ -194,10 +194,10 @@ export function CourseForm({
                   event.target.value,
                 )
               }
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-slate-400"
+              className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400"
             />
 
-            <span className="mt-2 block text-xs text-slate-500">
+            <span className="mt-2 block text-xs text-gray-500">
               Dakika olarak girin. Örneğin birebir piyano için 50.
             </span>
           </label>
@@ -209,8 +209,8 @@ export function CourseForm({
                 *
               </span>
 
-              <div className="mt-2 flex rounded-xl border border-slate-200 bg-white focus-within:border-slate-400">
-                <span className="grid place-items-center border-r border-slate-200 px-4 text-sm font-semibold text-slate-500">
+              <div className="mt-2 flex rounded-xl border border-brand-100 bg-white focus-within:border-gray-400">
+                <span className="grid place-items-center border-r border-brand-100 px-4 text-sm font-semibold text-gray-500">
                   TL
                 </span>
 
@@ -230,7 +230,7 @@ export function CourseForm({
                 />
               </div>
 
-              <span className="mt-2 block text-xs text-slate-500">
+              <span className="mt-2 block text-xs text-gray-500">
                 4400 veya 4400,00 biçiminde girin. Binlik ayırıcı kullanmayın.
               </span>
             </label>
@@ -241,7 +241,7 @@ export function CourseForm({
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Link
           href="/dersler"
-          className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-center text-sm font-semibold text-slate-700"
+          className="rounded-xl border border-brand-100 bg-white px-5 py-3 text-center text-sm font-semibold text-brand-700"
         >
           Vazgeç
         </Link>
@@ -249,7 +249,7 @@ export function CourseForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
         >
           {isPending
             ? "Kaydediliyor..."

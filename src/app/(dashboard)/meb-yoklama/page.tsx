@@ -101,7 +101,7 @@ export default async function MebRosterPage({
 
       <form
         method="get"
-        className="mb-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-end"
+        className="mb-6 flex flex-col gap-3 rounded-2xl border border-brand-100 bg-white p-4 sm:flex-row sm:items-end"
       >
         <label className="block flex-1 text-sm font-medium">
           Kontrol ayı
@@ -110,13 +110,13 @@ export default async function MebRosterPage({
             type="month"
             name="month"
             defaultValue={month}
-            className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm"
+            className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm"
           />
         </label>
 
         <button
           type="submit"
-          className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white"
+          className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white"
         >
           Ayı kontrol et
         </button>
@@ -134,7 +134,7 @@ export default async function MebRosterPage({
             MEB yoklama defterine eklenebilir
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             Ders, öğretmen çalışma izni ve öğrencinin ders bazlı MEB kaydı uygun olanlar.
           </p>
         </div>
@@ -157,7 +157,7 @@ export default async function MebRosterPage({
             Kurum programında var, MEB defterine eklenmemeli
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             Bu öğrenciler gerçek ders programında kalır; ancak eksiklik giderilmeden MEB yoklama listesine alınmamalıdır.
           </p>
         </div>
@@ -185,10 +185,10 @@ function RosterTable({
   included: boolean;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
-          <thead className="bg-slate-50">
+          <thead className="bg-brand-50">
             <tr>
               <th className="px-4 py-3">
                 Öğrenci
@@ -208,7 +208,7 @@ function RosterTable({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-brand-50">
             {rows.map((row) => (
               <tr key={row.enrollment_id}>
                 <td className="px-4 py-4">
@@ -228,7 +228,7 @@ function RosterTable({
                     {row.course_name}
                   </p>
 
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-gray-500">
                     {row.class_group_name ??
                       "Seans belirtilmedi"}
 
@@ -271,7 +271,7 @@ function RosterTable({
                     )}
 
                   {row.student_meb_valid_until && (
-                    <p className="mt-2 text-xs text-slate-500">
+                    <p className="mt-2 text-xs text-gray-500">
                       Öğrenci MEB bitişi:{" "}
                       {
                         row.student_meb_valid_until
@@ -303,7 +303,7 @@ function StatusBadge({
 
   if (status === "pending") {
     return (
-      <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
+      <span className="rounded-full bg-honey-100 px-3 py-1 text-xs font-bold text-honey-700">
         Kontrol/bekleme gerekli
       </span>
     );
@@ -322,7 +322,7 @@ function EmptyState({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+    <div className="rounded-2xl border border-brand-100 bg-white p-8 text-center text-sm text-gray-500">
       {children}
     </div>
   );

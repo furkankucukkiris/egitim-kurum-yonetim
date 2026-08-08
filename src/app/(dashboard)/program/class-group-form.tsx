@@ -183,7 +183,7 @@ export function ClassGroupForm({
         </div>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="rounded-2xl border border-brand-100 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-bold">
           Ders ve seans bilgileri
         </h2>
@@ -205,7 +205,7 @@ export function ClassGroupForm({
                     event.target.value,
                   )
                 }
-                className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
+                className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
               >
                 {courses.map((course) => (
                   <option
@@ -229,8 +229,8 @@ export function ClassGroupForm({
                 value={group?.courseId}
               />
 
-              <div className="rounded-xl bg-slate-50 p-4 md:col-span-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <div className="rounded-xl bg-brand-50 p-4 md:col-span-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                   Ders
                 </p>
 
@@ -268,7 +268,7 @@ export function ClassGroupForm({
                   event.target.value,
                 )
               }
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
+              className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
             >
               <option value="">
                 Daha sonra atanacak
@@ -339,7 +339,7 @@ export function ClassGroupForm({
                   event.target.value,
                 )
               }
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm"
+              className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm"
             >
               <option value="1">
                 Pazartesi
@@ -432,7 +432,7 @@ export function ClassGroupForm({
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Link
           href="/program"
-          className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-center text-sm font-semibold text-slate-700"
+          className="rounded-xl border border-brand-100 bg-white px-5 py-3 text-center text-sm font-semibold text-brand-700"
         >
           Vazgeç
         </Link>
@@ -440,7 +440,7 @@ export function ClassGroupForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
         >
           {isPending
             ? "Kaydediliyor..."
@@ -507,11 +507,11 @@ function Field({
         onChange={(event) =>
           onChange(event.target.value)
         }
-        className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-slate-400 read-only:bg-slate-100"
+        className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none focus:border-gray-400 read-only:bg-brand-50"
       />
 
       {helperText && (
-        <span className="mt-2 block text-xs leading-5 text-slate-500">
+        <span className="mt-2 block text-xs leading-5 text-gray-500">
           {helperText}
         </span>
       )}

@@ -47,9 +47,9 @@ const statusLabels: Record<StudentStatus, string> = {
 
 const statusClasses: Record<StudentStatus, string> = {
   active: "bg-emerald-50 text-emerald-700",
-  frozen: "bg-amber-50 text-amber-700",
+  frozen: "bg-honey-50 text-honey-700",
   left: "bg-rose-50 text-rose-700",
-  archived: "bg-slate-100 text-slate-600",
+  archived: "bg-brand-50 text-gray-600",
 };
 
 const validStatuses: StudentStatus[] = [
@@ -142,7 +142,7 @@ export default async function StudentsPage({
         action={
           <Link
             href="/ogrenciler/yeni"
-            className="rounded-xl bg-slate-950 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-800"
+            className="rounded-xl bg-terra-700 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-terra-700/90"
           >
             + Öğrenci ekle
           </Link>
@@ -169,14 +169,14 @@ export default async function StudentsPage({
         <input
           name="q"
           defaultValue={searchText}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+          className="rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm outline-none transition focus:border-gray-400"
           placeholder="Öğrenci veya veli ara..."
         />
 
         <select
           name="status"
           defaultValue={selectedStatus}
-          className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+          className="rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm outline-none transition focus:border-gray-400"
         >
           <option value="">Tüm durumlar</option>
           <option value="active">Aktif</option>
@@ -187,16 +187,16 @@ export default async function StudentsPage({
 
         <button
           type="submit"
-          className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="rounded-xl border border-brand-100 bg-white px-5 py-3 text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
         >
           Filtrele
         </button>
       </form>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
         {students.length === 0 ? (
           <div className="px-6 py-16 text-center">
-            <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-slate-100 text-2xl">
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand-50 text-2xl">
               ◎
             </div>
 
@@ -204,14 +204,14 @@ export default async function StudentsPage({
               Öğrenci kaydı bulunamadı
             </h2>
 
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
               İlk öğrenci kaydınızı oluşturarak gerçek verilerle
               çalışmaya başlayabilirsiniz.
             </p>
 
             <Link
               href="/ogrenciler/yeni"
-              className="mt-6 inline-block rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white"
+              className="mt-6 inline-block rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white"
             >
               İlk öğrenciyi ekle
             </Link>
@@ -219,7 +219,7 @@ export default async function StudentsPage({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <thead className="bg-brand-50 text-xs uppercase tracking-wide text-gray-500">
                 <tr>
                   <th className="px-5 py-3">
                     Öğrenci
@@ -239,7 +239,7 @@ export default async function StudentsPage({
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-brand-50">
                 {students.map((student) => {
                   const primaryGuardian =
                     student.student_guardians.find(
@@ -251,43 +251,43 @@ export default async function StudentsPage({
                   return (
                     <tr
                       key={student.id}
-                      className="hover:bg-slate-50"
+                      className="hover:bg-brand-50"
                     >
                       <td className="px-5 py-4">
                         <Link
                           href={`/ogrenciler/${student.id}`}
-                          className="font-semibold text-slate-950 hover:underline"
+                          className="font-semibold text-brand-900 hover:underline"
                         >
                           {student.first_name}{" "}
                           {student.last_name}
                         </Link>
 
                         {student.birth_date && (
-                          <p className="mt-1 text-xs text-slate-500">
+                          <p className="mt-1 text-xs text-gray-500">
                             Doğum:{" "}
                             {formatDate(student.birth_date)}
                           </p>
                         )}
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-gray-600">
                         <p>
                           {primaryGuardian?.guardian?.full_name ??
                             "Veli bilgisi yok"}
                         </p>
 
                         {primaryGuardian?.relationship && (
-                          <p className="mt-1 text-xs text-slate-400">
+                          <p className="mt-1 text-xs text-gray-400">
                             {primaryGuardian.relationship}
                           </p>
                         )}
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-gray-600">
                         {primaryGuardian?.guardian?.phone ?? "—"}
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-gray-600">
                         {formatDate(student.registration_date)}
                       </td>
 

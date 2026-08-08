@@ -193,7 +193,7 @@ export default async function TeacherPanelPage() {
         action={
           <Link
             href="/meb-yoklama"
-            className="rounded-xl bg-slate-950 px-4 py-3 text-center text-sm font-semibold text-white"
+            className="rounded-xl bg-terra-700 px-4 py-3 text-center text-sm font-semibold text-white"
           >
             Aylık MEB listem
           </Link>
@@ -239,7 +239,7 @@ export default async function TeacherPanelPage() {
             Haftalık programım
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             Ders günleri, saatleri ve kalıcı öğrenci
             sayıları.
           </p>
@@ -255,7 +255,7 @@ export default async function TeacherPanelPage() {
             {groups.map((group) => (
               <article
                 key={group.id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+                className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -263,13 +263,13 @@ export default async function TeacherPanelPage() {
                       {group.name}
                     </h3>
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-gray-500">
                       {group.course?.name ??
                         "Ders bilgisi yok"}
                     </p>
                   </div>
 
-                  <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">
+                  <span className="rounded-full bg-honey-50 px-3 py-1 text-xs font-bold text-honey-700">
                     {
                       weekdayLabels[
                         group.weekday
@@ -279,8 +279,8 @@ export default async function TeacherPanelPage() {
                 </div>
 
                 <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-xl bg-slate-50 p-3">
-                    <dt className="text-slate-500">
+                  <div className="rounded-xl bg-brand-50 p-3">
+                    <dt className="text-gray-500">
                       Saat
                     </dt>
                     <dd className="mt-1 font-bold">
@@ -291,8 +291,8 @@ export default async function TeacherPanelPage() {
                     </dd>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-3">
-                    <dt className="text-slate-500">
+                  <div className="rounded-xl bg-brand-50 p-3">
+                    <dt className="text-gray-500">
                       Süre
                     </dt>
                     <dd className="mt-1 font-bold">
@@ -300,8 +300,8 @@ export default async function TeacherPanelPage() {
                     </dd>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-3">
-                    <dt className="text-slate-500">
+                  <div className="rounded-xl bg-brand-50 p-3">
+                    <dt className="text-gray-500">
                       Öğrenci
                     </dt>
                     <dd className="mt-1 font-bold">
@@ -312,8 +312,8 @@ export default async function TeacherPanelPage() {
                     </dd>
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-3">
-                    <dt className="text-slate-500">
+                  <div className="rounded-xl bg-brand-50 p-3">
+                    <dt className="text-gray-500">
                       Derslik
                     </dt>
                     <dd className="mt-1 font-bold">
@@ -334,7 +334,7 @@ export default async function TeacherPanelPage() {
             Öğrencilerim
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             Öğrenciler ders kayıtlarıyla birlikte
             gösterilir; ücret ve veli bilgileri bu
             ekranda yer almaz.
@@ -359,7 +359,7 @@ export default async function TeacherPanelPage() {
             MEB kayıtlı öğrencilerim
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             Öğrencinin ilgili ders kaydındaki MEB
             durumu “kayıtlı” olanlar.
           </p>
@@ -392,10 +392,10 @@ function EnrollmentTable({
   mebOnly?: boolean;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-brand-100 bg-white shadow-sm">
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+          <thead className="bg-brand-50 text-xs uppercase tracking-wide text-gray-500">
             <tr>
               <th className="px-5 py-3">
                 Öğrenci
@@ -412,7 +412,7 @@ function EnrollmentTable({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-brand-50">
             {enrollments.map((enrollment) => {
               const mebRegistration =
                 getMebRegistration(enrollment);
@@ -420,7 +420,7 @@ function EnrollmentTable({
               return (
                 <tr
                   key={enrollment.id}
-                  className="hover:bg-slate-50"
+                  className="hover:bg-brand-50"
                 >
                   <td className="px-5 py-4">
                     <p className="font-semibold">
@@ -431,7 +431,7 @@ function EnrollmentTable({
 
                     {enrollment.status ===
                       "frozen" && (
-                      <span className="mt-2 inline-block rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">
+                      <span className="mt-2 inline-block rounded-full bg-honey-100 px-2 py-1 text-xs font-semibold text-honey-700">
                         Donduruldu
                       </span>
                     )}
@@ -442,14 +442,14 @@ function EnrollmentTable({
                       "Ders bilgisi yok"}
                   </td>
 
-                  <td className="px-5 py-4 text-slate-600">
+                  <td className="px-5 py-4 text-gray-600">
                     <p>
                       {enrollment.class_group?.name ??
                         "Seans belirtilmedi"}
                     </p>
 
                     {enrollment.class_group && (
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-gray-400">
                         {
                           weekdayLabels[
                             enrollment.class_group
@@ -475,7 +475,7 @@ function EnrollmentTable({
                     {mebOnly &&
                       mebRegistration
                         ?.valid_until && (
-                        <p className="mt-2 text-xs text-slate-500">
+                        <p className="mt-2 text-xs text-gray-500">
                           Geçerlilik sonu:{" "}
                           {formatDate(
                             mebRegistration.valid_until,
@@ -508,14 +508,14 @@ function MebBadge({
 
   if (status === "pending") {
     return (
-      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800">
+      <span className="rounded-full bg-honey-100 px-2.5 py-1 text-xs font-bold text-honey-700">
         MEB kaydı bekliyor
       </span>
     );
   }
 
   return (
-    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+    <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-gray-600">
       MEB kayıtlı değil
     </span>
   );
@@ -527,7 +527,7 @@ function EmptyState({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
+    <div className="rounded-2xl border border-brand-100 bg-white p-8 text-center text-sm text-gray-500 shadow-sm">
       {children}
     </div>
   );

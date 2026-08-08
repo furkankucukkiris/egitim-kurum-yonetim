@@ -66,7 +66,7 @@ export default async function CoursesPage({
         action={
           <Link
             href="/dersler/yeni"
-            className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white"
+            className="rounded-xl bg-terra-700 px-4 py-3 text-sm font-semibold text-white"
           >
             + Ders ekle
           </Link>
@@ -92,18 +92,18 @@ export default async function CoursesPage({
       )}
 
       {courses.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
+        <div className="rounded-2xl border border-brand-100 bg-white px-6 py-16 text-center shadow-sm">
           <h2 className="text-lg font-bold">
             Henüz ders tanımı yok
           </h2>
 
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-gray-500">
             İlk olarak piyano, resim veya drama gibi kurum derslerini oluşturun.
           </p>
 
           <Link
             href="/dersler/yeni"
-            className="mt-6 inline-block rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white"
+            className="mt-6 inline-block rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white"
           >
             İlk dersi oluştur
           </Link>
@@ -115,8 +115,8 @@ export default async function CoursesPage({
               key={course.id}
               className={`rounded-2xl border bg-white p-5 shadow-sm ${
                 course.is_active
-                  ? "border-slate-200"
-                  : "border-slate-200 opacity-65"
+                  ? "border-brand-100"
+                  : "border-brand-100 opacity-65"
               }`}
             >
               <div className="flex items-start justify-between gap-4">
@@ -128,7 +128,7 @@ export default async function CoursesPage({
                     {course.name}
                   </Link>
 
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-sm text-gray-500">
                     {course.code ||
                       "Ders kodu yok"}
                   </p>
@@ -138,7 +138,7 @@ export default async function CoursesPage({
                   className={`rounded-full px-3 py-1 text-xs font-semibold ${
                     course.is_active
                       ? "bg-emerald-50 text-emerald-700"
-                      : "bg-slate-100 text-slate-600"
+                      : "bg-brand-50 text-gray-600"
                   }`}
                 >
                   {course.is_active
@@ -149,7 +149,7 @@ export default async function CoursesPage({
 
               <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <dt className="text-slate-500">
+                  <dt className="text-gray-500">
                     Ders türü
                   </dt>
 
@@ -162,7 +162,7 @@ export default async function CoursesPage({
                 </div>
 
                 <div>
-                  <dt className="text-slate-500">
+                  <dt className="text-gray-500">
                     Ders süresi
                   </dt>
 
@@ -175,7 +175,7 @@ export default async function CoursesPage({
                 </div>
 
                 <div className="col-span-2">
-                  <dt className="text-slate-500">
+                  <dt className="text-gray-500">
                     Varsayılan aylık ücret
                   </dt>
 
@@ -189,10 +189,10 @@ export default async function CoursesPage({
                 </div>
               </dl>
 
-              <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+              <div className="mt-5 flex flex-wrap gap-2 border-t border-brand-50 pt-4">
                 <Link
                   href={`/dersler/${course.id}`}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700"
+                  className="rounded-lg border border-brand-100 px-3 py-2 text-xs font-semibold text-brand-700"
                 >
                   Düzenle
                 </Link>

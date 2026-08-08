@@ -87,13 +87,13 @@ export function StudentForm({
         </div>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
-        <div className="border-b border-slate-100 pb-4">
+      <section className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm md:p-7">
+        <div className="border-b border-brand-50 pb-4">
           <h2 className="text-lg font-bold">
             Öğrenci bilgileri
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             Öğrencinin kimlik ve kurum kayıt bilgileri.
           </p>
         </div>
@@ -192,18 +192,18 @@ export function StudentForm({
               )
             }
             placeholder="Kayıt sırasında bilinmesi gereken kısa notlar..."
-            className="mt-2 w-full resize-y rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+            className="mt-2 w-full resize-y rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none transition focus:border-gray-400"
           />
         </label>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
-        <div className="border-b border-slate-100 pb-4">
+      <section className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm md:p-7">
+        <div className="border-b border-brand-50 pb-4">
           <h2 className="text-lg font-bold">
             Birincil veli bilgileri
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-gray-500">
             Ödeme ve kurum iletişiminde öncelikli kullanılacak veli.
           </p>
         </div>
@@ -257,7 +257,7 @@ export function StudentForm({
                   event.target.value,
                 )
               }
-              className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+              className="mt-2 w-full rounded-xl border border-brand-100 bg-white px-4 py-3 text-sm outline-none transition focus:border-gray-400"
             >
               <option value="Anne">
                 Anne
@@ -335,7 +335,7 @@ export function StudentForm({
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Link
           href="/ogrenciler"
-          className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="rounded-xl border border-brand-100 bg-white px-5 py-3 text-center text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
         >
           Vazgeç
         </Link>
@@ -343,7 +343,7 @@ export function StudentForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isPending
             ? "Öğrenci kaydediliyor..."
@@ -413,11 +413,11 @@ function FormField({
         inputMode={inputMode}
         maxLength={maxLength}
         pattern={pattern}
-        className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400"
+        className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 text-sm outline-none transition focus:border-gray-400"
       />
 
       {helperText && (
-        <span className="mt-2 block text-xs leading-5 text-slate-500">
+        <span className="mt-2 block text-xs leading-5 text-gray-500">
           {helperText}
         </span>
       )}

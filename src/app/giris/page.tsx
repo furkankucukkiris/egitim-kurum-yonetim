@@ -21,13 +21,13 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-100 px-4 py-10">
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
-        <div className="mb-6 grid h-12 w-12 place-items-center rounded-2xl bg-amber-400 font-black text-slate-950">
+    <main className="grid min-h-screen place-items-center bg-brand-50 px-4 py-10">
+      <div className="w-full max-w-md rounded-3xl border border-brand-100 bg-white p-7 shadow-sm">
+        <div className="mb-6 grid h-12 w-12 place-items-center rounded-2xl bg-honey-500 font-black text-brand-900">
           ŞS
         </div>
 
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-honey-700">
           Güvenli giriş
         </p>
 
@@ -35,7 +35,7 @@ export default async function LoginPage({
           Kurum hesabı
         </h1>
 
-        <p className="mt-2 text-sm leading-6 text-slate-500">
+        <p className="mt-2 text-sm leading-6 text-gray-500">
           Kurum yönetim sistemine erişmek için e-posta ve parolanızla
           giriş yapın.
         </p>
@@ -55,7 +55,7 @@ export default async function LoginPage({
               type="email"
               required
               autoComplete="email"
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-slate-400"
+              className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 outline-none focus:border-gray-400"
             />
           </label>
 
@@ -68,13 +68,13 @@ export default async function LoginPage({
               required
               minLength={8}
               autoComplete="current-password"
-              className="mt-2 w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-slate-400"
+              className="mt-2 w-full rounded-xl border border-brand-100 px-4 py-3 outline-none focus:border-gray-400"
             />
           </label>
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-slate-950 px-4 py-3 font-semibold text-white transition hover:bg-slate-800"
+            className="w-full rounded-xl bg-terra-700 px-4 py-3 font-semibold text-white transition hover:bg-terra-700/90"
           >
             Giriş yap
           </button>

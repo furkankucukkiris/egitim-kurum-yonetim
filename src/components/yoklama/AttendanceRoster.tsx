@@ -17,6 +17,7 @@ export type RosterStudent = {
   status: AttendanceStatus | null;
   note: string | null;
   notifiedAt: string | null;
+  isMakeupGuest: boolean;
 };
 
 const STATUS_OPTIONS: {
@@ -172,6 +173,7 @@ export function AttendanceRoster({
             >
               <span className="font-medium text-ink">
                 {student.firstName} {student.lastName}
+                {student.isMakeupGuest && <MakeupBadge />}
               </span>
 
               <span
@@ -268,6 +270,7 @@ export function AttendanceRoster({
               <div className="flex items-center justify-between gap-3">
                 <span className="font-medium text-ink">
                   {student.firstName} {student.lastName}
+                  {student.isMakeupGuest && <MakeupBadge />}
                 </span>
 
                 <span
@@ -402,6 +405,14 @@ export function AttendanceRoster({
         </div>
       )}
     </div>
+  );
+}
+
+function MakeupBadge() {
+  return (
+    <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-800 dark:bg-blue-500/15 dark:text-blue-400">
+      Telafi
+    </span>
   );
 }
 

@@ -185,6 +185,7 @@ yetkiyi kontrol eder:
 | `profiles` | tüm kurum | yalnızca kendi satırı |
 | `teacher_course_meb_authorizations`, `enrollment_meb_registrations`, `get_meb_monthly_roster()` | tam erişim | yalnızca kendi kayıtları |
 | Storage `student-photos` (öğrenci fotoğrafının aslı) | tam erişim (yalnızca kendi organizasyonu) | erişim yok |
+| `makeup_credits`, `session_change_requests` (doğrudan insert/update kapalı) | RPC'lerle tam erişim | yalnızca kendi öğrencisinin/oturumunun kayıtlarını görür; iptal/yeniden planlama yalnızca `request_session_change()` ile talep olarak |
 
 `courses.default_monthly_fee` (ders kataloğu fiyatı) bilinçli olarak
 bu daraltmanın dışında bırakıldı: `courses_select_org` politikası
@@ -220,6 +221,70 @@ RPC'sinden gelir — `students`/`enrollments` tablolarına teacher'ın
 doğrudan erişimi olmadığından, bu da security definer bir fonksiyon.
 `get_unmarked_past_sessions()` admin'e yoklaması hiç girilmemiş geçmiş
 oturumları listeler (`/yoklama` sayfasında uyarı olarak gösterilir).
+
+### Ders iptali, yeniden planlama ve telafi hakkı sistemi
+
+Şema ve RPC'ler `supabase/migrations/20260811100000_add_session_cancellation_and_makeup.sql`
+içinde. Üç ayrı ama birbirine bağlı mekanizma:
+
+**1. İptal / yeniden planlama.** `cancel_lesson_session()` ve
+`reschedule_lesson_session()` yalnızca admin tarafından doğrudan
+çağrılabilir. Teacher kendi oturumu için yalnızca
+`request_session_change()` ile bir **talep** açabilir (`session_change_requests`,
+durum `pending`); nihai karar `review_session_change_request()` ile
+admin'e aittir — onaylanırsa talep, arka planda aynı
+cancel/reschedule fonksiyonunu çağırır, reddedilirse hiçbir şey
+değişmez. Yeniden planlama, seçilen yeni saatte aynı öğretmenin veya
+derslik adının başka bir oturumla çakışmadığını
+(`has_scheduling_conflict()`) doğrular.
+
+**2. İptal → telafi hakkı.** `cancel_lesson_session()`, iptal edilen
+oturumun tarihinde aktif kayıtlı her öğrenci için hem yoklamayı
+`institution_cancelled` yapar hem de `makeup_credits` tablosunda
+`reason = 'institution_cancelled'`, `status = 'open'` bir hak açar;
+hakkın `source_attendance_id`'si o yoklama satırına bağlanır — iptal
+ile telafi arasındaki bağ buradan geriye dönük izlenebilir. Öğrenci
+kaynaklı devamsızlık ayrı bir yoldan gelir: `mark_attendance()`
+içinde bir öğrenci `makeup_due` işaretlenirse, aynı şekilde
+`source_attendance_id`'si o yoklama satırına bağlı ama
+`reason = 'student_absence'` bir hak açılır. İki neden asla
+karışmaz.
+
+**3. Telafi planlama.** `schedule_makeup(credit_id, ...)` tek bir
+hakkı iki şekilde kullanır:
+- **Mevcut oturuma ekleme** (`p_target_lesson_session_id`) — grup
+  derslerinde aynı dersin başka bir (iptal edilmemiş) oturumuna
+  geçici misafir ekler; hedefin kontenjanı doluysa veya öğrencinin o
+  saatte zaten başka bir programı varsa reddedilir.
+- **Yeni, tek seferlik oturum** (öğretmen + saat + opsiyonel derslik)
+  — birebir dersler ve grup dersinde tekil telafi için;
+  öğretmen/derslik/öğrenci çakışması `has_scheduling_conflict()` ve
+  `student_has_scheduling_conflict()` ile kontrol edilir.
+
+Her iki yolda da hak `status = 'open'` şartıyla satır kilitlenip
+güncellenir (`update ... where status = 'open'`), bu yüzden **bir
+hak iki kez kullanılamaz** — ikinci çağrı "zaten kullanılmış" hatası
+alır. `get_attendance_roster()`, bir oturuma misafir olarak eklenmiş
+telafi öğrencilerini normal kayıtlılara ek olarak
+`is_makeup_guest = true` ile döner; arayüz bunu "TELAFİ" rozetiyle
+gösterir (`AttendanceRoster.tsx`).
+
+**Finansa dokunmama.** Bu migration `accruals`/`payments` gibi hiçbir
+finans tablosuna insert/update yapmaz — iptal veya telafi otomatik
+tahakkuk oluşturmaz ya da bozmaz. Bir öğrenci telafi kullansa da
+kullanmasa da mevcut tahakkuku olduğu gibi kalır; gerekli finansal
+düzeltme (iade, ek tahsilat vb.) admin tarafından `/odemeler`
+ekranından elle yapılır — bu bilinçli bir tasarım kararı, otomatik
+finans mutasyonunun yanlış senaryoda (ör. kısmi ödenmiş bir dönem)
+sessizce hatalı sonuç üretme riski nedeniyle.
+
+**Kapsam dışı bırakılanlar** (orantılılık için): grup dersini
+yeniden planlarken tüm kayıtlı öğrencilerin bireysel programıyla
+çakışma kontrolü yapılmıyor (yalnızca öğretmen/derslik) — bu, "tüm
+grup birlikte taşınıyor" varsayımıyla kabul edilebilir bir kapsam
+sınırı olarak bırakıldı. `expire_stale_makeup_credits()` var ama
+otomatik çalışmıyor (bu depoda cron/pg_cron kurulumu yok); admin
+tarafından manuel tetiklenmesi gerekiyor.
 
 Öğrenci-veli eşleme tablosunda (`student_guardians`) daha önce
 yalnızca teacher dalı organizasyon kapsıyordu; admin dalı

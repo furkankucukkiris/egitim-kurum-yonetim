@@ -2,11 +2,19 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { SessionComments, type SessionComment } from "@/components/yoklama/SessionComments";
 import { AttendanceRoster, type RosterStudent } from "@/components/yoklama/AttendanceRoster";
+import { SessionActions } from "@/components/yoklama/SessionActions";
+import {
+  MakeupCreditItem,
+  type PendingCredit,
+  type UpcomingSessionOption,
+  type TeacherOption,
+} from "@/components/yoklama/MakeupCreditItem";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
   generateMonthlySessions,
 } from "./actions";
+import { reviewSessionChangeRequest } from "./session-actions";
 
 type PageProps = {
   searchParams: Promise<{
@@ -53,6 +61,44 @@ type RosterRow = {
   status: RosterStudent["status"];
   note: string | null;
   notified_at: string | null;
+  is_makeup_guest: boolean;
+};
+
+type ChangeRequestRow = {
+  id: string;
+  lesson_session_id: string;
+  request_type: "cancel" | "reschedule";
+};
+
+type PendingCreditRpcRow = {
+  credit_id: string;
+  student_full_name: string;
+  course_id: string;
+  course_name: string;
+  reason: PendingCredit["reason"];
+  source_starts_at: string;
+  expires_at: string | null;
+};
+
+type PendingRequestRpcRow = {
+  request_id: string;
+  lesson_session_id: string;
+  request_type: "cancel" | "reschedule";
+  reason: string;
+  proposed_starts_at: string | null;
+  proposed_ends_at: string | null;
+  requested_by_name: string;
+  session_starts_at: string;
+  course_name: string;
+  class_group_name: string | null;
+};
+
+type UpcomingSessionRow = {
+  id: string;
+  course_id: string;
+  starts_at: string;
+  class_group: { name: string } | null;
+  teacher: { full_name: string } | null;
 };
 
 type UnmarkedSessionRow = {
@@ -294,13 +340,38 @@ export default async function AttendancePage({
         status: row.status,
         note: row.note,
         notifiedAt: row.notified_at,
+        isMakeupGuest: row.is_makeup_guest,
       });
 
       rosterBySession.set(row.lesson_session_id, list);
     }
   }
 
+  const pendingRequestBySession = new Map<string, "cancel" | "reschedule">();
+
+  if (sessionIds.length > 0) {
+    const changeRequestsResult = await supabase
+      .from("session_change_requests")
+      .select("id, lesson_session_id, request_type")
+      .in("lesson_session_id", sessionIds)
+      .eq("status", "pending");
+
+    if (changeRequestsResult.error) {
+      console.error("Bekleyen değişiklik talepleri alınamadı:", changeRequestsResult.error);
+    }
+
+    const changeRequests = (changeRequestsResult.data ?? []) as unknown as ChangeRequestRow[];
+
+    for (const request of changeRequests) {
+      pendingRequestBySession.set(request.lesson_session_id, request.request_type);
+    }
+  }
+
   let unmarkedSessions: UnmarkedSessionRow[] = [];
+  let pendingCredits: PendingCredit[] = [];
+  let pendingRequests: PendingRequestRpcRow[] = [];
+  const upcomingSessionsByCourse = new Map<string, UpcomingSessionOption[]>();
+  let teachers: TeacherOption[] = [];
 
   if (profile.role === "admin") {
     const unmarkedResult = await supabase.rpc("get_unmarked_past_sessions", {
@@ -316,6 +387,84 @@ export default async function AttendancePage({
 
     unmarkedSessions =
       (unmarkedResult.data ?? []) as unknown as UnmarkedSessionRow[];
+
+    const [creditsResult, requestsResult] = await Promise.all([
+      supabase.rpc("get_pending_makeup_credits", { p_limit: 20 }),
+      supabase.rpc("get_pending_session_change_requests"),
+    ]);
+
+    if (creditsResult.error) {
+      console.error("Bekleyen telafi hakları alınamadı:", creditsResult.error);
+    }
+
+    if (requestsResult.error) {
+      console.error("Bekleyen değişiklik talepleri alınamadı:", requestsResult.error);
+    }
+
+    const creditRows = (creditsResult.data ?? []) as unknown as PendingCreditRpcRow[];
+
+    pendingCredits = creditRows.map((row) => ({
+      creditId: row.credit_id,
+      studentFullName: row.student_full_name,
+      courseId: row.course_id,
+      courseName: row.course_name,
+      reason: row.reason,
+      sourceStartsAt: row.source_starts_at,
+      expiresAt: row.expires_at,
+    }));
+
+    pendingRequests = (requestsResult.data ?? []) as unknown as PendingRequestRpcRow[];
+
+    const courseIds = Array.from(new Set(pendingCredits.map((credit) => credit.courseId)));
+
+    if (courseIds.length > 0) {
+      const upcomingResult = await supabase
+        .from("lesson_sessions")
+        .select(`
+          id,
+          course_id,
+          starts_at,
+          class_group:class_groups ( name ),
+          teacher:profiles!teacher_profile_id ( full_name )
+        `)
+        .in("course_id", courseIds)
+        .is("cancelled_at", null)
+        .gte("starts_at", new Date().toISOString())
+        .order("starts_at")
+        .limit(50);
+
+      if (upcomingResult.error) {
+        console.error("Yaklaşan oturumlar alınamadı:", upcomingResult.error);
+      }
+
+      const upcomingRows = (upcomingResult.data ?? []) as unknown as UpcomingSessionRow[];
+
+      for (const row of upcomingRows) {
+        const list = upcomingSessionsByCourse.get(row.course_id) ?? [];
+
+        list.push({
+          id: row.id,
+          startsAt: row.starts_at,
+          className: row.class_group?.name ?? null,
+          teacherName: row.teacher?.full_name ?? null,
+        });
+
+        upcomingSessionsByCourse.set(row.course_id, list);
+      }
+    }
+
+    const teachersResult = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .eq("role", "teacher")
+      .eq("is_active", true)
+      .order("full_name");
+
+    if (teachersResult.error) {
+      console.error("Öğretmen listesi alınamadı:", teachersResult.error);
+    }
+
+    teachers = (teachersResult.data ?? []) as unknown as TeacherOption[];
   }
 
   const enrollmentCountByGroup =
@@ -414,6 +563,94 @@ export default async function AttendancePage({
                   </span>
                 </Link>
               </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {profile.role === "admin" && pendingRequests.length > 0 && (
+        <section className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm dark:border-blue-800/40 dark:bg-blue-500/10">
+          <h2 className="font-bold text-blue-800 dark:text-blue-400">
+            Bekleyen iptal/değişiklik talepleri
+          </h2>
+
+          <ul className="mt-3 space-y-3">
+            {pendingRequests.map((request) => (
+              <li
+                key={request.request_id}
+                className="rounded-xl bg-panel p-3 shadow-sm"
+              >
+                <p className="text-sm font-semibold text-ink">
+                  {request.requested_by_name} —{" "}
+                  {request.request_type === "cancel" ? "İptal talebi" : "Yeniden planlama talebi"}
+                </p>
+
+                <p className="mt-1 text-xs text-muted">
+                  {request.course_name}
+                  {request.class_group_name ? ` — ${request.class_group_name}` : ""} ·{" "}
+                  {formatDateTime(request.session_starts_at)}
+                </p>
+
+                <p className="mt-1.5 text-sm text-ink">{request.reason}</p>
+
+                {request.request_type === "reschedule" && request.proposed_starts_at && (
+                  <p className="mt-1 text-xs text-muted">
+                    Önerilen: {formatDateTime(request.proposed_starts_at)} –{" "}
+                    {request.proposed_ends_at ? formatDateTime(request.proposed_ends_at) : ""}
+                  </p>
+                )}
+
+                <div className="mt-2.5 flex gap-2">
+                  <form action={reviewSessionChangeRequest}>
+                    <input type="hidden" name="requestId" value={request.request_id} />
+                    <input type="hidden" name="date" value={selectedDate} />
+                    <input type="hidden" name="approve" value="true" />
+
+                    <button
+                      type="submit"
+                      className="rounded-lg bg-terra-700 px-3 py-1.5 text-xs font-semibold text-white shadow-sm shadow-terra-700/20 hover:bg-terra-700/90"
+                    >
+                      Onayla
+                    </button>
+                  </form>
+
+                  <form action={reviewSessionChangeRequest}>
+                    <input type="hidden" name="requestId" value={request.request_id} />
+                    <input type="hidden" name="date" value={selectedDate} />
+                    <input type="hidden" name="approve" value="false" />
+
+                    <button
+                      type="submit"
+                      className="rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-muted hover:bg-fill"
+                    >
+                      Reddet
+                    </button>
+                  </form>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {profile.role === "admin" && pendingCredits.length > 0 && (
+        <section className="mb-6 rounded-2xl border border-line bg-panel p-5 shadow-sm">
+          <h2 className="font-bold text-ink">Bekleyen telafi hakları</h2>
+
+          <p className="mt-1 text-sm text-muted">
+            Kurum kaynaklı iptal veya öğrenci devamsızlığından doğan, henüz
+            planlanmamış telafi hakları.
+          </p>
+
+          <ul className="mt-3 space-y-3">
+            {pendingCredits.map((credit) => (
+              <MakeupCreditItem
+                key={credit.creditId}
+                credit={credit}
+                date={selectedDate}
+                sessionsForCourse={upcomingSessionsByCourse.get(credit.courseId) ?? []}
+                teachers={teachers}
+              />
             ))}
           </ul>
         </section>
@@ -690,6 +927,19 @@ export default async function AttendancePage({
                   isAdmin={profile.role === "admin"}
                 />
 
+                {!session.cancelled_at && (
+                  <SessionActions
+                    sessionId={session.id}
+                    date={selectedDate}
+                    isAdmin={profile.role === "admin"}
+                    canRequest={
+                      profile.role === "teacher" &&
+                      session.teacher_profile_id === profile.id
+                    }
+                    pendingRequestType={pendingRequestBySession.get(session.id) ?? null}
+                  />
+                )}
+
                 <SessionComments
                   sessionId={session.id}
                   date={selectedDate}
@@ -823,5 +1073,15 @@ function formatTime(value: string) {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+  }).format(new Date(value));
+}
+
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    timeZone: "Europe/Istanbul",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(new Date(value));
 }

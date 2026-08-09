@@ -286,6 +286,54 @@ sınırı olarak bırakıldı. `expire_stale_makeup_credits()` var ama
 otomatik çalışmıyor (bu depoda cron/pg_cron kurulumu yok); admin
 tarafından manuel tetiklenmesi gerekiyor.
 
+### Dashboard finans göstergeleri
+
+Genel Bakış (`/`) ekranındaki tüm finans rakamları
+`get_dashboard_financial_summary(month_start)` ve
+`get_dashboard_course_performance(month_start)` RPC'lerinden gelir
+(`supabase/migrations/20260811110000_add_dashboard_financial_summary.sql`)
+— sayfa kendi başına toplama/gruplama yapmaz. Dört kavram kesin
+olarak ayrılır:
+
+- **`monthly_accrued`** — bu ayın `period_start`'ına sahip
+  tahakkukların toplamı (ne zaman ödendiğinden bağımsız).
+- **`monthly_collected`** — bu ayın tahakkuklarından *tahsis edilen*
+  tutar (`accruals.allocated_amount`) — ödeme başka bir ayda yapılmış
+  olsa bile.
+- **`monthly_cash_received`** — `received_at`'i bu ay içine düşen tüm
+  ödemelerin toplamı — hangi döneme tahsis edildiğinden bağımsız. Geçmiş
+  ayın borcunun bu ay ödenmesi buraya girer ama `monthly_collected`'a
+  girmez.
+- **`prior_period_carryover`** / **`total_open_receivable`** — ilki
+  yalnızca bu aydan ÖNCEKİ açık dönemler, ikincisi bugüne kadarki tüm
+  açık bakiye (devreden + bu ayın kendi açığı).
+
+Eski istemci tarafı hesaplamada "bekleyen dönem" sayısı
+`course_id + period_start`'ı anahtar yapan bir `Set` ile
+sayılıyordu — aynı derste borcu olan farklı öğrenciler tek satıra
+düşüyordu. `accruals(enrollment_id, period_start)` zaten tekil
+olduğundan artık doğrudan satır sayısı (`count(*)`) kullanılıyor.
+
+`student_advance_balance`, bir ödemenin o an açık tahakkuklardan fazla
+gelen kısmını (`payment.amount - toplam tahsis`) toplar — bu tutar
+`allocated_amount`'a asla giremez (`check (allocated_amount <=
+net_amount)` kısıtı), yani fazla ödeme hiçbir zaman "tahsil edilen"i
+şişirmez.
+
+Test verisiyle elle doğrulanmış tam bir örnek için
+[dashboard_financial_summary.manual-verification.md](supabase/tests/database/dashboard_financial_summary.manual-verification.md)
+dosyasına bakın.
+
+**Bilinen, kapsam dışı bırakılan durum:** `payments.is_refunded`
+alanı var ama şemada bunu `true` yapan hiçbir RPC yok — gerçek bir
+ödeme iadesi özelliği hiç uygulanmamış. Bu yüzden bir ödeme
+`is_refunded = true` olarak elle işaretlense bile, ona bağlı
+`accruals.allocated_amount` otomatik geri alınmıyor.
+`monthly_cash_received`/`student_advance_balance` (doğrudan
+`payments`'tan hesaplandığı için) bunu doğru dışlar, ama
+`monthly_collected` (accrual satırından hesaplandığı için) dışlayamaz.
+Gerçek bir iade akışı bu görevin kapsamı dışında bırakıldı.
+
 Öğrenci-veli eşleme tablosunda (`student_guardians`) daha önce
 yalnızca teacher dalı organizasyon kapsıyordu; admin dalı
 (`current_app_role() <> 'teacher'`) organizasyon kontrolü

@@ -10,17 +10,31 @@ import { formatTry } from "@/lib/utils";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-type AccrualRow = {
-  net_amount: number;
-  allocated_amount: number;
-  period_start: string;
-  enrollment: {
-    course: { id: string; name: string } | null;
-  } | null;
+// get_dashboard_financial_summary()/get_dashboard_course_performance()
+// (supabase/migrations/20260811110000_add_dashboard_financial_summary.sql)
+// tüm tahakkuk/tahsilat hesaplarını merkezi olarak yapar — bu sayfa
+// yalnızca sonucu biçimlendirir, kendi başına toplama/gruplama
+// mantığı içermez.
+type FinancialSummaryRow = {
+  active_student_count: number;
+  monthly_accrued: number | string;
+  monthly_collected: number | string;
+  monthly_cash_received: number | string;
+  prior_period_carryover: number | string;
+  prior_period_carryover_count: number;
+  total_open_receivable: number | string;
+  total_open_receivable_count: number;
+  student_advance_balance: number | string;
+  today_active_session_count: number;
+  today_total_session_count: number;
 };
 
-type EnrollmentCountRow = {
+type CoursePerformanceRow = {
   course_id: string;
+  course_name: string;
+  active_student_count: number;
+  month_net: number | string;
+  month_collected: number | string;
 };
 
 type PaymentRow = {
@@ -67,35 +81,17 @@ export default async function DashboardPage() {
   const holidays = getHolidaysForYearRange(currentYear - 1, currentYear + 6);
 
   const [
-    studentCountResult,
-    accrualsResult,
-    enrollmentsResult,
+    summaryResult,
+    coursePerformanceResult,
     paymentsResult,
     sessionsResult,
   ] = await Promise.all([
-    supabase
-      .from("students")
-      .select("id", { count: "exact", head: true })
-      .eq("organization_id", profile.organizationId)
-      .eq("status", "active"),
-    supabase
-      .from("accruals")
-      .select(`
-        net_amount,
-        allocated_amount,
-        period_start,
-        enrollment:enrollments!inner (
-          course:courses!inner ( id, name )
-        )
-      `)
-      .eq("organization_id", profile.organizationId)
-      .not("status", "in", "(cancelled,refunded)")
-      .lte("period_start", monthStart),
-    supabase
-      .from("enrollments")
-      .select("course_id")
-      .eq("organization_id", profile.organizationId)
-      .eq("status", "active"),
+    supabase.rpc("get_dashboard_financial_summary", {
+      p_month_start: monthStart,
+    }),
+    supabase.rpc("get_dashboard_course_performance", {
+      p_month_start: monthStart,
+    }),
     supabase
       .from("payments")
       .select(`
@@ -126,12 +122,12 @@ export default async function DashboardPage() {
       .order("starts_at", { ascending: true }),
   ]);
 
-  if (accrualsResult.error) {
-    console.error("Tahakkuk özeti alınamadı:", accrualsResult.error);
+  if (summaryResult.error) {
+    console.error("Finans özeti alınamadı:", summaryResult.error);
   }
 
-  if (enrollmentsResult.error) {
-    console.error("Kayıt özeti alınamadı:", enrollmentsResult.error);
+  if (coursePerformanceResult.error) {
+    console.error("Ders performansı alınamadı:", coursePerformanceResult.error);
   }
 
   if (paymentsResult.error) {
@@ -142,91 +138,49 @@ export default async function DashboardPage() {
     console.error("Bugünün ders akışı alınamadı:", sessionsResult.error);
   }
 
-  const activeStudentCount = studentCountResult.count ?? 0;
-  const accruals = (accrualsResult.data ?? []) as unknown as AccrualRow[];
-  const enrollmentCounts = (enrollmentsResult.data ?? []) as unknown as EnrollmentCountRow[];
-  const payments = (paymentsResult.data ?? []) as unknown as PaymentRow[];
-  const sessions = (sessionsResult.data ?? []) as unknown as SessionRow[];
+  const summaryRow = ((summaryResult.data ?? []) as unknown as FinancialSummaryRow[])[0];
 
-  const activeStudentsByCourse = new Map<string, number>();
+  const summary = summaryRow
+    ? {
+        activeStudentCount: summaryRow.active_student_count,
+        monthlyAccrued: Number(summaryRow.monthly_accrued),
+        monthlyCollected: Number(summaryRow.monthly_collected),
+        monthlyCashReceived: Number(summaryRow.monthly_cash_received),
+        priorPeriodCarryover: Number(summaryRow.prior_period_carryover),
+        priorPeriodCarryoverCount: summaryRow.prior_period_carryover_count,
+        totalOpenReceivable: Number(summaryRow.total_open_receivable),
+        totalOpenReceivableCount: summaryRow.total_open_receivable_count,
+        studentAdvanceBalance: Number(summaryRow.student_advance_balance),
+        todayActiveSessionCount: summaryRow.today_active_session_count,
+        todayTotalSessionCount: summaryRow.today_total_session_count,
+      }
+    : null;
 
-  for (const enrollment of enrollmentCounts) {
-    activeStudentsByCourse.set(
-      enrollment.course_id,
-      (activeStudentsByCourse.get(enrollment.course_id) ?? 0) + 1,
-    );
-  }
-
-  let monthlyAccrued = 0;
-  let totalPending = 0;
-  const pendingStudentPeriods = new Set<string>();
-
-  type CoursePerformance = {
-    id: string;
-    name: string;
-    monthNet: number;
-    monthCollected: number;
-  };
-
-  const courseMap = new Map<string, CoursePerformance>();
-
-  for (const accrual of accruals) {
-    const course = accrual.enrollment?.course;
-
-    if (!course) {
-      continue;
-    }
-
-    const netAmount = Number(accrual.net_amount);
-    const allocatedAmount = Number(accrual.allocated_amount);
-    const pending = Math.max(0, netAmount - allocatedAmount);
-
-    totalPending += pending;
-
-    if (pending > 0.01) {
-      pendingStudentPeriods.add(`${course.id}:${accrual.period_start}`);
-    }
-
-    const isThisMonth = accrual.period_start === monthStart;
-
-    if (isThisMonth) {
-      monthlyAccrued += netAmount;
-
-      const entry = courseMap.get(course.id) ?? {
-        id: course.id,
-        name: course.name,
-        monthNet: 0,
-        monthCollected: 0,
-      };
-
-      entry.monthNet += netAmount;
-      entry.monthCollected += allocatedAmount;
-      courseMap.set(course.id, entry);
-    }
-  }
-
-  const coursePerformance = Array.from(courseMap.values())
-    .map((course) => ({
-      ...course,
-      studentCount: activeStudentsByCourse.get(course.id) ?? 0,
-      collectionRate:
-        course.monthNet > 0
-          ? Math.round((course.monthCollected / course.monthNet) * 100)
-          : 0,
-    }))
-    .sort((a, b) => b.monthNet - a.monthNet);
+  const summaryFailed = Boolean(summaryResult.error) || !summary;
 
   const overallCollectionRate =
-    monthlyAccrued > 0
-      ? Math.round(
-          (Array.from(courseMap.values()).reduce(
-            (sum, course) => sum + course.monthCollected,
-            0,
-          ) /
-            monthlyAccrued) *
-            100,
-        )
+    summary && summary.monthlyAccrued > 0
+      ? Math.round((summary.monthlyCollected / summary.monthlyAccrued) * 100)
       : 0;
+
+  const coursePerformance = (
+    (coursePerformanceResult.data ?? []) as unknown as CoursePerformanceRow[]
+  ).map((row) => {
+    const monthNet = Number(row.month_net);
+    const monthCollected = Number(row.month_collected);
+
+    return {
+      id: row.course_id,
+      name: row.course_name,
+      studentCount: row.active_student_count,
+      monthNet,
+      monthCollected,
+      collectionRate: monthNet > 0 ? Math.round((monthCollected / monthNet) * 100) : 0,
+    };
+  });
+
+  const payments = (paymentsResult.data ?? []) as unknown as PaymentRow[];
+  const sessions = (sessionsResult.data ?? []) as unknown as SessionRow[];
 
   const todaySessions = sessions.map((session) => ({
     time: formatTime(session.starts_at),
@@ -255,32 +209,84 @@ export default async function DashboardPage() {
         }
       />
 
+      {summaryFailed && (
+        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
+          Finans özeti alınamadı. Aşağıdaki finans göstergeleri
+          güncel olmayabilir — sayfayı yenileyin, sorun devam
+          ederse teknik ekiple paylaşın.
+        </div>
+      )}
+
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Aktif Öğrenci"
-          value={String(activeStudentCount)}
+          value={summary ? String(summary.activeStudentCount) : "—"}
           detail="Şu an kayıtlı"
           icon="◎"
         />
 
         <StatCard
-          label="Aylık Tahakkuk"
-          value={formatTry(monthlyAccrued)}
-          detail={`%${overallCollectionRate} tahsil edildi`}
+          label="Bu Ay Tahakkuk"
+          value={summary ? formatTry(summary.monthlyAccrued) : "—"}
+          detail={
+            summary
+              ? `${formatLongMonth(monthStart)} dönemi toplam borç`
+              : "Veri alınamadı"
+          }
           icon="₺"
         />
 
         <StatCard
-          label="Bekleyen Ödeme"
-          value={formatTry(totalPending)}
-          detail={`${pendingStudentPeriods.size} bekleyen dönem`}
+          label="Bu Ay Tahsil Edilen"
+          value={summary ? formatTry(summary.monthlyCollected) : "—"}
+          detail={summary ? `%${overallCollectionRate} tahsilat oranı` : "Veri alınamadı"}
+          icon="✓"
+        />
+
+        <StatCard
+          label="Bu Ay Kasaya Giren"
+          value={summary ? formatTry(summary.monthlyCashReceived) : "—"}
+          detail="Ödeme tarihi bu ay olan tüm tahsilat"
+          icon="↓"
+        />
+
+        <StatCard
+          label="Devreden Borç"
+          value={summary ? formatTry(summary.priorPeriodCarryover) : "—"}
+          detail={
+            summary
+              ? `${summary.priorPeriodCarryoverCount} önceki dönem`
+              : "Veri alınamadı"
+          }
           icon="!"
         />
 
         <StatCard
-          label="Bugünkü Ders"
-          value={String(todaySessions.length)}
-          detail={`${todaySessions.filter((s) => s.status === "Planlandı").length} planlı`}
+          label="Toplam Açık Alacak"
+          value={summary ? formatTry(summary.totalOpenReceivable) : "—"}
+          detail={
+            summary
+              ? `${summary.totalOpenReceivableCount} bekleyen dönem`
+              : "Veri alınamadı"
+          }
+          icon="Σ"
+        />
+
+        <StatCard
+          label="Öğrenci Avans/Bakiye"
+          value={summary ? formatTry(summary.studentAdvanceBalance) : "—"}
+          detail="Tahakkuka henüz işlenmemiş ödeme"
+          icon="+"
+        />
+
+        <StatCard
+          label="Bugünkü Aktif Ders"
+          value={summary ? String(summary.todayActiveSessionCount) : "—"}
+          detail={
+            summary && summary.todayTotalSessionCount > summary.todayActiveSessionCount
+              ? `${summary.todayTotalSessionCount - summary.todayActiveSessionCount} iptal hariç`
+              : "İptaller hariç"
+          }
           icon="↗"
         />
       </section>
@@ -325,7 +331,9 @@ export default async function DashboardPage() {
                             : "Bilinmiyor"}
                         </td>
                         <td className="px-5 py-4 text-muted">
-                          {courseNames.length > 0 ? courseNames.join(", ") : "—"}
+                          {courseNames.length > 0
+                            ? courseNames.join(", ")
+                            : "Avans / dağıtılmamış"}
                         </td>
                         <td className="px-5 py-4 text-muted">
                           {formatDate(payment.received_at)}
@@ -410,6 +418,14 @@ function formatDate(value: string) {
     month: "2-digit",
     year: "numeric",
   }).format(new Date(value));
+}
+
+function formatLongMonth(monthStartValue: string) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    timeZone: "Europe/Istanbul",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${monthStartValue}T12:00:00+03:00`));
 }
 
 function getTodayInIstanbul() {

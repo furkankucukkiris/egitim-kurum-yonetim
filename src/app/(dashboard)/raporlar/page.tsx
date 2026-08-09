@@ -26,7 +26,7 @@ const monthFormatter = new Intl.DateTimeFormat("tr-TR", {
 });
 
 export default async function ReportsPage() {
-  const profile = await requireRole(["admin", "finance", "viewer"]);
+  const profile = await requireRole(["admin"]);
 
   const months = getLastMonths(6);
   const earliestMonth = months[0].key;

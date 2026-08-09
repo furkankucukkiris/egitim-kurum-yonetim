@@ -160,10 +160,7 @@ export default async function StudentDetailPage({
   params,
   searchParams,
 }: StudentDetailPageProps) {
-  await requireRole([
-    "admin",
-    "finance",
-  ]);
+  await requireRole(["admin"]);
 
   const { studentId } = await params;
   const messages = await searchParams;

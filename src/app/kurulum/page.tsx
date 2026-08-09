@@ -32,6 +32,19 @@ export default async function SetupPage({
     redirect("/");
   }
 
+  // Bu sayfa yalnızca sistemde hiç kurum yokken (gerçek ilk kurulum)
+  // gösterilebilir. Bu kontrol, /lib/auth.ts içindeki yönlendirme
+  // mantığından bağımsız olarak burada da uygulanır — arayüz
+  // yönlendirmesine güvenilmez, /kurulum'a doğrudan gidilse bile
+  // sunucu tarafında engellenir.
+  const { data: systemBootstrapped } = await supabase.rpc(
+    "has_any_organization",
+  );
+
+  if (systemBootstrapped) {
+    redirect("/hesap-erisimi");
+  }
+
   return (
     <div className="mx-auto max-w-xl py-10">
       <div className="rounded-3xl border border-line bg-panel p-7 shadow-sm">

@@ -13,7 +13,7 @@ export async function createEnrollment(
   _previousState: EnrollmentActionState,
   formData: FormData,
 ): Promise<EnrollmentActionState> {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const studentId = readText(
     formData,
@@ -315,10 +315,7 @@ export async function createEnrollment(
 export async function updateEnrollmentMeb(
   formData: FormData,
 ) {
-  await requireRole([
-    "admin",
-    "finance",
-  ]);
+  await requireRole(["admin"]);
 
   const studentId = readText(
     formData,

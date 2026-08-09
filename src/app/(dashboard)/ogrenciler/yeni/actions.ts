@@ -13,7 +13,7 @@ export async function createStudent(
   _previousState: CreateStudentState,
   formData: FormData,
 ): Promise<CreateStudentState> {
-  const profile = await requireRole(["admin", "finance"]);
+  const profile = await requireRole(["admin"]);
 
   const studentPhoto = formData.get("studentPhoto");
 

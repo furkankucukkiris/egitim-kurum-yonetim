@@ -13,7 +13,7 @@ export async function updateStudent(
   _previousState: UpdateStudentState,
   formData: FormData,
 ): Promise<UpdateStudentState> {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const studentId = readText(formData, "studentId");
   const primaryGuardianId = readText(
@@ -175,7 +175,7 @@ export async function updateStudent(
 export async function archiveStudent(
   formData: FormData,
 ) {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const studentId = readText(
     formData,
@@ -241,7 +241,7 @@ export async function addGuardian(
   _previousState: AddGuardianState,
   formData: FormData,
 ): Promise<AddGuardianState> {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const studentId = readText(
     formData,
@@ -385,7 +385,7 @@ export async function addGuardian(
 export async function setPrimaryGuardian(
   formData: FormData,
 ) {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const studentId = readText(
     formData,
@@ -442,7 +442,7 @@ export async function setPrimaryGuardian(
 export async function removeGuardian(
   formData: FormData,
 ) {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const studentId = readText(
     formData,

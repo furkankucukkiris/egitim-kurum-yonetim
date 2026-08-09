@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { StudentForm } from "./student-form";
 
 export default async function NewStudentPage() {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const today = getTodayInIstanbul();
 

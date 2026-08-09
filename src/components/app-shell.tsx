@@ -21,7 +21,7 @@ const navigation: NavigationItem[] = [
     href: "/",
     label: "Genel Bakış",
     icon: "⌂",
-    roles: ["admin", "finance", "viewer"],
+    roles: ["admin"],
   },
   {
     href: "/ogretmen-paneli",
@@ -33,7 +33,7 @@ const navigation: NavigationItem[] = [
     href: "/ogrenciler",
     label: "Öğrenciler",
     icon: "◎",
-    roles: ["admin", "finance"],
+    roles: ["admin"],
   },
   {
     href: "/dersler",
@@ -51,7 +51,7 @@ const navigation: NavigationItem[] = [
     href: "/odemeler",
     label: "Ödemeler",
     icon: "₺",
-    roles: ["admin", "finance"],
+    roles: ["admin"],
   },
   {
     href: "/yoklama",
@@ -69,17 +69,13 @@ const navigation: NavigationItem[] = [
     href: "/raporlar",
     label: "Raporlar",
     icon: "↗",
-    roles: ["admin", "finance", "viewer"],
+    roles: ["admin"],
   },
   {
     href: "/meb-yoklama",
     label: "MEB Yoklama",
     icon: "✓",
-    roles: [
-      "admin",
-      "finance",
-      "teacher",
-    ],
+    roles: ["admin", "teacher"],
   },
   {
     href: "/meb",
@@ -97,9 +93,7 @@ const navigation: NavigationItem[] = [
 
 const roleLabels: Record<AppRole, string> = {
   admin: "Yönetici",
-  finance: "Finans",
   teacher: "Öğretmen",
-  viewer: "Görüntüleyici",
 };
 
 type AppShellProps = {

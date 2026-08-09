@@ -3,7 +3,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export type AppRole = "admin" | "finance" | "teacher" | "viewer";
+export type AppRole = "admin" | "teacher";
 
 export type CurrentProfile = {
   id: string;
@@ -59,16 +59,17 @@ async function loadProfile(
     .maybeSingle();
 
   if (profileError || !profile) {
-    // Bu kullanıcının hiç profili yoksa (yeni bir kurum için
-    // oluşturulmuş yeni bir kullanıcı olabilir — sistemde başka
-    // kurumlar olsa bile) kendi kurulumuna yönlendirilir. Profili
-    // var ama pasifse (RLS bunu normal sorgudan gizler) hesap
-    // erişimi ekranı gösterilir.
-    const { data: hasOwnProfile } = await supabase.rpc(
-      "current_user_profile_exists",
+    // Sistem tek kurumla sınırlıdır: /kurulum yalnızca hiç kurum
+    // yokken (gerçek ilk kurulum) erişilebilir olmalı. Sistemde bir
+    // kurum zaten kurulmuşsa, bu kullanıcının hiç profili olmaması
+    // ile profilinin pasif olması aynı jenerik ekrana yönlendirilir
+    // — böylece hata mesajı kullanıcının sistemde tanınıp
+    // tanınmadığını ifşa etmez.
+    const { data: systemBootstrapped } = await supabase.rpc(
+      "has_any_organization",
     );
 
-    redirect(hasOwnProfile ? "/hesap-erisimi" : "/kurulum");
+    redirect(systemBootstrapped ? "/hesap-erisimi" : "/kurulum");
   }
 
   const {

@@ -68,7 +68,7 @@ type PaymentsPageProps = {
 };
 
 export default async function PaymentsPage({ searchParams }: PaymentsPageProps) {
-  const profile = await requireRole(["admin", "finance"]);
+  const profile = await requireRole(["admin"]);
 
   const params = await searchParams;
 

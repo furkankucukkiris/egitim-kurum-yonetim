@@ -45,6 +45,16 @@ export async function completeInitialSetup(formData: FormData) {
     );
   }
 
+  // Sayfa yönlendirmesi atlanıp bu action doğrudan çağrılsa bile,
+  // sistemde zaten bir kurum varsa işlem burada da durdurulur.
+  const { data: systemBootstrapped } = await supabase.rpc(
+    "has_any_organization",
+  );
+
+  if (systemBootstrapped) {
+    redirect("/hesap-erisimi");
+  }
+
   let logoPath: string | undefined;
 
   if (logoFile instanceof File && logoFile.size > 0) {

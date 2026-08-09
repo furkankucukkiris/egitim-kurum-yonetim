@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { SessionComments, type SessionComment } from "@/components/yoklama/SessionComments";
+import { AttendanceRoster, type RosterStudent } from "@/components/yoklama/AttendanceRoster";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -26,6 +27,7 @@ type SessionRow = {
   cancelled_at: string | null;
   cancellation_reason: string | null;
   teacher_confirmed_at: string | null;
+  attendance_locked_at: string | null;
   course: {
     name: string;
     course_type:
@@ -38,6 +40,27 @@ type SessionRow = {
   teacher: {
     full_name: string;
   } | null;
+  locker: {
+    full_name: string;
+  } | null;
+};
+
+type RosterRow = {
+  lesson_session_id: string;
+  student_id: string;
+  student_first_name: string;
+  student_last_name: string;
+  status: RosterStudent["status"];
+  note: string | null;
+  notified_at: string | null;
+};
+
+type UnmarkedSessionRow = {
+  lesson_session_id: string;
+  starts_at: string;
+  course_name: string;
+  class_group_name: string | null;
+  teacher_full_name: string | null;
 };
 
 type EnrollmentRow = {
@@ -98,6 +121,7 @@ export default async function AttendancePage({
       cancelled_at,
       cancellation_reason,
       teacher_confirmed_at,
+      attendance_locked_at,
       course:courses (
         name,
         course_type
@@ -105,7 +129,10 @@ export default async function AttendancePage({
       class_group:class_groups (
         name
       ),
-      teacher:profiles (
+      teacher:profiles!teacher_profile_id (
+        full_name
+      ),
+      locker:profiles!attendance_locked_by (
         full_name
       )
     `)
@@ -160,19 +187,32 @@ export default async function AttendancePage({
   let enrollmentsError = false;
 
   if (classGroupIds.length > 0) {
-    const result = await supabase
-      .from("enrollments")
-      .select(`
-        student_id,
-        class_group_id,
-        starts_on,
-        ends_on
-      `)
-      .eq("status", "active")
-      .in(
-        "class_group_id",
-        classGroupIds,
-      );
+    // Teacher, enrollments tablosuna doğrudan erişemez (ücret/indirim
+    // sütunları içerdiği için); kendi kayıtlarını yalnızca finansal
+    // olmayan alanları döndüren get_teacher_enrollments() RPC'siyle
+    // görür. Admin tabloyu doğrudan sorgulamaya devam eder.
+    const result =
+      profile.role === "teacher"
+        ? await supabase
+            .rpc("get_teacher_enrollments")
+            .eq("status", "active")
+            .in(
+              "class_group_id",
+              classGroupIds,
+            )
+        : await supabase
+            .from("enrollments")
+            .select(`
+              student_id,
+              class_group_id,
+              starts_on,
+              ends_on
+            `)
+            .eq("status", "active")
+            .in(
+              "class_group_id",
+              classGroupIds,
+            );
 
     if (result.error) {
       console.error(
@@ -183,9 +223,15 @@ export default async function AttendancePage({
       enrollmentsError = true;
     }
 
-    enrollments =
+    enrollments = (
       (result.data ??
-        []) as EnrollmentRow[];
+        []) as unknown as EnrollmentRow[]
+    ).map((row) => ({
+      student_id: row.student_id,
+      class_group_id: row.class_group_id,
+      starts_on: row.starts_on,
+      ends_on: row.ends_on,
+    }));
   }
 
   const sessionIds = sessions.map((session) => session.id);
@@ -223,6 +269,53 @@ export default async function AttendancePage({
 
       commentsBySession.set(comment.lesson_session_id, list);
     }
+  }
+
+  const rosterBySession = new Map<string, RosterStudent[]>();
+
+  if (sessionIds.length > 0) {
+    const rosterResult = await supabase.rpc("get_attendance_roster", {
+      p_lesson_session_ids: sessionIds,
+    });
+
+    if (rosterResult.error) {
+      console.error("Yoklama listesi alınamadı:", rosterResult.error);
+    }
+
+    const rosterRows = (rosterResult.data ?? []) as unknown as RosterRow[];
+
+    for (const row of rosterRows) {
+      const list = rosterBySession.get(row.lesson_session_id) ?? [];
+
+      list.push({
+        studentId: row.student_id,
+        firstName: row.student_first_name,
+        lastName: row.student_last_name,
+        status: row.status,
+        note: row.note,
+        notifiedAt: row.notified_at,
+      });
+
+      rosterBySession.set(row.lesson_session_id, list);
+    }
+  }
+
+  let unmarkedSessions: UnmarkedSessionRow[] = [];
+
+  if (profile.role === "admin") {
+    const unmarkedResult = await supabase.rpc("get_unmarked_past_sessions", {
+      p_limit: 10,
+    });
+
+    if (unmarkedResult.error) {
+      console.error(
+        "Yoklaması alınmamış geçmiş oturumlar alınamadı:",
+        unmarkedResult.error,
+      );
+    }
+
+    unmarkedSessions =
+      (unmarkedResult.data ?? []) as unknown as UnmarkedSessionRow[];
   }
 
   const enrollmentCountByGroup =
@@ -291,6 +384,39 @@ export default async function AttendancePage({
         <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
           {params.error}
         </div>
+      )}
+
+      {profile.role === "admin" && unmarkedSessions.length > 0 && (
+        <section className="mb-6 rounded-2xl border border-honey-100 bg-honey-50 p-5 shadow-sm dark:border-honey-800/40 dark:bg-honey-500/10">
+          <h2 className="font-bold text-honey-700 dark:text-honey-500">
+            Yoklaması alınmamış geçmiş dersler
+          </h2>
+
+          <p className="mt-1 text-sm text-honey-700/80 dark:text-honey-500/80">
+            Bu oturumlar için henüz hiç yoklama girilmemiş.
+          </p>
+
+          <ul className="mt-3 space-y-2">
+            {unmarkedSessions.map((session) => (
+              <li key={session.lesson_session_id}>
+                <Link
+                  href={`/yoklama?date=${session.starts_at.slice(0, 10)}`}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-panel px-4 py-2.5 text-sm shadow-sm hover:bg-fill"
+                >
+                  <span className="font-semibold text-ink">
+                    {session.course_name}
+                    {session.class_group_name ? ` — ${session.class_group_name}` : ""}
+                  </span>
+
+                  <span className="text-muted">
+                    {formatLongDate(session.starts_at.slice(0, 10))} ·{" "}
+                    {session.teacher_full_name ?? "Atanmamış"}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {profile.role === "admin" && (
@@ -550,14 +676,19 @@ export default async function AttendancePage({
                     </div>
                   )}
 
-                <button
-                  type="button"
-                  disabled
-                  className="mt-5 w-full rounded-xl bg-fill px-4 py-3 text-sm font-semibold text-muted"
-                >
-                  Yoklama girişi sonraki pakette
-                  açılacak
-                </button>
+                <AttendanceRoster
+                  sessionId={session.id}
+                  date={selectedDate}
+                  students={rosterBySession.get(session.id) ?? []}
+                  locked={Boolean(session.attendance_locked_at)}
+                  lockedByName={session.locker?.full_name ?? null}
+                  canMark={
+                    !session.cancelled_at &&
+                    (profile.role === "admin" ||
+                      session.teacher_profile_id === profile.id)
+                  }
+                  isAdmin={profile.role === "admin"}
+                />
 
                 <SessionComments
                   sessionId={session.id}

@@ -52,6 +52,65 @@ type EnrollmentRow = {
     | null;
 };
 
+// get_teacher_enrollments() RPC'sinin döndüğü düz satır şekli.
+// enrollments tablosuna doğrudan erişimin yerini alır; ücret/indirim
+// gibi finansal sütunlar içermez (bkz. supabase/migrations/
+// 20260810130000_simplify_roles_to_admin_teacher.sql).
+type TeacherEnrollmentRpcRow = {
+  id: string;
+  student_id: string;
+  class_group_id: string | null;
+  status: "active" | "frozen";
+  starts_on: string;
+  ends_on: string | null;
+  student_first_name: string;
+  student_last_name: string;
+  student_status: string;
+  course_name: string | null;
+  class_group_name: string | null;
+  class_group_weekday: number | null;
+  class_group_start_time: string | null;
+  meb_status: string;
+  meb_valid_from: string | null;
+  meb_valid_until: string | null;
+};
+
+function toEnrollmentRow(
+  row: TeacherEnrollmentRpcRow,
+): EnrollmentRow {
+  return {
+    id: row.id,
+    student_id: row.student_id,
+    class_group_id: row.class_group_id,
+    status: row.status,
+    starts_on: row.starts_on,
+    ends_on: row.ends_on,
+    student: {
+      first_name: row.student_first_name,
+      last_name: row.student_last_name,
+      status: row.student_status,
+    },
+    course: row.course_name
+      ? { name: row.course_name }
+      : null,
+    class_group:
+      row.class_group_name &&
+      row.class_group_weekday !== null &&
+      row.class_group_start_time
+        ? {
+            name: row.class_group_name,
+            weekday: row.class_group_weekday,
+            start_time: row.class_group_start_time,
+          }
+        : null,
+    meb_registration: {
+      status: row.meb_status,
+      valid_from: row.meb_valid_from,
+      valid_until: row.meb_valid_until,
+    },
+  };
+}
+
 const weekdayLabels: Record<number, string> = {
   1: "Pazartesi",
   2: "Salı",
@@ -96,33 +155,7 @@ export default async function TeacherPanelPage() {
       .order("start_time"),
 
     supabase
-      .from("enrollments")
-      .select(`
-        id,
-        student_id,
-        class_group_id,
-        status,
-        starts_on,
-        ends_on,
-        student:students (
-          first_name,
-          last_name,
-          status
-        ),
-        course:courses (
-          name
-        ),
-        class_group:class_groups (
-          name,
-          weekday,
-          start_time
-        ),
-        meb_registration:enrollment_meb_registrations (
-          status,
-          valid_from,
-          valid_until
-        )
-      `)
+      .rpc("get_teacher_enrollments")
       .in("status", [
         "active",
         "frozen",
@@ -148,9 +181,10 @@ export default async function TeacherPanelPage() {
     (groupsResult.data ??
       []) as unknown as GroupRow[];
 
-  const enrollments =
+  const enrollments = (
     (enrollmentsResult.data ??
-      []) as unknown as EnrollmentRow[];
+      []) as unknown as TeacherEnrollmentRpcRow[]
+  ).map(toEnrollmentRow);
 
   const uniqueStudentCount = new Set(
     enrollments.map(

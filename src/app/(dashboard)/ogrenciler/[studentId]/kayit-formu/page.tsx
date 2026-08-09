@@ -37,7 +37,7 @@ export default async function RegistrationFormPage({
   params,
   searchParams,
 }: RegistrationFormPageProps) {
-  const profile = await requireRole(["admin", "finance"]);
+  const profile = await requireRole(["admin"]);
   const { studentId } = await params;
   const { created } = await searchParams;
 

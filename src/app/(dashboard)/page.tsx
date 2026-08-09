@@ -54,6 +54,10 @@ export default async function DashboardPage() {
     redirect("/ogretmen-paneli");
   }
 
+  if (profile.role !== "admin") {
+    redirect("/yetkisiz");
+  }
+
   const supabase = await createClient();
 
   const today = getTodayInIstanbul();
@@ -242,14 +246,12 @@ export default async function DashboardPage() {
         title="Genel Bakış"
         description="Öğrenci, tahsilat ve ders performansının güncel özeti."
         action={
-          profile.role === "admin" || profile.role === "finance" ? (
-            <Link
-              href="/ogrenciler/yeni"
-              className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90"
-            >
-              + Yeni öğrenci
-            </Link>
-          ) : undefined
+          <Link
+            href="/ogrenciler/yeni"
+            className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90"
+          >
+            + Yeni öğrenci
+          </Link>
         }
       />
 

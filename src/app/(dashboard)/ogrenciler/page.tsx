@@ -62,7 +62,7 @@ const validStatuses: StudentStatus[] = [
 export default async function StudentsPage({
   searchParams,
 }: StudentsPageProps) {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const params = await searchParams;
 

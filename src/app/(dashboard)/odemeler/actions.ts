@@ -6,7 +6,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMonthlyAccruals(formData: FormData) {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const month = readText(formData, "month");
 
@@ -54,7 +54,7 @@ export async function generateMonthlyAccruals(formData: FormData) {
 }
 
 export async function recordPayment(formData: FormData) {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const studentId = readText(formData, "studentId");
   const courseId = readText(formData, "courseId");

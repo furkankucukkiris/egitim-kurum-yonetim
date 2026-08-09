@@ -50,11 +50,7 @@ const weekdayLabels: Record<number, string> = {
 export default async function MebRosterPage({
   searchParams,
 }: PageProps) {
-  await requireRole([
-    "admin",
-    "finance",
-    "teacher",
-  ]);
+  await requireRole(["admin", "teacher"]);
 
   const params = await searchParams;
 

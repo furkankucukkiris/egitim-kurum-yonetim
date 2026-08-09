@@ -14,12 +14,13 @@ export default async function UserAccountsSettingsPage() {
       <h2 className="mt-4 text-lg font-bold text-ink">Kullanıcı Hesapları</h2>
 
       <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted">
-        Finans ve görüntüleyici rolündeki kullanıcı hesaplarının buradan
-        yönetilmesi yakında eklenecek. Öğretmen hesapları şimdilik{" "}
+        Sistemde yalnızca yönetici ve öğretmen rolleri kullanılır. Öğretmen
+        hesapları{" "}
         <Link href="/ogretmenler" className="font-semibold text-brand-700 underline underline-offset-4 dark:text-brand-100">
           Öğretmenler
         </Link>{" "}
-        sayfasından yönetiliyor.
+        sayfasından yönetilir; yeni yönetici hesabı yalnızca Supabase
+        Dashboard üzerinden oluşturulabilir.
       </p>
     </Card>
   );

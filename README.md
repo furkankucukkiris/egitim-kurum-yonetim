@@ -343,6 +343,46 @@ organizasyonun öğrenci-veli eşlemesini REST üzerinden görebilirdi. Bu,
 migration'ında düzeltildi ve `role_data_minimization.test.sql`
 içinde iki ayrı organizasyon fixture'ıyla test edilir.
 
+### Ödemeler ekranı (`/odemeler`)
+
+Eski ekran, tahakkukları `.lte("period_start", monthEnd)` ile
+çekiyordu — ay ilerledikçe ders kartları kümülatif büyüyor, "bu ayın
+tahakkuku" aslında "bugüne kadarki tüm tahakkuk" oluyordu.
+`period_start = monthStart` (tam eşitlik) olarak düzeltildi; ders
+kartları artık yalnızca seçili ayın satırlarını gösterir.
+
+Sayfadaki tüm üst düzey rakamlar (seçili ay tahakkuku/tahsilatı,
+önceki dönem borcu, toplam açık alacak, bu ay kasaya giren nakit)
+Genel Bakış (`/`) ile **aynı** `get_dashboard_financial_summary()`
+RPC'sinden gelir — iki ekran hiçbir zaman farklı sayı göstermez. Ders
+kartlarının toplamı da bu RPC'nin `monthly_accrued`/`monthly_collected`
+alanlarıyla birebir eşleşir çünkü ikisi de aynı filtreyle
+(organization + `period_start = monthStart` + status iptal/iade
+dışında) aynı `accruals` satırlarını toplar — bu tutarlılık
+`student_balances.test.sql`'de doğrudan test edilir.
+
+**Öğrenci bazlı bakiye** (yeni `get_student_balances()` RPC'si,
+`20260811120000_add_student_balances.sql`) ay bazlı DEĞİLDİR —
+öğrencinin tüm açık/kısmi dönemlerinin toplamını gösterir, arama
+(ad/soyad), ders filtresi ve durum filtresiyle daraltılabilir, gerçek
+server-side sayfalama (`limit`/`offset` + `count(*) over()`) ile
+gelir.
+
+**Ödeme önizlemesi**, `record_payment_for_course()`
+(`20260808120000`) ile birebir aynı dağıtım mantığını (en eski
+dönemden başlayarak, o dönemin bekleyeninden fazlasını taşırmadan)
+saf istemci tarafı JavaScript ile taklit eder — sunucuya ekstra istek
+atmaz, girilen tutar değiştikçe anında güncellenir. Bu yalnızca bir
+önizleme; gerçek dağıtım yine sunucuda aynı RPC ile yapılır.
+
+CSV dışa aktarımı `src/lib/payments/export.ts` içindeki saf servis
+katmanından (`fetchMonthlyPaymentsExportRows`/`paymentsExportRowsToCsv`)
+ve `GET /odemeler/export?month=YYYY-MM` route handler'ından gelir —
+sayfa bileşeni bu dosyaya bağımlı değildir, dışa aktarılan veri
+ekrandaki ders kartlarıyla aynı sorgu/filtreyi kullanır. Excel'in
+tr-TR ayarlarıyla doğru açılması için `;` ayraç ve UTF-8 BOM
+kullanılıyor.
+
 ## 9. Mevcut başlangıç ekranları
 
 - Yönetim paneli

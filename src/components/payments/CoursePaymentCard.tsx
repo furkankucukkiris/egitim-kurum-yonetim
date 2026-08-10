@@ -1,18 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { formatTry } from "@/lib/utils";
 import { recordPayment } from "@/app/(dashboard)/odemeler/actions";
 
 export type StudentPaymentStatus = "paid" | "partial" | "pending";
 
+export type OpenAccrualItem = {
+  accrualId: string;
+  periodLabel: string;
+  pending: number;
+  overdue: boolean;
+};
+
 export type StudentPaymentRow = {
   studentId: string;
   studentName: string;
   status: StudentPaymentStatus;
-  amount: number;
+  /** Seçili ayın tahakkuku/tahsilatı/bekleyeni — kart bu ayla sınırlı. */
+  monthNet: number;
+  monthAllocated: number;
+  monthPending: number;
   otherCourses: string[];
-  note: string;
+  /**
+   * Bu öğrencinin bu derste TÜM açık dönemleri (yalnızca bu ay değil),
+   * en eski dönemden başlayarak sıralı. Ödeme önizlemesi ve formun
+   * varsayılan tutarı bunu kullanır — record_payment_for_course()
+   * ödemeyi tam bu sırayla dağıtır.
+   */
+  openAccruals: OpenAccrualItem[];
+  totalOpenAcrossPeriods: number;
 };
 
 export type CoursePaymentGroup = {
@@ -79,7 +96,7 @@ export function CoursePaymentCard({
         </div>
 
         <div className="text-right">
-          <p className="text-xs text-muted">Bekleyen</p>
+          <p className="text-xs text-muted">Bekleyen (bu ay)</p>
           <p
             className={`text-lg font-bold ${
               group.totals.pending > 0 ? "text-rose-700 dark:text-rose-400" : "text-ink"
@@ -103,9 +120,8 @@ export function CoursePaymentCard({
                   <tr>
                     <th className="px-5 py-3">Öğrenci</th>
                     <th className="px-5 py-3">Durum</th>
-                    <th className="px-5 py-3">Tutar</th>
+                    <th className="px-5 py-3">Bu ay</th>
                     <th className="px-5 py-3">Diğer dersler</th>
-                    <th className="px-5 py-3">Açıklama</th>
                     <th className="px-5 py-3" />
                   </tr>
                 </thead>
@@ -126,21 +142,21 @@ export function CoursePaymentCard({
 
           <div className="grid grid-cols-3 divide-x divide-line border-t border-line text-sm">
             <div className="px-5 py-3">
-              <p className="text-xs text-muted">Bekleyen ödemeler</p>
+              <p className="text-xs text-muted">Bekleyen (bu ay)</p>
               <p className="mt-1 font-semibold text-rose-700 dark:text-rose-400">
                 {formatTry(group.totals.pending)}
               </p>
             </div>
 
             <div className="px-5 py-3">
-              <p className="text-xs text-muted">Alınan ödemeler</p>
+              <p className="text-xs text-muted">Alınan (bu ay)</p>
               <p className="mt-1 font-semibold text-emerald-700 dark:text-emerald-400">
                 {formatTry(group.totals.received)}
               </p>
             </div>
 
             <div className="px-5 py-3">
-              <p className="text-xs text-muted">Toplam</p>
+              <p className="text-xs text-muted">Toplam (bu ay)</p>
               <p className="mt-1 font-semibold text-ink">
                 {formatTry(group.totals.total)}
               </p>
@@ -163,6 +179,16 @@ function StudentRow({
 }) {
   const [formOpen, setFormOpen] = useState(false);
 
+  const defaultAmount =
+    row.totalOpenAcrossPeriods > 0 ? row.totalOpenAcrossPeriods : row.monthPending;
+
+  const [amountInput, setAmountInput] = useState(defaultAmount.toFixed(2));
+
+  const allocation = useMemo(
+    () => previewAllocation(row.openAccruals, parseAmount(amountInput)),
+    [row.openAccruals, amountInput],
+  );
+
   return (
     <>
       <tr>
@@ -176,19 +202,34 @@ function StudentRow({
           </span>
         </td>
 
-        <td
-          className={`px-5 py-4 font-semibold ${
-            row.status === "paid" ? "text-ink" : "text-rose-700 dark:text-rose-400"
-          }`}
-        >
-          {formatTry(row.amount)}
+        <td className="px-5 py-4">
+          {row.status === "paid" ? (
+            <span className="font-semibold text-ink">{formatTry(row.monthNet)}</span>
+          ) : row.status === "partial" ? (
+            <div className="text-xs leading-5">
+              <p className="font-semibold text-honey-700 dark:text-honey-500">
+                {formatTry(row.monthAllocated)} ödendi
+              </p>
+              <p className="text-rose-700 dark:text-rose-400">
+                {formatTry(row.monthPending)} kaldı
+              </p>
+            </div>
+          ) : (
+            <span className="font-semibold text-rose-700 dark:text-rose-400">
+              {formatTry(row.monthPending)}
+            </span>
+          )}
+
+          {row.totalOpenAcrossPeriods > row.monthPending + 0.01 && (
+            <p className="mt-1 text-xs text-muted">
+              Toplam açık (tüm dönemler): {formatTry(row.totalOpenAcrossPeriods)}
+            </p>
+          )}
         </td>
 
         <td className="px-5 py-4 text-muted">
           {row.otherCourses.length > 0 ? row.otherCourses.join(", ") : "—"}
         </td>
-
-        <td className="px-5 py-4 text-xs leading-5 text-muted">{row.note}</td>
 
         <td className="px-5 py-4 text-right">
           {row.status !== "paid" && (
@@ -205,7 +246,7 @@ function StudentRow({
 
       {formOpen && (
         <tr>
-          <td colSpan={6} className="bg-fill px-5 py-4">
+          <td colSpan={5} className="bg-fill px-5 py-4">
             <form
               action={recordPayment}
               className="flex flex-wrap items-end gap-3"
@@ -220,7 +261,8 @@ function StudentRow({
                   type="text"
                   name="amount"
                   required
-                  defaultValue={row.amount.toFixed(2)}
+                  value={amountInput}
+                  onChange={(event) => setAmountInput(event.target.value)}
                   className="mt-1 block w-32 rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
                 />
               </label>
@@ -256,10 +298,76 @@ function StudentRow({
               >
                 Ödemeyi kaydet
               </button>
+
+              <div className="w-full rounded-lg border border-dashed border-line bg-panel p-3 text-xs">
+                <p className="font-semibold text-muted">
+                  Bu tutar şu dönemlere dağıtılacak (en eskiden başlayarak):
+                </p>
+
+                {allocation.lines.length === 0 ? (
+                  <p className="mt-1.5 text-muted">
+                    Bu derste açık dönem bulunmuyor — tutar avans olarak kalır.
+                  </p>
+                ) : (
+                  <ul className="mt-1.5 space-y-1">
+                    {allocation.lines.map((line) => (
+                      <li key={line.accrualId} className="flex justify-between gap-3">
+                        <span className="text-ink">
+                          {line.periodLabel}
+                          {line.overdue ? " (gecikmiş)" : ""}
+                        </span>
+                        <span className="font-semibold text-ink">
+                          {formatTry(line.allocated)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {allocation.remainder > 0.01 && (
+                  <p className="mt-1.5 flex justify-between gap-3 font-semibold text-blue-700 dark:text-blue-400">
+                    <span>Dağıtılmayan (avans olarak kalır)</span>
+                    <span>{formatTry(allocation.remainder)}</span>
+                  </p>
+                )}
+              </div>
             </form>
           </td>
         </tr>
       )}
     </>
   );
+}
+
+function parseAmount(value: string) {
+  const normalized = value.replace(/\s/g, "").replace(",", ".");
+  const amount = Number(normalized);
+  return Number.isFinite(amount) && amount > 0 ? amount : 0;
+}
+
+/**
+ * record_payment_for_course() (supabase/migrations/
+ * 20260808120000_add_accrual_automation_and_payment_recording.sql)
+ * ile birebir aynı mantık: en eski döneme, o dönemin bekleyeninden
+ * fazla olmayacak şekilde sırayla dağıt. Bu yalnızca bir ÖNİZLEME —
+ * gerçek dağıtım sunucu tarafında, aynı algoritmayla yapılır.
+ */
+function previewAllocation(openAccruals: OpenAccrualItem[], amount: number) {
+  let remaining = amount;
+  const lines: (OpenAccrualItem & { allocated: number })[] = [];
+
+  for (const accrual of openAccruals) {
+    if (remaining <= 0) {
+      break;
+    }
+
+    const allocated = Math.min(remaining, accrual.pending);
+
+    if (allocated > 0.01) {
+      lines.push({ ...accrual, allocated });
+      remaining -= allocated;
+    }
+  }
+
+  return { lines, remainder: Math.max(0, remaining) };
 }

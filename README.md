@@ -383,6 +383,72 @@ ekrandaki ders kartlarıyla aynı sorgu/filtreyi kullanır. Excel'in
 tr-TR ayarlarıyla doğru açılması için `;` ayraç ve UTF-8 BOM
 kullanılıyor.
 
+### Ödeme düzeltme, iade ve öğrenci avansı
+
+Şema ve RPC'ler `supabase/migrations/20260811130000_add_payment_refunds_and_advances.sql`
+içinde. Temel tasarım kararı: **`payments` ve `payment_allocations`
+hiçbir zaman silinmez ya da mutasyona uğratılmaz** — "fiziksel delete
+yok" kuralı, geçmiş finansal kayıtları hiç değiştirmeme ilkesine
+genişletildi. Bunun yerine iki yeni, yalnızca-ekleme (append-only)
+ledger tablosu var:
+
+- **`payment_refunds`** — bir ödemeye karşı her iade/ters işlem
+  OLAYI (`refund_type`: `refund` gerçek para iadesi, `reversal`
+  hatalı kayıt düzeltmesi; `reason`, `created_by`, `created_at` her
+  zaman zorunlu).
+- **`payment_refund_allocations`** — bir iadenin, ödemenin hangi
+  tahakkuk tahsislerini ne kadar geri aldığının kaydı —
+  `payment_allocations`'ın simetriği.
+
+`accruals.allocated_amount`/`status` ise **canlı** durumdur ve iade
+olduğunda geri hesaplanır — bu bir "silme" değil, güncel bakiyeyi
+doğru tutmaktır ("İade sonrası tahakkuk tekrar doğru açık/kısmi
+duruma döner" kabul kriteri tam olarak bunu ister).
+
+**`refund_payment(payment_id, amount, reason, refund_type)`** sıralı
+bir kural izler: önce ödemenin **dağıtılmamış (avans) kısmından**
+düşer; yalnızca o yetmezse **en yeni dönemden başlayarak** tahsisleri
+geri alır. "En yeni önce" seçimi bilinçli: eski/vadesi geçmiş bir
+borcu yeniden "açma" riskini en aza indirir. Aynı ödeme için toplam
+iade tutarı asla `payments.amount`'ı aşamaz — ödeme satırı `for
+update` ile kilitlenip mevcut toplam iade bu kilit altında
+hesaplanır (eşzamanlı iki iade çağrısı sıraya girer; ikincisi
+birincinin commit'inden sonra güncel toplamı görür — aynı desen
+`record_payment_for_course`'da da kullanılıyor).
+
+**`allocate_student_advance(payment_id, accrual_id, amount)`** bir
+ödemenin avans kısmını admin'in seçtiği belirli bir tahakkuka
+uygular; istenen tutar avans veya hedefin bekleyeninden fazlaysa
+sessizce sınırlanır (fonksiyon gerçekte uygulanan tutarı döner).
+**Otomatik/arka planda kural bazlı dağıtım yok** — yalnızca bu
+doğrudan admin çağrısı. Bu bilinçli bir kapsam kararı: parayı
+sessizce hareket ettiren bir arka plan işi, yanlış tahakkuka
+uygulanırsa fark edilmesi zor bir hata sınıfı yaratır.
+
+**Makbuz numarası** (`payments.receipt_number`, format
+`YYYY-000123`) `record_payment_for_course()` içinde
+`organizations.next_receipt_number` sayacı `for update` ile
+atomik artırılarak üretilir — kurum başına tekil ve sıralı.
+(Mevcut `reference_number` sütunu farklı bir amaca hizmet etmeye
+devam ediyor: banka/kart referansı gibi serbest metin.)
+
+**Admin ödeme detay sayfası** (`/odemeler/[paymentId]`) bir ödemenin
+tüm tahsislerini, iade geçmişini ve (varsa) dağıtılmamış avansını
+gösterir; iade/ters işlem ve avans dağıtım formları buradadır.
+`/odemeler` tablosundaki her satır bu sayfaya bağlanır. Teacher bu
+sayfaya, RPC'lere veya `payment_refunds`/`payment_refund_allocations`
+tablolarına **hiçbir şekilde** erişemez — mevcut
+`payments`/`accruals`/`payment_allocations` zaten yalnızca admin'e
+açıktı, yeni tablolar aynı deseni izliyor.
+
+`get_dashboard_financial_summary()` (Genel Bakış ve `/odemeler`'in
+ortak kaynağı) iadeleri hesaba katacak şekilde yeniden tanımlandı:
+`monthly_cash_received` artık gerçek nakit akışı — bu ay alınan
+ödemeler EKSİ bu ay yapılan iadeler (iade parası kurumdan
+GERÇEKTEN çıktığı ayın nakit akışını düşürür, ödemenin hangi aya ait
+olduğundan bağımsız); `student_advance_balance` artık iade edilmiş
+kısmı da düşüyor.
+
 ## 9. Mevcut başlangıç ekranları
 
 - Yönetim paneli

@@ -597,11 +597,16 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
 
               <tbody className="divide-y divide-line">
                 {payments.map((payment) => (
-                  <tr key={payment.id}>
+                  <tr key={payment.id} className="hover:bg-fill">
                     <td className="px-5 py-4 font-semibold text-ink">
-                      {payment.student
-                        ? `${payment.student.first_name} ${payment.student.last_name}`
-                        : "Bilinmiyor"}
+                      <Link
+                        href={`/odemeler/${payment.id}`}
+                        className="hover:underline"
+                      >
+                        {payment.student
+                          ? `${payment.student.first_name} ${payment.student.last_name}`
+                          : "Bilinmiyor"}
+                      </Link>
                     </td>
                     <td className="px-5 py-4 text-muted">
                       {formatDate(payment.received_at)}

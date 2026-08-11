@@ -61,6 +61,7 @@ export async function recordPayment(formData: FormData) {
   const month = readText(formData, "month");
   const method = readText(formData, "method");
   const note = readText(formData, "note");
+  const cashAccountId = readText(formData, "cashAccountId");
 
   const amount = parseMoney(readText(formData, "amount"));
 
@@ -94,6 +95,14 @@ export async function recordPayment(formData: FormData) {
     );
   }
 
+  if (method === "cash" && !cashAccountId) {
+    redirect(
+      `${redirectBase}&error=${encodeURIComponent(
+        "Nakit ödeme için bir kasa hesabı seçin.",
+      )}`,
+    );
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase.rpc("record_payment_for_course", {
@@ -102,6 +111,7 @@ export async function recordPayment(formData: FormData) {
     p_amount: amount,
     p_method: method,
     p_note: note || null,
+    p_cash_account_id: method === "cash" ? cashAccountId : null,
   });
 
   if (error) {
@@ -150,6 +160,8 @@ function getDatabaseErrorMessage(message: string) {
     "Geçerli bir ödeme yöntemi seçilmelidir.",
     "Öğrenci kaydı bulunamadı.",
     "Öğrencinin bu derste kaydı bulunamadı.",
+    "Nakit ödeme için bir kasa hesabı seçilmelidir.",
+    "Kasa hesabı bulunamadı.",
   ];
 
   const matched = safeMessages.find((item) => message.includes(item));

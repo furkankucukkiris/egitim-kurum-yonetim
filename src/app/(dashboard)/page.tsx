@@ -56,9 +56,19 @@ type SessionRow = {
   ends_at: string;
   room_name: string | null;
   is_makeup: boolean;
+  is_trial: boolean;
   cancelled_at: string | null;
   course: { name: string } | null;
   teacher: { full_name: string } | null;
+};
+
+type ProspectFollowUpRow = {
+  id: string;
+  student_first_name: string;
+  student_last_name: string;
+  phone: string;
+  next_follow_up_date: string;
+  assigned: { full_name: string } | null;
 };
 
 export default async function DashboardPage() {
@@ -80,11 +90,16 @@ export default async function DashboardPage() {
   const currentYear = Number(today.slice(0, 4));
   const holidays = getHolidaysForYearRange(currentYear - 1, currentYear + 6);
 
+  const nextWeek = addDays(today, 7);
+
   const [
     summaryResult,
     coursePerformanceResult,
     paymentsResult,
     sessionsResult,
+    followUpTodayResult,
+    followUpUpcomingResult,
+    waitlistOpportunitiesResult,
   ] = await Promise.all([
     supabase.rpc("get_dashboard_financial_summary", {
       p_month_start: monthStart,
@@ -112,14 +127,28 @@ export default async function DashboardPage() {
     supabase
       .from("lesson_sessions")
       .select(`
-        starts_at, ends_at, room_name, is_makeup, cancelled_at,
+        starts_at, ends_at, room_name, is_makeup, is_trial, cancelled_at,
         course:courses ( name ),
-        teacher:profiles ( full_name )
+        teacher:profiles!teacher_profile_id ( full_name )
       `)
       .eq("organization_id", profile.organizationId)
       .gte("starts_at", `${today}T00:00:00+03:00`)
       .lt("starts_at", `${tomorrow}T00:00:00+03:00`)
       .order("starts_at", { ascending: true }),
+    supabase
+      .from("prospects")
+      .select("id, student_first_name, student_last_name, phone, next_follow_up_date, assigned:assigned_profile_id(full_name)")
+      .eq("organization_id", profile.organizationId)
+      .eq("next_follow_up_date", today)
+      .order("student_last_name", { ascending: true }),
+    supabase
+      .from("prospects")
+      .select("id, student_first_name, student_last_name, phone, next_follow_up_date, assigned:assigned_profile_id(full_name)")
+      .eq("organization_id", profile.organizationId)
+      .gt("next_follow_up_date", today)
+      .lte("next_follow_up_date", nextWeek)
+      .order("next_follow_up_date", { ascending: true }),
+    supabase.rpc("get_waitlist_opportunities"),
   ]);
 
   if (summaryResult.error) {
@@ -136,6 +165,18 @@ export default async function DashboardPage() {
 
   if (sessionsResult.error) {
     console.error("Bugünün ders akışı alınamadı:", sessionsResult.error);
+  }
+
+  if (followUpTodayResult.error) {
+    console.error("Bugünkü takip listesi alınamadı:", followUpTodayResult.error);
+  }
+
+  if (followUpUpcomingResult.error) {
+    console.error("Yaklaşan takip listesi alınamadı:", followUpUpcomingResult.error);
+  }
+
+  if (waitlistOpportunitiesResult.error) {
+    console.error("Bekleme listesi fırsatları alınamadı:", waitlistOpportunitiesResult.error);
   }
 
   const summaryRow = ((summaryResult.data ?? []) as unknown as FinancialSummaryRow[])[0];
@@ -181,6 +222,11 @@ export default async function DashboardPage() {
 
   const payments = (paymentsResult.data ?? []) as unknown as PaymentRow[];
   const sessions = (sessionsResult.data ?? []) as unknown as SessionRow[];
+  const followUpToday = (followUpTodayResult.data ?? []) as unknown as ProspectFollowUpRow[];
+  const followUpUpcoming = (followUpUpcomingResult.data ?? []) as unknown as ProspectFollowUpRow[];
+  const openWaitlistOpportunityCount = (
+    (waitlistOpportunitiesResult.data ?? []) as unknown as { available_seats: number }[]
+  ).filter((item) => item.available_seats > 0).length;
 
   const todaySessions = sessions.map((session) => ({
     time: formatTime(session.starts_at),
@@ -189,9 +235,11 @@ export default async function DashboardPage() {
     room: session.room_name ?? "Belirtilmedi",
     status: session.cancelled_at
       ? "İptal"
-      : session.is_makeup
-        ? "Telafi"
-        : "Planlandı",
+      : session.is_trial
+        ? "Deneme"
+        : session.is_makeup
+          ? "Telafi"
+          : "Planlandı",
   }));
 
   return (
@@ -288,6 +336,27 @@ export default async function DashboardPage() {
               : "İptaller hariç"
           }
           icon="↗"
+        />
+
+        <StatCard
+          label="Bugün Aranacak Aday"
+          value={String(followUpToday.length)}
+          detail="Sonraki takip tarihi bugün"
+          icon="☆"
+        />
+
+        <StatCard
+          label="Yaklaşan Takip"
+          value={String(followUpUpcoming.length)}
+          detail="Önümüzdeki 7 gün"
+          icon="◔"
+        />
+
+        <StatCard
+          label="Kapasitesi Açılan Grup"
+          value={String(openWaitlistOpportunityCount)}
+          detail="Bekleme listesi olan, boş yeri açılan gruplar"
+          icon="◷"
         />
       </section>
 
@@ -397,6 +466,38 @@ export default async function DashboardPage() {
       <section className="mt-6">
         <h3 className="mb-3 font-semibold text-ink">Bugünün ders akışı</h3>
         <TodaySessionsList sessions={todaySessions} />
+      </section>
+
+      <section className="mt-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-semibold text-ink">Bugün aranacak aday öğrenciler</h3>
+          <Link href="/aday-ogrenciler" className="text-sm text-terra-700 hover:underline dark:text-terra-500">
+            Tümünü gör →
+          </Link>
+        </div>
+
+        {followUpToday.length === 0 ? (
+          <Card className="p-6 text-center text-sm text-muted">
+            Bugün için takip edilmesi gereken aday öğrenci yok.
+          </Card>
+        ) : (
+          <div className="space-y-2.5">
+            {followUpToday.map((prospect) => (
+              <Link key={prospect.id} href={`/aday-ogrenciler/${prospect.id}`}>
+                <Card className="flex items-center justify-between gap-4 p-3.5 transition hover:bg-fill">
+                  <div>
+                    <p className="text-sm font-medium text-ink">
+                      {prospect.student_first_name} {prospect.student_last_name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {prospect.phone} · {prospect.assigned?.full_name ?? "Atanmamış"}
+                    </p>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
     </>
   );

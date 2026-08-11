@@ -164,10 +164,11 @@ yetkiyi kontrol eder:
 | Yol | admin | teacher |
 | --- | --- | --- |
 | `/` (Genel Bakış, finans özeti) | ✅ | ❌ (`/ogretmen-paneli`'ne yönlenir) |
-| `/ogretmen-paneli` | ❌ | ✅ |
+| `/ogretmen-paneli`, `/ogretmen-paneli/hakedisim` | ❌ | ✅ (yalnızca kendi kayıtları) |
+| `/hakedis`, `/hakedis/[id]` | ✅ | ❌ |
 | `/ogrenciler`, `/ogrenciler/yeni`, `/ogrenciler/[id]`, `/ogrenciler/[id]/kayit-formu` | ✅ | ❌ |
 | `/dersler`, `/program` | ✅ | ❌ |
-| `/odemeler` | ✅ | ❌ |
+| `/odemeler`, `/giderler` | ✅ | ❌ |
 | `/yoklama` | ✅ (tüm oturumlar) | ✅ (yalnızca kendi oturumları) |
 | `/meb-yoklama` | ✅ (tüm kayıtlar) | ✅ (yalnızca kendi öğrencileri) |
 | `/meb`, `/ogretmenler`, `/raporlar`, `/kurum-ayarlari/*` | ✅ | ❌ |
@@ -449,6 +450,336 @@ GERÇEKTEN çıktığı ayın nakit akışını düşürür, ödemenin hangi aya
 olduğundan bağımsız); `student_advance_balance` artık iade edilmiş
 kısmı da düşüyor.
 
+### Kasa & Banka modülü
+
+Şema ve RPC'ler `supabase/migrations/20260812130000_add_cash_bank_module.sql`
+içinde. `cash_accounts`/`bank_accounts`/`cash_movements`/`bank_deposits`/
+`bank_deposit_items` tabloları `20260725103000`'den beri şemada vardı
+ama hiç kullanılmıyordu — bu migration onları gerçek bir defter haline
+getirdi. Ekran: **Kurum Ayarları → Kasa & Banka**
+(`/kurum-ayarlari/kasa-banka` genel bakış, `/kurum-ayarlari/kasa-banka/[id]`
+kasa hesabı detayı — hareket geçmişi, yatırım oluşturma, sayım).
+
+**Temel tasarım kararı: `cash_movements.amount` her zaman pozitif**
+(mevcut `check (amount > 0)` zaten böyleydi); yön yeni eklenen
+`direction` sütununda (+1/-1) ayrı tutuluyor. Bakiye **hiçbir zaman**
+ayrı bir sütunda tutulmuyor — her sorguda `sum(amount * direction)`
+ile hareketlerden yeniden hesaplanıyor (bkz. bölüm 8'deki dashboard
+finans göstergeleri notu — orada ayrı/önbelleklenmiş bir toplamın
+gerçek veriden sessizce sapması gerçek bir hataya yol açmıştı, aynı
+hataya düşmemek için burada da bilinçli olarak önbelleklenmiş bir
+bakiye sütunu kullanılmadı). `get_cash_daily_balances()` günlük
+bakiyeyi de aynı şekilde, her çağrıda hareketlerden yeniden kurar.
+
+**"Hareketler asla fiziksel silinmez" kuralı iki katmanda uygulanıyor:**
+1. `cash_movements`/`bank_deposits`/`bank_deposit_items` üzerinde
+   `authenticated`'a `insert`/`update`/`delete` grant'i yok — yalnızca
+   bu dosyadaki `security definer` RPC'ler yazabilir ve hiçbiri
+   `UPDATE`/`DELETE` yapmıyor, hepsi `INSERT`-only.
+2. `reverse_cash_movement()` bir hareketi düzeltmek için onu SİLMEK
+   yerine ters yönlü YENİ bir `'correction'` satırı ekler
+   (`reverses_movement_id` ile orijinaline bağlı, izlenebilir). Aynı
+   hareket ikinci kez ters kayıtla "düzeltilemez" — `reverses_movement_id`
+   üzerinden zaten bir ters kaydı olan hareketler reddedilir.
+
+`cash_accounts`/`bank_accounts` birer tanım tablosu (courses/class_groups
+gibi) — bunlar için doğrudan admin CRUD RLS'i yeterli (RPC yok).
+`record_payment_for_course()`'a (`20260808120000`) eklenen
+`p_cash_account_id` parametresi sayesinde, yöntem `cash` seçilip bir
+kasa hesabı belirtildiğinde ödeme kaydıyla AYNI transaction'da bir
+`cash_in` hareketi de oluşur — imza değiştiği için migration önce eski
+5 parametreli fonksiyonu `drop function` ile kaldırıp yenisini
+oluşturuyor (yoksa `create or replace` yeni bir overload yaratır,
+eskisi silinmeden kalırdı).
+
+**Banka/ATM yatırımı** (`create_bank_deposit()`) seçilen `cash_in`
+hareketlerinin (yalnızca bu kasaya ait, pozitif yönlü, henüz hiçbir
+yatırıma dahil edilmemiş — advisory lock + ikinci bir kontrol eşzamanlı
+isteklere karşı) toplamını TEK sorgudan hesaplayıp hem
+`bank_deposits.amount`'a hem de dengeleyici `-amount` yönlü yeni bir
+`cash_movements` satırına (`movement_type = 'bank_deposit'`) yazar.
+`bank_deposit_items` toplamının `bank_deposits.amount`'a her zaman eşit
+olması ayrı bir `CHECK`/trigger ile değil, **tek yazma yolu** ile
+garanti edilir (`payment_allocations` toplamı ile aynı felsefe).
+**Aynı kasa hareketi birden fazla yatırıma dahil edilemez** —
+`bank_deposit_items(cash_movement_id)` üzerindeki tekil indeks bunu
+veritabanı seviyesinde garanti eder, RPC de ayrıca kontrol edip
+anlaşılır bir hata verir. Orijinal `cash_in` hareketleri yatırım
+sonrası hiç değiştirilmez/mutasyona uğramaz — yalnızca dengeleyici
+`bank_deposit` hareketi eklenir, ledger felsefesiyle tutarlı.
+
+**Kasa sayımı** (`record_cash_count_adjustment()`) fiziksel sayımı
+canlı hesaplanan defter bakiyesiyle karşılaştırır; fark sıfırsa hiçbir
+satır eklenmez, sıfır değilse farkın işaretine göre yönlü bir
+`'correction'` hareketi eklenir.
+
+**Makbuz yükleme** `bank-deposit-receipts` adında özel (private) bir
+Storage bucket'ına yapılır — `student-photos` ile birebir aynı desende
+(`is_admin()` + organizasyon klasör öneki kısıtı). Yatırım oluşturma
+formunda makbuz opsiyonel; sonradan eklemek/değiştirmek için ayrı
+`set_bank_deposit_receipt()` RPC'si var.
+
+**Kapsam dışı bırakılanlar**: gerçek banka ekstresi içe aktarma/otomatik
+mutabakat yok — `get_bank_account_summary()` yalnızca bu uygulamanın
+kendi `bank_deposits` kayıtlarını toplar (banka entegrasyonu bu
+uygulamada hiç yok, ödeme iade/avans modülündeki "gerçek dış sistem
+entegrasyonu yok" notuyla aynı sınır). `cash_out` (nakit çıkışı,
+ör. kasadan elle ödenen masraf) enum'da tanımlı ama bu görev
+kapsamında onu üreten bir RPC eklenmedi — yalnızca sayım
+düzeltmesi/ters kayıt negatif yönlü hareket üretebiliyor; masraf
+ödemelerinin kasadan düşülmesi ayrı bir görev (`expenses` tablosuyla
+entegrasyon) olarak bırakıldı.
+
+### Masraf yönetimi ve net kârlılık
+
+Şema ve RPC'ler `supabase/migrations/20260812140000_add_expense_management.sql`
+içinde. `expense_categories`/`expenses` tabloları da (Kasa & Banka
+gibi) `20260725103000`'den beri şemada vardı ama hiç kullanılmıyordu.
+Ekran: **Giderler** (`/giderler` — kategori/şablon yönetimi, aylık
+kârlılık özeti, masraf listesi; `/giderler/yeni` yeni masraf;
+`/giderler/[id]` düzenleme/ödeme/iptal/belge). Kârlılık ve ders bazlı
+katkı payı raporları ayrıca **Raporlar** ekranının üçüncü sekmesinde
+(`/raporlar?view=karlilik`).
+
+**Yaşam döngüsü**: `planned → paid → cancelled`. Yalnızca `planned`
+durumundaki bir masraf düzenlenebilir veya ödenmiş işaretlenebilir;
+`paid` bir masrafın tutarı asla yerinde değiştirilmez — düzeltme
+isteniyorsa desen her yerde aynı: **iptal et (ters kayıt otomatik
+oluşur) + doğrusunu yeni bir masraf olarak ekle**. `expenses`
+tablosuna `authenticated`'ın insert/update/delete grant'i yok —
+tüm mutasyon `create_expense`/`update_expense_details`/
+`record_expense_payment`/`cancel_expense`/`set_expense_document`
+RPC'lerinden geçer.
+
+**Nakit ödenen masraf → Kasa & Banka defterine bağlanır**
+(`20260812130000`'daki `cash_movements` defterinin tüketicisi):
+`record_expense_payment(..., 'cash', p_cash_account_id)` aynı
+transaction'da bir `cash_out` (`direction = -1`) hareketi oluşturur ve
+`expenses.cash_movement_id` ile ona bağlar — `record_payment_for_course()`'un
+`cash_in` tarafındaki simetriği, ve `cash_movement_type` enum'undaki
+`cash_out` değerinin ilk gerçek kullanım yeri. `cancel_expense()` bir
+masrafı SİLMEZ; `status = 'cancelled'` yapar VE (nakit ödenmişse)
+bağlı hareketi `reverse_cash_movement()` ile ters kayıtla düzeltir —
+kasa bakiyesi hiçbir zaman gerçek hareketlerden sapmaz ("Finansal
+toplamlar kasa hareketleriyle tutarlı kalır" kabul kriteri tam olarak
+bunu ister).
+
+**Tekrarlayan masraflar** ayrı bir `recurring_expense_templates`
+tablosuyla modellenir — `class_groups → lesson_sessions` ve
+`enrollments → accruals` ile AYNI şablon/üretim deseni.
+`generate_monthly_expenses(month)` her aktif şablondan o ay için bir
+`expenses` satırı üretir; **dönem bazlı idempotency key**
+`expenses(template_id, period_start)` üzerindeki KISMİ tekil indekstir
+(yalnızca `template_id` dolu satırlarda geçerli — tek seferlik
+masrafları etkilemez) — `accruals(enrollment_id, period_start)` ile
+birebir aynı fikir. Aynı şablon aynı ay için tekrar çalıştırılırsa
+mükerrer satır oluşmaz; bu garanti yalnızca RPC'nin `on conflict do
+nothing`'ine değil, veritabanı seviyesindeki indekse dayanır (RPC'yi
+atlayan bir yazma denemesi de aynı şekilde reddedilir).
+`recurring_expense_templates`, `expense_categories`/`courses`'a
+referans verdiği için (çapraz-organizasyon FK riski) `cash_accounts`/
+`bank_accounts`'ın aksine doğrudan RLS insert değil, RPC üzerinden
+yazılır — kategori/ders kimliğinin gerçekten aynı kuruma ait olduğu
+`create_recurring_expense_template()` içinde açıkça doğrulanır.
+
+**Doğrudan ders maliyeti**: `expenses.course_id` doluysa o masraf
+"doğrudan" sayılır (kategori üzerindeki `is_direct_course_cost`
+bayrağından bağımsız — o yalnızca UI'da hangi kategorilerin genelde
+ders maliyeti olduğunu işaretlemek için bir ipucu). Raporlama bunu iki
+yerde kullanır:
+
+- `get_monthly_profitability_summary(month)` — `revenue_accrued`
+  (dashboard'daki `monthly_accrued` ile AYNI filtre), `direct_expenses`
+  (`course_id` dolu, iptal hariç), `indirect_expenses` (`course_id`
+  boş), `gross_result = revenue - direct_expenses`,
+  `net_result = revenue - (direct + indirect)`. `expenses_paid_cash`
+  (nakit/tüm yöntemlerden bağımsız, `paid_at` bu ay içinde olan
+  ödenmiş masraflar) zaten var olan nakit akışı raporundaki
+  (`get_cash_flow_report_monthly`, `20260811140000`) `expenses_paid`
+  ile AYNI filtreyi kullanır — iki rapor asla farklı sayı göstermez.
+- `get_course_contribution_margins(month)` — her ders için o dersin
+  bu ayki geliri (aynı `accruals` filtresi) eksi yalnızca o derse
+  bağlı doğrudan giderler.
+
+Tüm raporlama RPC'leri **muhasebe (accrual) esaslı** —
+`expense_date`/`period_start` üzerinden, ödenip ödenmediğinden
+bağımsız. Bu, gelir tarafındaki `monthly_accrued` ile tutarlı kalması
+için bilinçli bir tercih (bkz. bölüm 8, dashboard finans göstergeleri
+— aynı ayın rakamlarının farklı ekranlarda hiç ayrışmaması ilkesi).
+Nakit bazlı masraf tutarı yalnızca `expenses_paid_cash` alanında ayrıca
+sunulur.
+
+**Belge yükleme** `expense-documents` adında özel (private) bir
+Storage bucket'ına yapılır — `student-photos`/`bank-deposit-receipts`
+ile birebir aynı desen (`is_admin()` + organizasyon klasör öneki).
+
+**Kapsam dışı bırakılanlar**: `update_expense_details` yalnızca
+`planned` durumdaki masrafları düzenler — ödenmiş bir masrafın
+kategorisini/tutarını "düzeltmek" için ayrı bir RPC yok, iptal + yeni
+kayıt deseni kullanılır (bkz. yukarı). Şablonların kendisini
+düzenlemek için de ayrı bir RPC yok — yalnızca aktif/pasif; şablon
+koşulları değiştiğinde admin yeni bir şablon oluşturup eskisini pasife
+alır (geçmiş üretilmiş masrafları etkilemez, çünkü onlar zaten
+bağımsız satırlardır).
+
+### Öğretmen hakediş sistemi
+
+Şema ve RPC'ler `supabase/migrations/20260812150000_add_teacher_compensation.sql`
+içinde. `teacher_work_logs` da (Kasa & Banka / Giderler gibi)
+`20260725103000`'den beri şemada vardı ama hiç kullanılmıyordu. Ekran:
+**Hakediş** (`/hakedis` — aylık öğretmen özeti, üretim tetikleyici;
+`/hakedis/[teacherId]` — kural yönetimi, aylık döküm, onay/ödeme,
+manuel düzeltme). Öğretmen tarafı: **Programım → Hakedişim**
+(`/ogretmen-paneli/hakedisim`, yalnızca kendi kayıtları).
+
+**Bulunan ve kapatılan güvenlik açığı**: `teacher_work_logs` üzerindeki
+eski RLS politikaları (`work_logs_insert`/`work_logs_update`,
+`20260725103000`) öğretmenin **kendi hakediş satırını doğrudan REST
+ile insert/update edebilmesine** izin veriyordu — tablo hiç
+kullanılmadığı için fark edilmemişti. Bu migration bu politikaları
+tamamen kaldırdı; artık `teacher_work_logs` diğer finansal defterlerle
+(`cash_movements`, `expenses`) aynı desende — yalnızca `select`,
+yazma yalnızca `security definer` RPC'ler üzerinden.
+
+**Dört ücret modeli, etkin tarih aralıklı**: `teacher_compensation_rules`
+— `per_lesson` (ders başına sabit), `per_minute` (dakika başına),
+`per_student` (yalnızca `present` işaretli katılımcı başına),
+`monthly_salary` (sabit aylık, oturum sayısından bağımsız). Aynı
+öğretmen için tarih aralığı çakışan iki kural oluşturulamaz
+(`create_teacher_compensation_rule()` içinde açıkça kontrol edilir).
+Bir kuralı "düzenlemek" yerine desen: `end_teacher_compensation_rule()`
+ile mevcut kuralı kısalt, yeni tarihte yeni kuralla başlat.
+
+**Dört senaryo ayrı ele alınır** (`generate_teacher_compensation(month)`):
+
+- **normal** — kuralın `compensation_type`'ına göre hesaplanır.
+- **kurum iptali** (`lesson_sessions.cancellation_kind = 'institution'`)
+  — kuralın düz `cancellation_rate_amount`'ı (yapılandırılmamışsa 0,
+  yani ödenmez), süre/öğrenci sayısından bağımsız.
+- **öğretmen devamsızlığı** (`cancellation_kind = 'teacher_absence'`)
+  — tutar her zaman 0, ama satır yine de İK/izlenebilirlik amacıyla
+  oluşturulur (sessizce atlanmaz). Bu ayrım için `cancel_lesson_session()`'a
+  (`20260811100000`) yeni bir `p_cancellation_kind` parametresi
+  eklendi — imza değiştiği için eski imza önce `drop function` ile
+  kaldırıldı (bkz. bölüm 8, benzer `record_payment_for_course`
+  değişikliği). `/yoklama` ekranındaki iptal formuna bu seçim eklendi.
+- **telafi** (`lesson_sessions.is_makeup = true`) — kuralın
+  `compensation_type`'ı AMA ayrı `makeup_rate_amount` (boşsa normal
+  `rate_amount`'a düşer).
+
+"Tamamlanmış ve onaylanmış" oturum tanımı iki farklı sinyalin
+BİRLEŞİMİ: normal oturumlar için `attendance_locked_at` dolu (admin
+yoklamayı kilitledi — bkz. bölüm 8, yoklama modülü), iptal edilmiş
+oturumlar için `cancelled_at` dolu YETERLİ (`cancel_lesson_session()`
+zaten kilitli bir oturumun iptaline izin vermiyor, yani iptal kendi
+başına sonlanmış/onaylanmış bir durumdur — biri kilitlenip DE iptal
+edilemez).
+
+**İdempotency iki ayrı kısmi tekil indeksle**: oturum bazlı satırlar
+için `teacher_work_logs(lesson_session_id) WHERE source = 'session'`
+(oturum başına en fazla bir satır — kabul kriteri "aynı oturum için
+mükerrer hakediş oluşamaz" tam olarak budur), aylık maaş satırları
+için ayrı `teacher_work_logs(teacher_profile_id, period_start) WHERE
+source = 'monthly_salary'`.
+
+**Kural anlık görüntüsü (snapshot)**: uygulanan `compensation_type`,
+`rate_snapshot` ve `scenario` doğrudan `teacher_work_logs` satırına
+yazılır; ekranlar bu satırları **hiçbir zaman**
+`teacher_compensation_rules`'a yeniden JOIN ederek göstermez — tutar
+zaten üretim anında hesaplanıp satıra yazıldığından, bir kural
+sonradan sonlandırılsa/yeni bir kural eklense bile geçmiş satırlar
+değişmez (kabul kriteri #6, pgTAP'te doğrudan doğrulandı).
+
+**Onay → ödeme sırası ve kilit**: `approve_teacher_compensation()`
+bekleyen (`approved_at` boş) satırları toplu onaylar (idempotent —
+zaten onaylı satırları tekrar saymaz); `mark_teacher_compensation_paid()`
+yalnızca ONAYLI satırları ödeme olarak işaretler, onaylanmamış bir
+dönemi doğrudan ödemeye çalışmak reddedilir. Onaylanmış/ödenmiş bir
+satır `authenticated`'ın (admin dahil) hiçbir REST çağrısıyla doğrudan
+güncellenemez — düzeltme her zaman `add_compensation_adjustment()`
+ile YENİ bir satır olarak eklenir (`cash_movements`/`expenses`'teki
+AYNI "asla mutasyon yok" felsefesi; `direction` sütunuyla ekleme/
+kesinti işaretlenir).
+
+**Admin ve öğretmen aynı kaynaktan hesaplar**: her iki ekran da
+(`/hakedis/[id]` ve `/ogretmen-paneli/hakedisim`) `teacher_work_logs`
+tablosunu AYNI sütunlarla, ekstra bir özet RPC'si olmadan doğrudan
+sorgular ve toplamı istemci tarafında aynı şekilde hesaplar — tek
+fark RLS'in öğretmen için satırları kendi `teacher_profile_id`'siyle
+sınırlaması (kabul kriteri #4). Ayrı bir "özet" RPC'si eklenmedi —
+böyle bir RPC'nin admin ve öğretmen ekranları arasında sessizce
+ıraksama riski (biri güncellenip diğeri unutulursa) bu şekilde
+tamamen ortadan kalkıyor.
+
+### Denetim kaydı görüntüleyici
+
+Şema ve RPC/fonksiyon değişiklikleri
+`supabase/migrations/20260812160000_add_audit_log_hardening.sql`
+içinde. Ekran: **Kurum Ayarları → Denetim Kaydı**
+(`/kurum-ayarlari/denetim-kayitlari`) — sunucu taraflı sayfalama,
+tablo/kullanıcı/tarih aralığı filtreleri, her satır için Türkçe alan
+etiketleriyle önceki/sonraki karşılaştırması (`src/lib/audit/labels.ts`).
+Yeni bir RPC gerekmedi — `audit_logs` zaten (`current_organization_id()`
++ `is_admin()`) admin'e SELECT açık olduğundan ekran doğrudan
+`.from("audit_logs").select(..., profiles(full_name))` kullanır; diğer
+tüm listeleme ekranlarıyla aynı desen.
+
+**Bu görevin asıl işi yeni kod yazmak değil, mevcut 75 `audit_logs`
+insert çağrısının (19 migration dosyası) tek tek gözden
+geçirilmesiydi.** Sonuç: bugüne kadar hiçbir denetim satırına T.C.
+kimlik no, şifre/geçici şifre, token veya `service_role` anahtarı
+yazılmamış — bu depodaki HER audit_logs yazımı, satırın tamamını değil
+açık bir alan listesini (`jsonb_build_object`) kullanıyor. Buna rağmen
+iki kırılgan nokta ve iki gerçek kapsam boşluğu bulunup düzeltildi:
+
+- **`audit_logs` üzerinde `authenticated`'a açık bir `revoke insert,
+  update, delete`** eklendi. Bu tablo aslında baştan beri korunuyordu
+  (RLS etkin + yalnızca bir SELECT politikası = Postgres bu komutları
+  o rol için otomatik reddeder) ama bu örtük garantiye güvenmek yerine
+  bu depodaki diğer finansal tablolarla (`cash_movements`, `expenses`,
+  `teacher_work_logs`) aynı açık ifade eklendi.
+- **`set_teacher_course_meb_authorization()`/`set_enrollment_meb_registration()`**
+  bu depodaki TEK yerdi denetim satırını `pg_catalog.to_jsonb(satır)`
+  ile SATIRIN TAMAMINDAN üretiyordu (bugün o tablolarda hassas bir
+  sütun yok ama ileride sessizce sızma riski taşıyordu) — açık alan
+  listesine çevrildi.
+- **`log_rejected_scheduling_attempt(p_payload jsonb)`** istemciden
+  gelen serbest bir jsonb'yi olduğu gibi saklıyordu — artık yalnızca
+  gerçek 5 çağrı noktasında (`program/actions.ts`,
+  `yoklama/session-actions.ts`, `ogrenciler/[studentId]/enrollment-actions.ts`)
+  kullanılan 16 bilinen alan tutuluyor, geri kalanı sunucu tarafında
+  süzülüyor.
+- **Gerçek kapsam boşluğu #1**: `create_student_with_guardian()` —
+  bir öğrenci/velinin T.C. kimlik numarasının sisteme GİRDİĞİ an —
+  hiç denetlenmiyordu (yalnızca sonraki güncellemeler denetleniyordu).
+  Artık denetleniyor; kimlik numaraları YİNE loglanmıyor, yalnızca
+  ad/soyad/doğum tarihi/veli adı gibi kimlik-dışı alanlar.
+- **Gerçek kapsam boşluğu #2**: `organizations` tablosu (kurum adı,
+  iletişim, WhatsApp şablonu, otomasyon ayarları) hiç denetlenmiyordu
+  — admin bu tabloyu 4 ayrı server action'dan doğrudan güncelliyor,
+  tek bir RPC kapısı yok. Kod tekrarı veya 4 action'ı RPC'ye taşıma
+  riski yerine bir `AFTER UPDATE` trigger eklendi — mevcut hiçbir
+  action'a dokunmadan çalışır. Trigger yalnızca izlenen alanlardan
+  biri değiştiğinde tetiklenir; `next_receipt_number` (her ödemede
+  artan dahili sayaç, `20260811130000`) BİLİNÇLİ olarak dışarıda
+  bırakıldı — yoksa her ödeme kaydı yanlışlıkla bir "kurum ayarları
+  değişti" satırı üretirdi.
+
+**Not edilen ama değiştirilmeyen bir tasarım detayı**: para iadeleri
+kendi `table_name` değerine sahip değil — `refund_payment()` denetim
+satırını `table_name = 'payments'`, `action = 'refund'`/`'reversal'`
+olarak yazıyor. Ekrandaki "Ödemeler" modül filtresi bu yüzden iadeleri
+de otomatik kapsar; bu davranış canlı kod yolunu riske atmamak için
+bilinçli olarak değiştirilmedi.
+
+**Maskeleme iki katmanlı**: (1) kaynak kodun kendisi zaten hassas
+alanları hiç seçip audit_logs'a yazmıyor (yukarıya bakın); (2) ekranın
+kendisi de bağımsız bir savunma katmanı olarak, adında `identity_number`/
+`kimlik`/`password`/`token`/`service_role` gibi bir örüntü geçen HER
+anahtarı (hangi tablodan gelirse gelsin) `••••••••` ile gösterir
+(`isSensitiveAuditKey()`, `src/lib/audit/labels.ts`) — ileride
+farkında olmadan eklenecek bir alana karşı ek bir güvenlik ağı.
+
 ## 9. Mevcut başlangıç ekranları
 
 - Yönetim paneli
@@ -459,7 +790,87 @@ kısmı da düşüyor.
 - Raporlar
 - Giriş ekranı
 
-## 10. Sonraki geliştirme sırası
+## 10. Aylık ders oturumu ve tahakkuk otomasyonu
+
+Yönetici artık her ay elle "oluştur" butonuna basmak zorunda değil.
+Şema ve fonksiyonlar `supabase/migrations/20260812120000_add_monthly_generation_automation.sql`
+içinde.
+
+### Neden pg_cron (Vercel Cron değil)
+
+Üretim mantığının tamamı zaten veritabanında (security definer
+fonksiyonlar) yaşıyor — `pg_cron`, bu fonksiyonları doğrudan çağırarak
+çalışır; bir HTTP endpoint'i, paylaşılan bir secret veya uygulamanın
+hangi platformda barındırıldığı bilgisiyle uğraşmaya gerek kalmaz.
+Vercel Cron seçilseydi hem bir Route Handler + secret header
+doğrulaması hem de Vercel'e özgü bir yapılandırma (`vercel.json`)
+gerekirdi; bu depoda öyle bir bağımlılık yok ve bu görev kapsamında da
+eklenmedi.
+
+### Nasıl çalışır
+
+1. Her kurumda `sessions_generation_day` ve `accruals_generation_day`
+   (1-28, `whatsapp_reminder_day` ile aynı desen) ile "hangi günde
+   üretilsin" ayarlanır — **Kurum Ayarları → Otomasyon** sekmesinden.
+2. `run_daily_automation_sweep()` pg_cron tarafından **her gün** bir
+   kez (01:00 UTC, `monthly-generation-daily-sweep` işi) çağrılır. Her
+   aktif kurum için kurumun yerel "bugün"ü yapılandırılmış güne denk
+   geliyorsa ve gelecek ay için henüz başarılı bir çalıştırma yoksa,
+   `run_monthly_automation_job()`'ı tetikler. Üretim günü ayarı
+   değiştiğinde pg_cron'u yeniden zamanlamaya gerek yok — sweep zaten
+   her gün kontrol ediyor.
+3. `run_monthly_automation_job()` çalıştırmayı `automation_job_runs`
+   tablosuna `running` olarak kaydeder, ilgili `generate_monthly_*`
+   çekirdeğini (kurum kimliği artık `auth.uid()` yerine açık parametre)
+   çağırır, sonucu `succeeded`/`failed` olarak günceller. Hata
+   durumunda (`exception when others`) plpgsql'in örtük savepoint'i
+   sayesinde o ana kadarki TÜM kısmi insert'ler geri alınır — yalnızca
+   `job_runs` satırı `failed` + `error_summary` ile kalır, yarım kalmış
+   oturum/tahakkuk satırı oluşmaz.
+4. Aynı kurum + iş türü + dönem için eşzamanlı iki çalışma, hem
+   advisory lock hem de `automation_job_runs` üzerindeki kısmi
+   unique index (`status = 'running'` iken) ile engellenir.
+5. **Kurum Ayarları → Otomasyon** sekmesi son 20 çalıştırmayı listeler;
+   başarısız olanların yanında **Yeniden dene** butonu vardır. Bu
+   buton, admin paneli server action'ından `service_role` anahtarıyla
+   (`createAdminClient()`, `src/lib/supabase/admin.ts`) çağrılır —
+   `run_monthly_automation_job()` yalnızca `service_role`'e açıktır,
+   normal admin oturumu (`authenticated` rolü) bu fonksiyonu doğrudan
+   çağıramaz.
+6. `/yoklama` ve `/odemeler` ekranlarındaki elle "oluştur" butonları
+   (`generate_monthly_lesson_sessions`/`generate_monthly_accruals`
+   RPC'leri) **hiç değişmeden** acil durum yedeği olarak duruyor —
+   otomasyon bu RPC'lerin gövdesini kurum-parametreli iç
+   fonksiyonlara taşıdı, dış imza ve davranış aynı kaldı.
+
+### Yerel geliştirme kurulumu
+
+Docker Desktop ile yerel Supabase (`npx supabase start`) kullanan
+projelerde `pg_cron` uzantısı resmi `supabase/postgres` imajında zaten
+bulunur; migration'daki `create extension if not exists pg_cron;`
+yerelde de sorunsuz çalışır. `npx supabase db reset` sonrası
+`select * from cron.job;` ile `monthly-generation-daily-sweep` işinin
+zamanlandığını görebilirsiniz. Yereldeki pg_cron, konteyner saatine
+göre (genelde UTC) her gün 01:00'de tetiklenir; belirli bir günü
+beklemeden test etmek için doğrudan
+`select public.run_daily_automation_sweep();` çağırabilirsiniz.
+
+### Production (Supabase bulut) kurulumu
+
+1. Migration'ı push edin: `npx supabase db push`. Bu, `pg_cron`
+   uzantısını oluşturur ve `monthly-generation-daily-sweep` işini
+   zamanlar — ekstra bir Dashboard adımı gerekmez.
+2. Eğer proje `create extension pg_cron` için yetki hatası verirse
+   (bazı planlarda uzantı önce Dashboard'dan açılmalıdır): Supabase
+   Dashboard → **Database → Extensions** üzerinden `pg_cron`'u elle
+   etkinleştirin, sonra `npx supabase db push`'u tekrar çalıştırın.
+3. Zamanlanan işi doğrulamak için Dashboard → **Database → Cron**
+   sayfasına bakın veya SQL Editor'dan `select * from cron.job;`
+   çalıştırın.
+4. Her kurum için üretim günlerini **Kurum Ayarları → Otomasyon**
+   ekranından yapılandırın (varsayılan: her iki iş için de ayın 25'i).
+
+## 11. Sonraki geliştirme sırası
 
 1. Gerçek kullanıcı/rol akışı
 2. Öğrenci ve veli CRUD işlemleri

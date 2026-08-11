@@ -291,10 +291,24 @@ export async function createEnrollment(
       },
     );
 
+    if (error.code === "P0001") {
+      const { error: logError } = await supabase.rpc(
+        "log_rejected_scheduling_attempt",
+        {
+          p_table_name: "enrollments",
+          p_action: "enroll_rejected",
+          p_reason: error.message,
+          p_payload: { studentId, courseId, classGroupId },
+        },
+      );
+
+      if (logError) {
+        console.error("Reddedilen kayıt girişimi kaydedilemedi:", logError);
+      }
+    }
+
     return {
-      error: getDatabaseErrorMessage(
-        error.message,
-      ),
+      error: getDatabaseErrorMessage(error),
     };
   }
 
@@ -474,9 +488,20 @@ function readText(
   ).trim();
 }
 
-function getDatabaseErrorMessage(
-  message: string,
-) {
+type RpcError = {
+  message: string;
+  code?: string | null;
+};
+
+// P0001, plpgsql'deki `raise exception '...'`in varsayılan kodudur —
+// bu depodaki RPC'ler yalnızca kendi yazdığımız Türkçe metinleri bu
+// kodla fırlatır (program çakışması mesajı öğrenci/ders/seans adı
+// içerdiği için sabit bir allowlist'e sığmaz).
+function getDatabaseErrorMessage(error: RpcError) {
+  if (error.code === "P0001") {
+    return error.message;
+  }
+
   const safeMessages = [
     "Öğrencinin bu derste zaten aktif veya dondurulmuş bir kaydı bulunuyor.",
     "Öğrencinin bu derste zaten açık bir kaydı bulunuyor.",
@@ -491,7 +516,7 @@ function getDatabaseErrorMessage(
 
   const matched = safeMessages.find(
     (item) =>
-      message.includes(item),
+      error.message.includes(item),
   );
 
   if (matched) {
@@ -502,7 +527,7 @@ function getDatabaseErrorMessage(
     process.env.NODE_ENV ===
     "development"
   ) {
-    return `Veritabanı hatası: ${message}`;
+    return `Veritabanı hatası: ${error.message}`;
   }
 
   return "Öğrenci ders kaydı oluşturulamadı.";

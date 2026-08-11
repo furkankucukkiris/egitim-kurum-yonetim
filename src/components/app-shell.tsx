@@ -7,7 +7,6 @@ import { logout } from "@/app/auth/actions";
 import type { AppRole } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 type NavigationItem = {
   href: string;
@@ -36,6 +35,12 @@ const navigation: NavigationItem[] = [
     roles: ["admin"],
   },
   {
+    href: "/aday-ogrenciler",
+    label: "Aday Öğrenciler",
+    icon: "☆",
+    roles: ["admin"],
+  },
+  {
     href: "/dersler",
     label: "Dersler",
     icon: "▦",
@@ -48,9 +53,21 @@ const navigation: NavigationItem[] = [
     roles: ["admin"],
   },
   {
+    href: "/bekleme-listesi",
+    label: "Bekleme Listesi",
+    icon: "◷",
+    roles: ["admin"],
+  },
+  {
     href: "/odemeler",
     label: "Ödemeler",
     icon: "₺",
+    roles: ["admin"],
+  },
+  {
+    href: "/giderler",
+    label: "Giderler",
+    icon: "▾",
     roles: ["admin"],
   },
   {
@@ -63,6 +80,12 @@ const navigation: NavigationItem[] = [
     href: "/ogretmenler",
     label: "Öğretmenler",
     icon: "◇",
+    roles: ["admin"],
+  },
+  {
+    href: "/hakedis",
+    label: "Hakediş",
+    icon: "◆",
     roles: ["admin"],
   },
   {
@@ -129,8 +152,6 @@ export function AppShell({
           onSelect={() => undefined}
         />
 
-        <AppearanceSection />
-
         <AccountSection
           userName={userName}
           userRole={userRole}
@@ -154,8 +175,6 @@ export function AppShell({
               pathname={pathname}
               onSelect={() => setOpen(false)}
             />
-
-            <AppearanceSection />
 
             <AccountSection
               userName={userName}
@@ -247,7 +266,7 @@ function Navigation({
   onSelect: () => void;
 }) {
   return (
-    <nav className="space-y-1 p-4">
+    <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-4">
       {items.map((item) => {
         const active =
           item.href === "/"
@@ -275,18 +294,6 @@ function Navigation({
         );
       })}
     </nav>
-  );
-}
-
-function AppearanceSection() {
-  return (
-    <div className="border-t border-white/10 px-5 py-4">
-      <p className="mb-2.5 text-xs font-medium uppercase tracking-[0.15em] text-brand-200">
-        Görünüm
-      </p>
-
-      <ThemeToggle />
-    </div>
   );
 }
 

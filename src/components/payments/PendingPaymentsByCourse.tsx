@@ -5,9 +5,11 @@ import { CoursePaymentCard, type CoursePaymentGroup } from "./CoursePaymentCard"
 export function PendingPaymentsByCourse({
   groups,
   month,
+  cashAccounts,
 }: {
   groups: CoursePaymentGroup[];
   month: string;
+  cashAccounts: { id: string; name: string }[];
 }) {
   if (groups.length === 0) {
     return (
@@ -31,7 +33,12 @@ export function PendingPaymentsByCourse({
   return (
     <div className="space-y-3">
       {groups.map((group) => (
-        <CoursePaymentCard key={group.courseId} group={group} month={month} />
+        <CoursePaymentCard
+          key={group.courseId}
+          group={group}
+          month={month}
+          cashAccounts={cashAccounts}
+        />
       ))}
     </div>
   );

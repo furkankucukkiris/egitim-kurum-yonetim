@@ -83,6 +83,19 @@ export function SessionActions({
             />
           </label>
 
+          <label className="text-xs font-medium text-muted">
+            İptal türü
+
+            <select
+              name="cancellationKind"
+              defaultValue="institution"
+              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+            >
+              <option value="institution">Kurum kaynaklı (öğretmen hakedişini etkilemez)</option>
+              <option value="teacher_absence">Öğretmen devamsızlığı (hakediş oluşmaz)</option>
+            </select>
+          </label>
+
           <button
             type="submit"
             className="self-end rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-600/90"

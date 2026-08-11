@@ -84,7 +84,7 @@ export function ThemeToggle() {
   }, [preference]);
 
   return (
-    <div className="inline-flex w-full max-w-40 items-center gap-0.5 rounded-full bg-white/10 p-1">
+    <div className="inline-flex w-full max-w-xs items-center gap-1 rounded-full border border-line bg-fill p-1">
       {options.map((option) => (
         <button
           key={option.value}
@@ -92,13 +92,14 @@ export function ThemeToggle() {
           aria-label={option.label}
           title={option.label}
           onClick={() => setPreference(option.value)}
-          className={`flex flex-1 items-center justify-center rounded-full py-1.5 transition ${
+          className={`flex flex-1 items-center justify-center gap-2 rounded-full py-2 text-sm font-medium transition ${
             preference === option.value
-              ? "bg-honey-500 text-brand-900"
-              : "text-brand-200 hover:bg-white/10 hover:text-white"
+              ? "bg-terra-700 text-white shadow-sm shadow-terra-700/20"
+              : "text-muted hover:bg-panel hover:text-ink"
           }`}
         >
           {option.icon}
+          {option.label}
         </button>
       ))}
     </div>

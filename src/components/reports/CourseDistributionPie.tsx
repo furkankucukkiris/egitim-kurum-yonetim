@@ -18,7 +18,15 @@ const SLOT_VAR = [
   "--series-8",
 ];
 
-export function CourseDistributionPie({ data }: { data: DistributionSlice[] }) {
+export function CourseDistributionPie({
+  data,
+  ariaLabel = "Derse göre gelir dağılımı",
+  centerLabel = "Toplam",
+}: {
+  data: DistributionSlice[];
+  ariaLabel?: string;
+  centerLabel?: string;
+}) {
   const sorted = [...data].filter((item) => item.value > 0).sort((a, b) => b.value - a.value);
   const total = sorted.reduce((sum, item) => sum + item.value, 0);
 
@@ -71,7 +79,7 @@ export function CourseDistributionPie({ data }: { data: DistributionSlice[] }) {
             viewBox="0 0 180 180"
             className="h-44 w-44 shrink-0"
             role="img"
-            aria-label="Derse göre gelir dağılımı"
+            aria-label={ariaLabel}
           >
             {slices.map((slice) => (
               <path
@@ -92,7 +100,7 @@ export function CourseDistributionPie({ data }: { data: DistributionSlice[] }) {
               fontSize={11}
               fill="var(--muted)"
             >
-              Toplam
+              {centerLabel}
             </text>
             <text
               x={cx}

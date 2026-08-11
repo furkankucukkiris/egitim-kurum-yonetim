@@ -58,10 +58,12 @@ const statusClasses: Record<StudentPaymentStatus, string> = {
 export function CoursePaymentCard({
   group,
   month,
+  cashAccounts,
   defaultOpen = false,
 }: {
   group: CoursePaymentGroup;
   month: string;
+  cashAccounts: { id: string; name: string }[];
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -133,6 +135,7 @@ export function CoursePaymentCard({
                       row={row}
                       courseId={group.courseId}
                       month={month}
+                      cashAccounts={cashAccounts}
                     />
                   ))}
                 </tbody>
@@ -172,12 +175,15 @@ function StudentRow({
   row,
   courseId,
   month,
+  cashAccounts,
 }: {
   row: StudentPaymentRow;
   courseId: string;
   month: string;
+  cashAccounts: { id: string; name: string }[];
 }) {
   const [formOpen, setFormOpen] = useState(false);
+  const [method, setMethod] = useState("cash");
 
   const defaultAmount =
     row.totalOpenAcrossPeriods > 0 ? row.totalOpenAcrossPeriods : row.monthPending;
@@ -271,7 +277,8 @@ function StudentRow({
                 Yöntem
                 <select
                   name="method"
-                  defaultValue="cash"
+                  value={method}
+                  onChange={(event) => setMethod(event.target.value)}
                   className="mt-1 block w-36 rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
                 >
                   <option value="cash">Nakit</option>
@@ -281,6 +288,34 @@ function StudentRow({
                   <option value="other">Diğer</option>
                 </select>
               </label>
+
+              {method === "cash" && cashAccounts.length > 0 && (
+                <label className="text-xs font-medium text-muted">
+                  Kasa hesabı
+                  <select
+                    name="cashAccountId"
+                    required
+                    defaultValue=""
+                    className="mt-1 block w-40 rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                  >
+                    <option value="" disabled>
+                      Seçin
+                    </option>
+                    {cashAccounts.map((account) => (
+                      <option key={account.id} value={account.id}>
+                        {account.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+
+              {method === "cash" && cashAccounts.length === 0 && (
+                <p className="text-xs text-rose-700 dark:text-rose-400">
+                  Nakit ödeme için önce Kurum Ayarları → Kasa &amp; Banka&apos;dan
+                  bir kasa hesabı ekleyin.
+                </p>
+              )}
 
               <label className="min-w-[200px] flex-1 text-xs font-medium text-muted">
                 Açıklama

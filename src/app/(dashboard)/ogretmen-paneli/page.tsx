@@ -121,15 +121,27 @@ const weekdayLabels: Record<number, string> = {
   7: "Pazar",
 };
 
+type TrialLessonRow = {
+  lesson_session_id: string;
+  starts_at: string;
+  ends_at: string;
+  room_name: string | null;
+  course_name: string | null;
+  prospect_student_name: string | null;
+};
+
 export default async function TeacherPanelPage() {
   const profile =
     await requireRole(["teacher"]);
 
   const supabase = await createClient();
 
+  const today = getTodayInIstanbul();
+
   const [
     groupsResult,
     enrollmentsResult,
+    trialLessonsResult,
   ] = await Promise.all([
     supabase
       .from("class_groups")
@@ -161,6 +173,11 @@ export default async function TeacherPanelPage() {
         "frozen",
       ])
       .order("starts_on"),
+
+    supabase.rpc("get_teacher_trial_lessons", {
+      p_from: today,
+      p_to: today,
+    }),
   ]);
 
   if (groupsResult.error) {
@@ -176,6 +193,16 @@ export default async function TeacherPanelPage() {
       enrollmentsResult.error,
     );
   }
+
+  if (trialLessonsResult.error) {
+    console.error(
+      "Bugünkü deneme dersleri alınamadı:",
+      trialLessonsResult.error,
+    );
+  }
+
+  const trialLessons =
+    (trialLessonsResult.data ?? []) as unknown as TrialLessonRow[];
 
   const groups =
     (groupsResult.data ??
@@ -225,17 +252,27 @@ export default async function TeacherPanelPage() {
         )}`}
         description="Yalnızca size atanmış haftalık programı ve bu programlardaki öğrencileri görüntülüyorsunuz."
         action={
-          <Link
-            href="/meb-yoklama"
-            className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-center text-sm font-semibold text-white"
-          >
-            Aylık MEB listem
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/ogretmen-paneli/hakedisim"
+              className="rounded-xl border border-line bg-panel shadow-sm px-4 py-3 text-center text-sm font-semibold text-ink transition hover:bg-fill"
+            >
+              Hakedişim
+            </Link>
+
+            <Link
+              href="/meb-yoklama"
+              className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-center text-sm font-semibold text-white"
+            >
+              Aylık MEB listem
+            </Link>
+          </div>
         }
       />
 
       {(groupsResult.error ||
-        enrollmentsResult.error) && (
+        enrollmentsResult.error ||
+        trialLessonsResult.error) && (
         <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
           Öğretmen paneli verilerinin bir kısmı
           alınamadı.
@@ -266,6 +303,60 @@ export default async function TeacherPanelPage() {
           icon="M"
         />
       </section>
+
+      {trialLessons.length > 0 && (
+        <section className="mt-8">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold">
+              Bugünkü deneme dersleriniz
+            </h2>
+
+            <p className="mt-1 text-sm text-muted">
+              Yalnızca aday öğrencinin adı gösterilir — telefon, veli
+              ve diğer iletişim bilgileri bu ekranda yer almaz.
+            </p>
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-2">
+            {trialLessons.map((lesson) => (
+              <article
+                key={lesson.lesson_session_id}
+                className="rounded-2xl border border-honey-200 bg-honey-50 dark:border-honey-800/40 dark:bg-honey-500/10 p-5 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-lg font-bold">
+                      {lesson.prospect_student_name ?? "Aday öğrenci"}
+                    </h3>
+
+                    <p className="mt-1 text-sm text-muted">
+                      {lesson.course_name ?? "Ders bilgisi yok"}
+                    </p>
+                  </div>
+
+                  <span className="rounded-full bg-honey-500 px-3 py-1 text-xs font-bold text-brand-900">
+                    Deneme
+                  </span>
+                </div>
+
+                <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-xl bg-fill p-3">
+                    <dt className="text-muted">Saat</dt>
+                    <dd className="mt-1 font-bold">
+                      {formatTime(lesson.starts_at)} – {formatTime(lesson.ends_at)}
+                    </dd>
+                  </div>
+
+                  <div className="rounded-xl bg-fill p-3">
+                    <dt className="text-muted">Derslik</dt>
+                    <dd className="mt-1 font-bold">{lesson.room_name ?? "Belirtilmedi"}</dd>
+                  </div>
+                </dl>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="mt-8">
         <div className="mb-4">
@@ -599,4 +690,22 @@ function formatDate(value: string) {
   }).format(
     new Date(`${value}T00:00:00.000Z`),
   );
+}
+
+function formatTime(value: string) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    timeZone: "Europe/Istanbul",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date(value));
+}
+
+function getTodayInIstanbul() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }

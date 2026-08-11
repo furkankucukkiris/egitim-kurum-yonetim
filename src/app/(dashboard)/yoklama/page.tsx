@@ -182,6 +182,7 @@ export default async function AttendancePage({
         full_name
       )
     `)
+    .eq("is_trial", false)
     .gte(
       "starts_at",
       `${selectedDate}T00:00:00+03:00`,
@@ -428,6 +429,7 @@ export default async function AttendancePage({
           teacher:profiles!teacher_profile_id ( full_name )
         `)
         .in("course_id", courseIds)
+        .eq("is_trial", false)
         .is("cancelled_at", null)
         .gte("starts_at", new Date().toISOString())
         .order("starts_at")

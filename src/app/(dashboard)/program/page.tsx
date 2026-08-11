@@ -41,6 +41,7 @@ type ProgramPageProps = {
   searchParams: Promise<{
     success?: string;
     error?: string;
+    warning?: string;
   }>;
 };
 
@@ -65,6 +66,7 @@ export default async function ProgramPage({
   const [
     groupsResult,
     enrollmentsResult,
+    waitlistOpportunitiesResult,
   ] = await Promise.all([
     supabase
       .from("class_groups")
@@ -112,6 +114,8 @@ export default async function ProgramPage({
         "is",
         null,
       ),
+
+    supabase.rpc("get_waitlist_opportunities"),
   ]);
 
   if (groupsResult.error) {
@@ -128,6 +132,13 @@ export default async function ProgramPage({
     );
   }
 
+  if (waitlistOpportunitiesResult.error) {
+    console.error(
+      "Bekleme listesi sayıları alınamadı:",
+      waitlistOpportunitiesResult.error,
+    );
+  }
+
   const groups =
     (groupsResult.data ??
       []) as unknown as GroupRow[];
@@ -135,6 +146,15 @@ export default async function ProgramPage({
   const enrollments =
     (enrollmentsResult.data ??
       []) as EnrollmentRow[];
+
+  const waitingCountByGroup = new Map<string, number>();
+
+  for (const item of (waitlistOpportunitiesResult.data ?? []) as {
+    class_group_id: string;
+    waiting_count: number;
+  }[]) {
+    waitingCountByGroup.set(item.class_group_id, item.waiting_count);
+  }
 
   const enrollmentCounts =
     new Map<string, number>();
@@ -181,6 +201,12 @@ export default async function ProgramPage({
         </div>
       )}
 
+      {messages.warning && (
+        <div className="mb-5 rounded-2xl border border-honey-100 dark:border-honey-500/40 bg-honey-50 dark:bg-honey-500/10 p-4 text-sm text-honey-700 dark:text-honey-500">
+          {messages.warning}
+        </div>
+      )}
+
       {groups.length === 0 ? (
         <div className="rounded-2xl border border-line bg-panel px-6 py-16 text-center shadow-sm">
           <h2 className="text-lg font-bold">
@@ -205,6 +231,8 @@ export default async function ProgramPage({
               enrollmentCounts.get(
                 group.id,
               ) ?? 0;
+
+            const waitingCount = waitingCountByGroup.get(group.id) ?? 0;
 
             return (
               <article
@@ -324,13 +352,22 @@ export default async function ProgramPage({
                   </div>
                 </dl>
 
-                <div className="mt-5 flex gap-2 border-t border-brand-50 pt-4">
+                <div className="mt-5 flex flex-wrap gap-2 border-t border-brand-50 pt-4">
                   <Link
                     href={`/program/${group.id}`}
                     className="rounded-lg border border-line px-3 py-2 text-xs font-semibold text-brand-700"
                   >
                     Düzenle
                   </Link>
+
+                  {waitingCount > 0 && (
+                    <Link
+                      href={`/bekleme-listesi?classGroupId=${group.id}`}
+                      className="rounded-lg border border-honey-300 bg-honey-50 px-3 py-2 text-xs font-semibold text-honey-700 dark:border-honey-800/60 dark:bg-honey-500/10 dark:text-honey-500"
+                    >
+                      Bekleme listesi: {waitingCount}
+                    </Link>
+                  )}
 
                   <form
                     action={

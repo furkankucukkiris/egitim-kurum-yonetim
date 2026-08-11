@@ -11,6 +11,7 @@ export async function cancelSession(formData: FormData) {
   const lessonSessionId = readText(formData, "lessonSessionId");
   const date = readText(formData, "date");
   const reason = readText(formData, "reason");
+  const cancellationKind = readText(formData, "cancellationKind") || "institution";
 
   if (!lessonSessionId) {
     redirect(errorRedirect(date, "Oturum bilgisi bulunamadı."));
@@ -25,6 +26,7 @@ export async function cancelSession(formData: FormData) {
   const { error } = await supabase.rpc("cancel_lesson_session", {
     p_lesson_session_id: lessonSessionId,
     p_reason: reason,
+    p_cancellation_kind: cancellationKind,
   });
 
   if (error) {
@@ -72,6 +74,11 @@ export async function rescheduleSession(formData: FormData) {
 
   if (error) {
     console.error("Ders oturumu yeniden planlanamadı:", error);
+    await logRejectedSchedulingAttempt(supabase, "lesson_sessions", "reschedule_rejected", error, {
+      lessonSessionId,
+      newStartsAt,
+      newEndsAt,
+    });
     redirect(errorRedirect(date, error.message));
   }
 
@@ -186,6 +193,10 @@ export async function scheduleMakeupIntoSession(formData: FormData) {
 
   if (error) {
     console.error("Telafi planlanamadı:", error);
+    await logRejectedSchedulingAttempt(supabase, "makeup_credits", "makeup_rejected", error, {
+      creditId,
+      targetLessonSessionId,
+    });
     redirect(errorRedirect(date, error.message));
   }
 
@@ -231,6 +242,12 @@ export async function scheduleMakeupNewSession(formData: FormData) {
 
   if (error) {
     console.error("Telafi oturumu oluşturulamadı:", error);
+    await logRejectedSchedulingAttempt(supabase, "lesson_sessions", "makeup_new_session_rejected", error, {
+      creditId,
+      teacherProfileId,
+      newStartsAt,
+      newEndsAt,
+    });
     redirect(errorRedirect(date, error.message));
   }
 
@@ -267,6 +284,36 @@ export async function cancelMakeupCredit(formData: FormData) {
 
   revalidatePath("/yoklama");
   redirect(successRedirect(date, "Telafi hakkı iptal edildi."));
+}
+
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+type RpcError = { message: string; code?: string | null };
+
+// Reddedilen bir çakışma/kapasite girişimini AYRI bir istekte kaydeder
+// (birincil RPC'nin rollback olan transaction'ından bağımsız — bkz.
+// src/app/(dashboard)/program/actions.ts'teki aynı desen). Yalnızca
+// RPC'nin kendi bilinçli reddi (P0001) için çağrılır.
+async function logRejectedSchedulingAttempt(
+  supabase: SupabaseServerClient,
+  tableName: string,
+  action: string,
+  error: RpcError,
+  payload: unknown,
+) {
+  if (error.code !== "P0001") {
+    return;
+  }
+
+  const { error: logError } = await supabase.rpc("log_rejected_scheduling_attempt", {
+    p_table_name: tableName,
+    p_action: action,
+    p_reason: error.message,
+    p_payload: payload as Record<string, unknown>,
+  });
+
+  if (logError) {
+    console.error("Reddedilen işlem kaydedilemedi:", logError);
+  }
 }
 
 function toIstanbulTimestamp(date: string, time: string) {

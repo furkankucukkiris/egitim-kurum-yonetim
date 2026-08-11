@@ -16,6 +16,7 @@ interface TodaySessionsListProps {
 const statusTone: Record<string, BadgeTone> = {
   Planlandı: "success",
   Telafi: "neutral",
+  Deneme: "warning",
   İptal: "danger",
 };
 

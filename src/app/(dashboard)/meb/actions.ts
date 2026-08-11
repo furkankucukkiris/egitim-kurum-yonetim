@@ -188,6 +188,45 @@ export async function updateTeacherCourseMeb(
   );
 }
 
+export async function updateMebPermitPolicy(
+  formData: FormData,
+) {
+  const profile = await requireRole(["admin"]);
+
+  const policy = readText(formData, "policy");
+
+  if (policy !== "warn" && policy !== "block") {
+    redirect(
+      `/meb?error=${encodeURIComponent("Geçerli bir politika seçilmelidir.")}`,
+    );
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("organizations")
+    .update({ meb_permit_enforcement: policy })
+    .eq("id", profile.organizationId);
+
+  if (error) {
+    console.error("MEB izin politikası güncellenemedi:", error);
+
+    redirect(
+      `/meb?error=${encodeURIComponent("MEB izin politikası güncellenemedi.")}`,
+    );
+  }
+
+  revalidatePath("/meb");
+
+  redirect(
+    `/meb?success=${encodeURIComponent(
+      policy === "block"
+        ? "MEB izin politikası 'engelle' olarak ayarlandı."
+        : "MEB izin politikası 'uyar' olarak ayarlandı.",
+    )}`,
+  );
+}
+
 function readText(
   formData: FormData,
   name: string,

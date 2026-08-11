@@ -4,11 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const tabs = [
+  { href: "/kurum-ayarlari/gorunum", label: "Görünüm" },
   { href: "/kurum-ayarlari/genel", label: "Genel" },
   { href: "/kurum-ayarlari/iletisim", label: "İletişim Bilgileri" },
   { href: "/kurum-ayarlari/whatsapp", label: "WhatsApp Botu" },
+  { href: "/kurum-ayarlari/otomasyon", label: "Otomasyon" },
   { href: "/kurum-ayarlari/kasa-banka", label: "Kasa & Banka" },
   { href: "/kurum-ayarlari/kullanicilar", label: "Kullanıcı Hesapları" },
+  { href: "/kurum-ayarlari/denetim-kayitlari", label: "Denetim Kaydı" },
 ];
 
 export function SettingsTabs() {

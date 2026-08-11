@@ -47,19 +47,33 @@ export async function createClassGroup(
       error,
     );
 
+    await logRejectedSchedulingAttempt(
+      supabase,
+      "class_groups",
+      "create_rejected",
+      error,
+      values,
+    );
+
     return {
-      error: getDatabaseErrorMessage(
-        error.message,
-      ),
+      error: getDatabaseErrorMessage(error),
     };
   }
 
   revalidatePath("/program");
 
+  const warning = values.teacherProfileId
+    ? await checkMebPermitWarning(
+        supabase,
+        values.teacherProfileId,
+        values.courseId,
+      )
+    : null;
+
   redirect(
     `/program?success=${encodeURIComponent(
       "Ders seansı oluşturuldu.",
-    )}`,
+    )}${warning ? `&warning=${encodeURIComponent(warning)}` : ""}`,
   );
 }
 
@@ -115,20 +129,37 @@ export async function updateClassGroup(
       error,
     );
 
+    await logRejectedSchedulingAttempt(
+      supabase,
+      "class_groups",
+      "update_rejected",
+      error,
+      { groupId, ...values },
+    );
+
     return {
-      error: getDatabaseErrorMessage(
-        error.message,
-      ),
+      error: getDatabaseErrorMessage(error),
     };
   }
 
   revalidatePath("/program");
   revalidatePath(`/program/${groupId}`);
 
+  const courseId = await getClassGroupCourseId(supabase, groupId);
+
+  const warning =
+    values.teacherProfileId && courseId
+      ? await checkMebPermitWarning(
+          supabase,
+          values.teacherProfileId,
+          courseId,
+        )
+      : null;
+
   redirect(
     `/program?success=${encodeURIComponent(
       "Ders seansı güncellendi.",
-    )}`,
+    )}${warning ? `&warning=${encodeURIComponent(warning)}` : ""}`,
   );
 }
 
@@ -167,9 +198,7 @@ export async function setClassGroupActive(
 
     redirect(
       `/program?error=${encodeURIComponent(
-        getDatabaseErrorMessage(
-          error.message,
-        ),
+        getDatabaseErrorMessage(error),
       )}`,
     );
   }
@@ -368,9 +397,23 @@ function readText(
   ).trim();
 }
 
-function getDatabaseErrorMessage(
-  message: string,
-) {
+type RpcError = {
+  message: string;
+  code?: string | null;
+};
+
+// P0001, plpgsql'deki `raise exception '...'`in varsayılan kodudur —
+// bu depodaki RPC'ler yalnızca kendi yazdığımız Türkçe metinleri bu
+// kodla fırlatır (çakışma/kapasite/MEB mesajları dahil, isim/tarih
+// içerdikleri için sabit bir allowlist'e sığmazlar). Farklı bir kod
+// (örn. 42501 yetki reddi, 23505 mevcut allowlist'teki statik
+// mesajlarla) geldiğinde eski davranış (allowlist + prod'da genel
+// mesaj) korunur.
+function getDatabaseErrorMessage(error: RpcError) {
+  if (error.code === "P0001") {
+    return error.message;
+  }
+
   const safeMessages = [
     "Bu ders için aynı isimde bir seans zaten bulunuyor.",
     "Ders kaydı bulunamadı.",
@@ -380,7 +423,7 @@ function getDatabaseErrorMessage(
   ];
 
   const matchedMessage = safeMessages.find(
-    (item) => message.includes(item),
+    (item) => error.message.includes(item),
   );
 
   if (matchedMessage) {
@@ -390,8 +433,85 @@ function getDatabaseErrorMessage(
   if (
     process.env.NODE_ENV === "development"
   ) {
-    return `Veritabanı hatası: ${message}`;
+    return `Veritabanı hatası: ${error.message}`;
   }
 
   return "Ders programı işlemi tamamlanamadı.";
+}
+
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
+// Reddedilen bir zamanlama girişimini AYRI bir istek olarak kaydeder
+// (log_rejected_scheduling_attempt) — birincil RPC hatası nedeniyle
+// zaten rollback olmuş transaction'dan bağımsız, kendi transaction'ında
+// commit olur. Yalnızca RPC'nin kendi bilinçli reddi (P0001) için
+// çağrılır; beklenmeyen sistem hatalarında (örn. bağlantı sorunu)
+// audit_logs'u kirletmemek için sessizce atlanır.
+async function logRejectedSchedulingAttempt(
+  supabase: SupabaseServerClient,
+  tableName: string,
+  action: string,
+  error: RpcError,
+  payload: unknown,
+) {
+  if (error.code !== "P0001") {
+    return;
+  }
+
+  const { error: logError } = await supabase.rpc(
+    "log_rejected_scheduling_attempt",
+    {
+      p_table_name: tableName,
+      p_action: action,
+      p_reason: error.message,
+      p_payload: payload as Record<string, unknown>,
+    },
+  );
+
+  if (logError) {
+    console.error("Reddedilen işlem kaydedilemedi:", logError);
+  }
+}
+
+// Kurum politikası 'warn' iken create_class_group/update_class_group
+// MEB izin uyarısını sessizce audit_logs'a yazar ama başarı akışını
+// bozmaz — bu, kullanıcıya göstermek için AYNI merkezi kontrolü
+// (check_teacher_meb_permit) ikinci, salt-okunur bir çağrıyla tekrar
+// sorar.
+async function checkMebPermitWarning(
+  supabase: SupabaseServerClient,
+  teacherProfileId: string,
+  courseId: string,
+) {
+  const { data, error } = await supabase.rpc(
+    "check_teacher_meb_permit",
+    {
+      p_teacher_profile_id: teacherProfileId,
+      p_course_id: courseId,
+    },
+  );
+
+  if (error) {
+    console.error("MEB izni kontrol edilemedi:", error);
+    return null;
+  }
+
+  return (data as string | null) ?? null;
+}
+
+async function getClassGroupCourseId(
+  supabase: SupabaseServerClient,
+  groupId: string,
+) {
+  const { data, error } = await supabase
+    .from("class_groups")
+    .select("course_id")
+    .eq("id", groupId)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return (data as { course_id: string }).course_id;
 }

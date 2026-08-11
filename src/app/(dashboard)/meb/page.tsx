@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   updateCourseMebInfo,
   updateTeacherCourseMeb,
+  updateMebPermitPolicy,
 } from "./actions";
 
 type PageProps = {
@@ -59,7 +60,7 @@ const mebStatusOptions = [
 export default async function MebManagementPage({
   searchParams,
 }: PageProps) {
-  await requireRole(["admin"]);
+  const profile = await requireRole(["admin"]);
 
   const messages = await searchParams;
   const supabase = await createClient();
@@ -68,6 +69,7 @@ export default async function MebManagementPage({
     coursesResult,
     groupsResult,
     authorizationsResult,
+    organizationResult,
   ] = await Promise.all([
     supabase
       .from("courses")
@@ -115,7 +117,17 @@ export default async function MebManagementPage({
         valid_until,
         note
       `),
+
+    supabase
+      .from("organizations")
+      .select("meb_permit_enforcement")
+      .eq("id", profile.organizationId)
+      .single(),
   ]);
+
+  const mebPermitEnforcement =
+    (organizationResult.data as { meb_permit_enforcement: string } | null)
+      ?.meb_permit_enforcement ?? "warn";
 
   const courses =
     (coursesResult.data ??
@@ -174,6 +186,39 @@ export default async function MebManagementPage({
           {messages.error}
         </Message>
       )}
+
+      <section className="mb-8 rounded-2xl border border-line bg-panel p-5 shadow-sm">
+        <h2 className="text-xl font-bold">
+          Öğretmen MEB izni politikası
+        </h2>
+
+        <p className="mt-1 text-sm text-muted">
+          Bir öğretmen, MEB onaylı bir derse geçerli bir çalışma izni olmadan atanmak
+          istendiğinde ne olacağını belirler.
+        </p>
+
+        <form action={updateMebPermitPolicy} className="mt-4 flex flex-wrap items-end gap-3">
+          <label className="text-xs font-medium text-muted">
+            Politika
+
+            <select
+              name="policy"
+              defaultValue={mebPermitEnforcement}
+              className="mt-1 w-full min-w-[220px] rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+            >
+              <option value="warn">Uyar (atamaya izin ver, işaretle)</option>
+              <option value="block">Engelle (atamayı tamamen reddet)</option>
+            </select>
+          </label>
+
+          <button
+            type="submit"
+            className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90"
+          >
+            Kaydet
+          </button>
+        </form>
+      </section>
 
       <section className="space-y-4">
         <div>

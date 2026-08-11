@@ -127,6 +127,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
     paymentsResult,
     coursesResult,
     balancesResult,
+    cashAccountsResult,
   ] = await Promise.all([
     supabase.rpc("get_dashboard_financial_summary", {
       p_month_start: monthStart,
@@ -189,6 +190,12 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
       p_limit: PAGE_SIZE,
       p_offset: (balancePage - 1) * PAGE_SIZE,
     }),
+    supabase
+      .from("cash_accounts")
+      .select("id, name")
+      .eq("organization_id", profile.organizationId)
+      .eq("is_active", true)
+      .order("name"),
   ]);
 
   if (summaryResult.error) {
@@ -218,6 +225,12 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
   if (balancesResult.error) {
     console.error("Öğrenci bakiyeleri alınamadı:", balancesResult.error);
   }
+
+  if (cashAccountsResult.error) {
+    console.error("Kasa hesapları alınamadı:", cashAccountsResult.error);
+  }
+
+  const cashAccounts = (cashAccountsResult.data ?? []) as { id: string; name: string }[];
 
   const summaryRow = ((summaryResult.data ?? []) as unknown as FinancialSummaryRow[])[0];
 
@@ -548,7 +561,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
         Ders bazlı gelir ve tahsilat oranı — {formatMonthYearFromKey(selectedMonth)}
       </h3>
 
-      <PendingPaymentsByCourse groups={groups} month={selectedMonth} />
+      <PendingPaymentsByCourse groups={groups} month={selectedMonth} cashAccounts={cashAccounts} />
 
       {groups.length > 0 && (
         <p className="mt-2 text-xs text-muted">

@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { StudentForm } from "./student-form";
 
 export default async function NewStudentPage() {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const today = getTodayInIstanbul();
 
@@ -14,9 +14,7 @@ export default async function NewStudentPage() {
         description="Öğrencinin temel bilgilerini ve birincil veli iletişim bilgilerini kaydedin."
       />
 
-      <StudentForm
-        initialRegistrationDate={today}
-      />
+      <StudentForm initialRegistrationDate={today} />
     </>
   );
 }

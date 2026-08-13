@@ -3,11 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-type StudentStatus =
-  | "active"
-  | "frozen"
-  | "left"
-  | "archived";
+type StudentStatus = "active" | "frozen" | "left" | "archived";
 
 type GuardianRow = {
   full_name: string;
@@ -46,32 +42,23 @@ const statusLabels: Record<StudentStatus, string> = {
 };
 
 const statusClasses: Record<StudentStatus, string> = {
-  active: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  frozen: "bg-honey-50 dark:bg-honey-500/10 text-honey-700 dark:text-honey-500",
-  left: "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400",
-  archived: "bg-fill text-muted",
+  active: "bg-success-soft text-success",
+  frozen: "bg-accent-soft text-accent-strong",
+  left: "bg-danger-soft text-danger",
+  archived: "bg-surface-muted text-text-secondary",
 };
 
-const validStatuses: StudentStatus[] = [
-  "active",
-  "frozen",
-  "left",
-  "archived",
-];
+const validStatuses: StudentStatus[] = ["active", "frozen", "left", "archived"];
 
-export default async function StudentsPage({
-  searchParams,
-}: StudentsPageProps) {
-  await requireRole(["admin", "finance"]);
+export default async function StudentsPage({ searchParams }: StudentsPageProps) {
+  await requireRole(["admin"]);
 
   const params = await searchParams;
 
   const searchText = String(params.q ?? "").trim();
   const requestedStatus = String(params.status ?? "");
 
-  const selectedStatus = validStatuses.includes(
-    requestedStatus as StudentStatus,
-  )
+  const selectedStatus = validStatuses.includes(requestedStatus as StudentStatus)
     ? (requestedStatus as StudentStatus)
     : "";
 
@@ -79,22 +66,24 @@ export default async function StudentsPage({
 
   let query = supabase
     .from("students")
-    .select(`
-      id,
-      first_name,
-      last_name,
-      birth_date,
-      registration_date,
-      status,
-      student_guardians (
-        relationship,
-        is_primary,
-        guardian:guardians (
-          full_name,
-          phone
+    .select(
+      `
+        id,
+        first_name,
+        last_name,
+        birth_date,
+        registration_date,
+        status,
+        student_guardians (
+          relationship,
+          is_primary,
+          guardian:guardians (
+            full_name,
+            phone
+          )
         )
-      )
-    `)
+      `,
+    )
     .order("last_name", { ascending: true })
     .order("first_name", { ascending: true });
 
@@ -110,9 +99,7 @@ export default async function StudentsPage({
 
   const studentRows = (data ?? []) as unknown as StudentRow[];
 
-  const normalizedSearch = searchText.toLocaleLowerCase(
-    "tr-TR",
-  );
+  const normalizedSearch = searchText.toLocaleLowerCase("tr-TR");
 
   const students = studentRows.filter((student) => {
     if (!normalizedSearch) {
@@ -123,11 +110,7 @@ export default async function StudentsPage({
       .map((item) => item.guardian?.full_name ?? "")
       .join(" ");
 
-    const searchableText = [
-      student.first_name,
-      student.last_name,
-      guardianNames,
-    ]
+    const searchableText = [student.first_name, student.last_name, guardianNames]
       .join(" ")
       .toLocaleLowerCase("tr-TR");
 
@@ -142,7 +125,7 @@ export default async function StudentsPage({
         action={
           <Link
             href="/ogrenciler/yeni"
-            className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-terra-700/90"
+            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-center text-sm font-semibold text-on-primary transition hover:bg-primary-hover"
           >
             + Öğrenci ekle
           </Link>
@@ -150,33 +133,29 @@ export default async function StudentsPage({
       />
 
       {params.success && (
-        <div className="mb-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
+        <div className="mb-5 rounded-2xl border border-success/30 bg-success-soft p-4 text-sm text-success">
           {params.success}
         </div>
       )}
 
       {error && (
-        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
-          Öğrenci kayıtları alınamadı. VS Code terminalindeki
-          hata mesajını kontrol edin.
+        <div className="mb-5 rounded-2xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
+          Öğrenci kayıtları alınamadı. VS Code terminalindeki hata mesajını kontrol edin.
         </div>
       )}
 
-      <form
-        method="get"
-        className="mb-4 grid gap-3 md:grid-cols-[1fr_220px_auto]"
-      >
+      <form method="get" className="mb-4 grid gap-3 md:grid-cols-[1fr_220px_auto]">
         <input
           name="q"
           defaultValue={searchText}
-          className="rounded-xl border border-line bg-panel px-4 py-3 text-sm outline-none transition focus:border-terra-500"
+          className="rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none transition focus:border-primary"
           placeholder="Öğrenci veya veli ara..."
         />
 
         <select
           name="status"
           defaultValue={selectedStatus}
-          className="rounded-xl border border-line bg-panel px-4 py-3 text-sm outline-none transition focus:border-terra-500"
+          className="rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none transition focus:border-primary"
         >
           <option value="">Tüm durumlar</option>
           <option value="active">Aktif</option>
@@ -187,31 +166,28 @@ export default async function StudentsPage({
 
         <button
           type="submit"
-          className="rounded-xl border border-line bg-panel px-5 py-3 text-sm font-semibold text-brand-700 transition hover:bg-fill"
+          className="rounded-xl border border-border bg-surface px-5 py-3 text-sm font-semibold text-primary transition hover:bg-surface-muted"
         >
           Filtrele
         </button>
       </form>
 
-      <div className="overflow-hidden rounded-2xl border border-line bg-panel shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
         {students.length === 0 ? (
           <div className="px-6 py-16 text-center">
-            <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-fill text-2xl">
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-surface-muted text-2xl">
               ◎
             </div>
 
-            <h2 className="mt-5 text-lg font-bold">
-              Öğrenci kaydı bulunamadı
-            </h2>
+            <h2 className="mt-5 text-lg font-bold">Öğrenci kaydı bulunamadı</h2>
 
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
-              İlk öğrenci kaydınızı oluşturarak gerçek verilerle
-              çalışmaya başlayabilirsiniz.
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-text-secondary">
+              İlk öğrenci kaydınızı oluşturarak gerçek verilerle çalışmaya başlayabilirsiniz.
             </p>
 
             <Link
               href="/ogrenciler/yeni"
-              className="mt-6 inline-block rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white"
+              className="mt-6 inline-block rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary"
             >
               İlk öğrenciyi ekle
             </Link>
@@ -219,82 +195,63 @@ export default async function StudentsPage({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="bg-fill text-xs uppercase tracking-wide text-muted">
+              <thead className="bg-surface-muted text-xs uppercase tracking-wide text-text-secondary">
                 <tr>
-                  <th className="px-5 py-3">
-                    Öğrenci
-                  </th>
-                  <th className="px-5 py-3">
-                    Birincil veli
-                  </th>
-                  <th className="px-5 py-3">
-                    Telefon
-                  </th>
-                  <th className="px-5 py-3">
-                    Kayıt tarihi
-                  </th>
-                  <th className="px-5 py-3">
-                    Durum
-                  </th>
+                  <th className="px-5 py-3">Öğrenci</th>
+                  <th className="px-5 py-3">Birincil veli</th>
+                  <th className="px-5 py-3">Telefon</th>
+                  <th className="px-5 py-3">Kayıt tarihi</th>
+                  <th className="px-5 py-3">Durum</th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-brand-50">
+              <tbody className="divide-y divide-primary-soft">
                 {students.map((student) => {
                   const primaryGuardian =
-                    student.student_guardians.find(
-                      (item) => item.is_primary,
-                    ) ??
+                    student.student_guardians.find((item) => item.is_primary) ??
                     student.student_guardians[0] ??
                     null;
 
                   return (
-                    <tr
-                      key={student.id}
-                      className="hover:bg-fill"
-                    >
+                    <tr key={student.id} className="hover:bg-surface-muted">
                       <td className="px-5 py-4">
                         <Link
                           href={`/ogrenciler/${student.id}`}
-                          className="font-semibold text-ink hover:underline"
+                          className="font-semibold text-text-primary hover:underline"
                         >
-                          {student.first_name}{" "}
-                          {student.last_name}
+                          {student.first_name} {student.last_name}
                         </Link>
 
                         {student.birth_date && (
-                          <p className="mt-1 text-xs text-muted">
-                            Doğum:{" "}
-                            {formatDate(student.birth_date)}
+                          <p className="mt-1 text-xs text-text-secondary">
+                            Doğum: {formatDate(student.birth_date)}
                           </p>
                         )}
                       </td>
 
-                      <td className="px-5 py-4 text-muted">
-                        <p>
-                          {primaryGuardian?.guardian?.full_name ??
-                            "Veli bilgisi yok"}
-                        </p>
+                      <td className="px-5 py-4 text-text-secondary">
+                        <p>{primaryGuardian?.guardian?.full_name ?? "Veli bilgisi yok"}</p>
 
                         {primaryGuardian?.relationship && (
-                          <p className="mt-1 text-xs text-muted">
+                          <p className="mt-1 text-xs text-text-secondary">
                             {primaryGuardian.relationship}
                           </p>
                         )}
                       </td>
 
-                      <td className="px-5 py-4 text-muted">
+                      <td className="px-5 py-4 text-text-secondary">
                         {primaryGuardian?.guardian?.phone ?? "—"}
                       </td>
 
-                      <td className="px-5 py-4 text-muted">
+                      <td className="px-5 py-4 text-text-secondary">
                         {formatDate(student.registration_date)}
                       </td>
 
                       <td className="px-5 py-4">
                         <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses[student.status]
-                            }`}
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            statusClasses[student.status]
+                          }`}
                         >
                           {statusLabels[student.status]}
                         </span>

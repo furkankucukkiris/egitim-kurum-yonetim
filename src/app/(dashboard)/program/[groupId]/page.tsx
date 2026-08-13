@@ -25,9 +25,7 @@ type GroupRow = {
 
   course: {
     name: string;
-    course_type:
-      | "individual"
-      | "group";
+    course_type: "individual" | "group";
     default_duration_minutes: number;
   } | null;
 };
@@ -37,38 +35,35 @@ type TeacherRow = {
   full_name: string;
 };
 
-export default async function EditClassGroupPage({
-  params,
-}: PageProps) {
+export default async function EditClassGroupPage({ params }: PageProps) {
   await requireRole(["admin"]);
 
   const { groupId } = await params;
   const supabase = await createClient();
 
-  const [
-    groupResult,
-    teachersResult,
-  ] = await Promise.all([
+  const [groupResult, teachersResult] = await Promise.all([
     supabase
       .from("class_groups")
-      .select(`
-        id,
-        course_id,
-        teacher_profile_id,
-        name,
-        room_name,
-        capacity,
-        weekday,
-        start_time,
-        duration_minutes,
-        starts_on,
-        ends_on,
-        course:courses (
+      .select(
+        `
+          id,
+          course_id,
+          teacher_profile_id,
           name,
-          course_type,
-          default_duration_minutes
-        )
-      `)
+          room_name,
+          capacity,
+          weekday,
+          start_time,
+          duration_minutes,
+          starts_on,
+          ends_on,
+          course:courses (
+            name,
+            course_type,
+            default_duration_minutes
+          )
+        `,
+      )
       .eq("id", groupId)
       .maybeSingle(),
 
@@ -81,22 +76,16 @@ export default async function EditClassGroupPage({
   ]);
 
   if (groupResult.error) {
-    console.error(
-      "Ders seansı alınamadı:",
-      groupResult.error,
-    );
+    console.error("Ders seansı alınamadı:", groupResult.error);
   }
 
   if (!groupResult.data) {
     notFound();
   }
 
-  const group =
-    groupResult.data as unknown as GroupRow;
+  const group = groupResult.data as unknown as GroupRow;
 
-  const teachers =
-    (teachersResult.data ??
-      []) as TeacherRow[];
+  const teachers = (teachersResult.data ?? []) as TeacherRow[];
 
   if (!group.course) {
     notFound();
@@ -112,35 +101,24 @@ export default async function EditClassGroupPage({
       <ClassGroupForm
         mode="edit"
         courses={[]}
-        teachers={teachers.map(
-          (teacher) => ({
-            id: teacher.id,
-            fullName:
-              teacher.full_name,
-          }),
-        )}
+        teachers={teachers.map((teacher) => ({
+          id: teacher.id,
+          fullName: teacher.full_name,
+        }))}
         group={{
           id: group.id,
           courseId: group.course_id,
-          courseName:
-            group.course.name,
-          courseType:
-            group.course.course_type,
+          courseName: group.course.name,
+          courseType: group.course.course_type,
           name: group.name,
-          teacherProfileId:
-            group.teacher_profile_id ??
-            "",
-          roomName:
-            group.room_name ?? "",
+          teacherProfileId: group.teacher_profile_id ?? "",
+          roomName: group.room_name ?? "",
           capacity: group.capacity,
           weekday: group.weekday,
-          startTime:
-            group.start_time.slice(0, 5),
-          durationMinutes:
-            group.duration_minutes,
+          startTime: group.start_time.slice(0, 5),
+          durationMinutes: group.duration_minutes,
           startsOn: group.starts_on,
-          endsOn:
-            group.ends_on ?? "",
+          endsOn: group.ends_on ?? "",
         }}
       />
     </>

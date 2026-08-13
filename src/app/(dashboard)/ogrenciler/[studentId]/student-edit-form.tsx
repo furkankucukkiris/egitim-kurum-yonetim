@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  useActionState,
-  useState,
-} from "react";
+import { useActionState, useState } from "react";
 import { updateStudent } from "./actions";
 
 type UpdateStudentState = {
@@ -35,18 +32,8 @@ type StudentEditFormProps = {
   };
 };
 
-export function StudentEditForm({
-  student,
-  guardian,
-}: StudentEditFormProps) {
-  const [
-    state,
-    formAction,
-    isPending,
-  ] = useActionState(
-    updateStudent,
-    initialState,
-  );
+export function StudentEditForm({ student, guardian }: StudentEditFormProps) {
+  const [state, formAction, isPending] = useActionState(updateStudent, initialState);
 
   const [values, setValues] = useState({
     studentFirstName: student.firstName,
@@ -57,19 +44,14 @@ export function StudentEditForm({
 
     guardianFullName: guardian.fullName,
     guardianPhone: guardian.phone,
-    guardianSecondaryPhone:
-      guardian.secondaryPhone,
+    guardianSecondaryPhone: guardian.secondaryPhone,
     guardianEmail: guardian.email,
     relationship: guardian.relationship,
 
-    mayReceiveFinancialMessages:
-      guardian.mayReceiveFinancialMessages,
+    mayReceiveFinancialMessages: guardian.mayReceiveFinancialMessages,
   });
 
-  function updateValue(
-    field: keyof typeof values,
-    value: string | boolean,
-  ) {
+  function updateValue(field: keyof typeof values, value: string | boolean) {
     setValues((current) => ({
       ...current,
       [field]: value,
@@ -77,37 +59,24 @@ export function StudentEditForm({
   }
 
   return (
-    <form
-      action={formAction}
-      className="space-y-6"
-    >
-      <input
-        type="hidden"
-        name="studentId"
-        value={student.id}
-      />
+    <form action={formAction} className="space-y-6">
+      <input type="hidden" name="studentId" value={student.id} />
 
-      <input
-        type="hidden"
-        name="primaryGuardianId"
-        value={guardian.id}
-      />
+      <input type="hidden" name="primaryGuardianId" value={guardian.id} />
 
       {state.error && (
         <div
           role="alert"
-          className="rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400"
+          className="rounded-2xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger"
         >
           {state.error}
         </div>
       )}
 
-      <section className="rounded-2xl border border-line bg-panel p-6 shadow-sm">
-        <h2 className="text-lg font-bold">
-          Öğrenci bilgileri
-        </h2>
+      <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <h2 className="text-lg font-bold">Öğrenci bilgileri</h2>
 
-        <p className="mt-1 text-sm text-muted">
+        <p className="mt-1 text-sm text-text-secondary">
           T.C. kimlik numarası güvenlik nedeniyle bu ekranda gösterilmez.
         </p>
 
@@ -117,12 +86,7 @@ export function StudentEditForm({
             name="studentFirstName"
             value={values.studentFirstName}
             required
-            onChange={(value) =>
-              updateValue(
-                "studentFirstName",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("studentFirstName", value)}
           />
 
           <Field
@@ -130,12 +94,7 @@ export function StudentEditForm({
             name="studentLastName"
             value={values.studentLastName}
             required
-            onChange={(value) =>
-              updateValue(
-                "studentLastName",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("studentLastName", value)}
           />
 
           <Field
@@ -143,9 +102,7 @@ export function StudentEditForm({
             name="birthDate"
             type="date"
             value={values.birthDate}
-            onChange={(value) =>
-              updateValue("birthDate", value)
-            }
+            onChange={(value) => updateValue("birthDate", value)}
           />
 
           <Field
@@ -154,37 +111,24 @@ export function StudentEditForm({
             type="date"
             value={values.registrationDate}
             required
-            onChange={(value) =>
-              updateValue(
-                "registrationDate",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("registrationDate", value)}
           />
         </div>
 
         <label className="mt-5 block text-sm font-medium">
           Öğrenci notu
-
           <textarea
             name="studentNotes"
             rows={4}
             value={values.studentNotes}
-            onChange={(event) =>
-              updateValue(
-                "studentNotes",
-                event.target.value,
-              )
-            }
-            className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-terra-500"
+            onChange={(event) => updateValue("studentNotes", event.target.value)}
+            className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm outline-none focus:border-primary"
           />
         </label>
       </section>
 
-      <section className="rounded-2xl border border-line bg-panel p-6 shadow-sm">
-        <h2 className="text-lg font-bold">
-          Birincil veli
-        </h2>
+      <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <h2 className="text-lg font-bold">Birincil veli</h2>
 
         <div className="mt-5 grid gap-5 md:grid-cols-2">
           <Field
@@ -192,34 +136,21 @@ export function StudentEditForm({
             name="guardianFullName"
             value={values.guardianFullName}
             required
-            onChange={(value) =>
-              updateValue(
-                "guardianFullName",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("guardianFullName", value)}
           />
 
           <label className="block text-sm font-medium">
             Yakınlık durumu
-
             <select
               name="relationship"
               value={values.relationship}
-              onChange={(event) =>
-                updateValue(
-                  "relationship",
-                  event.target.value,
-                )
-              }
-              className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
+              onChange={(event) => updateValue("relationship", event.target.value)}
+              className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm"
             >
               <option value="Anne">Anne</option>
               <option value="Baba">Baba</option>
               <option value="Vasi">Vasi</option>
-              <option value="Aile yakını">
-                Aile yakını
-              </option>
+              <option value="Aile yakını">Aile yakını</option>
               <option value="Diğer">Diğer</option>
             </select>
           </label>
@@ -230,12 +161,7 @@ export function StudentEditForm({
             type="tel"
             value={values.guardianPhone}
             required
-            onChange={(value) =>
-              updateValue(
-                "guardianPhone",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("guardianPhone", value)}
           />
 
           <Field
@@ -243,12 +169,7 @@ export function StudentEditForm({
             name="guardianSecondaryPhone"
             type="tel"
             value={values.guardianSecondaryPhone}
-            onChange={(value) =>
-              updateValue(
-                "guardianSecondaryPhone",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("guardianSecondaryPhone", value)}
           />
 
           <div className="md:col-span-2">
@@ -257,38 +178,24 @@ export function StudentEditForm({
               name="guardianEmail"
               type="email"
               value={values.guardianEmail}
-              onChange={(value) =>
-                updateValue(
-                  "guardianEmail",
-                  value,
-                )
-              }
+              onChange={(value) => updateValue("guardianEmail", value)}
             />
           </div>
         </div>
 
-        <label className="mt-5 flex items-start gap-3 rounded-xl bg-fill p-4">
+        <label className="mt-5 flex items-start gap-3 rounded-xl bg-surface-muted p-4">
           <input
             type="checkbox"
             name="mayReceiveFinancialMessages"
-            checked={
-              values.mayReceiveFinancialMessages
-            }
-            onChange={(event) =>
-              updateValue(
-                "mayReceiveFinancialMessages",
-                event.target.checked,
-              )
-            }
+            checked={values.mayReceiveFinancialMessages}
+            onChange={(event) => updateValue("mayReceiveFinancialMessages", event.target.checked)}
             className="mt-1 h-4 w-4"
           />
 
           <span>
-            <span className="block text-sm font-semibold">
-              Finansal mesajları alabilir
-            </span>
+            <span className="block text-sm font-semibold">Finansal mesajları alabilir</span>
 
-            <span className="mt-1 block text-xs leading-5 text-muted">
+            <span className="mt-1 block text-xs leading-5 text-text-secondary">
               Ödeme hatırlatmaları ve borç bilgilendirmeleri bu veliye gönderilebilir.
             </span>
           </span>
@@ -299,11 +206,9 @@ export function StudentEditForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+          className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary disabled:opacity-60"
         >
-          {isPending
-            ? "Kaydediliyor..."
-            : "Değişiklikleri kaydet"}
+          {isPending ? "Kaydediliyor..." : "Değişiklikleri kaydet"}
         </button>
       </div>
     </form>
@@ -319,33 +224,20 @@ type FieldProps = {
   required?: boolean;
 };
 
-function Field({
-  label,
-  name,
-  value,
-  onChange,
-  type = "text",
-  required = false,
-}: FieldProps) {
+function Field({ label, name, value, onChange, type = "text", required = false }: FieldProps) {
   return (
     <label className="block text-sm font-medium">
       {label}
 
-      {required && (
-        <span className="ml-1 text-rose-600 dark:text-rose-400">
-          *
-        </span>
-      )}
+      {required && <span className="ml-1 text-danger text-danger">*</span>}
 
       <input
         name={name}
         type={type}
         required={required}
         value={value}
-        onChange={(event) =>
-          onChange(event.target.value)
-        }
-        className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none focus:border-terra-500"
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm outline-none focus:border-primary"
       />
     </label>
   );

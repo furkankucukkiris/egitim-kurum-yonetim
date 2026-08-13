@@ -1,0 +1,132 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Bu workflow hiçbir GitHub secret'ı kullanmıyor. db-integration ve e2e
+# job'ları tamamen `supabase start` ile açılan GEÇİCİ, yerel Docker
+# Supabase örneğine karşı çalışıyor — bu örneğin anon/service_role
+# anahtarları o an için üretilen, yalnızca o çalıştırmada var olan
+# değerlerdir; workflow dosyasına asla yazılmazlar, `supabase status`
+# çıktısından çalışma zamanında $GITHUB_ENV'e akıtılırlar.
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+
+  unit:
+    name: Unit & Component Testleri
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - run: npm test
+
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      # Placeholder değerler — gerçek secret DEĞİL. Uygulamanın hiçbir
+      # sayfası build zamanında Supabase'e ağ çağrısı yapmıyor (tüm
+      # route'lar dinamik/ƒ, statik üretim yok); next.config.ts'deki
+      # CSP header'ı için URL'nin biçimsel olarak var olması yeterli.
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key
+
+  db-integration:
+    name: Migration Doğrulama + pgTAP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+
+      # ubuntu-latest runner'da Docker hazır geliyor — supabase CLI
+      # bunu kullanarak yerel bir Postgres + PostgREST + Auth yığını
+      # ayağa kaldırıyor.
+      - name: Yerel Supabase'i başlat
+        run: npx supabase start
+
+      # CI görevi #6: migration'ların temiz bir veritabanına sıfırdan
+      # ve hatasız uygulandığının doğrulanması.
+      - name: db reset (migration doğrulama)
+        run: npx supabase db reset
+
+      # supabase/tests/database/*.test.sql — RPC/RLS/transaction/kurum
+      # izolasyonu pgTAP paketinin tamamı.
+      - name: pgTAP testleri
+        run: npx supabase test db
+
+  e2e:
+    name: E2E (admin + öğretmen temel akışları)
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - name: Playwright tarayıcısını kur
+        run: npx playwright install --with-deps chromium
+
+      - name: Yerel Supabase'i başlat
+        run: npx supabase start
+
+      - name: Migration'ları uygula
+        run: npx supabase db reset
+
+      # `supabase status -o env` bu çalıştırmaya özgü, geçici anahtarları
+      # üretir ve doğrudan uygulamanın beklediği değişken adlarına
+      # eşler (--override-name) — hiçbir sabit/secret yazılmıyor. İlk
+      # çalıştırmada anahtar yolları (api.url vb.) uyuşmazsa
+      # `npx supabase status -o json` ile gerçek alan adları kontrol
+      # edilip burası güncellenebilir.
+      - name: Ortam değişkenlerini yerel Supabase'ten al
+        run: |
+          npx supabase status -o env \
+            --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
+            --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY \
+            --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
+            >> "$GITHUB_ENV"
+
+      - name: E2E testleri (Playwright)
+        run: npm run test:e2e
+
+      - name: Playwright raporunu yükle (başarısızlıkta)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

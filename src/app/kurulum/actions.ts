@@ -7,42 +7,33 @@ const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+
 const MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024;
 
 export async function completeInitialSetup(formData: FormData) {
-  const organizationName = String(
-    formData.get("organizationName") ?? "",
-  ).trim();
+  const organizationName = String(formData.get("organizationName") ?? "").trim();
 
   const fullName = String(formData.get("fullName") ?? "").trim();
   const logoFile = formData.get("logo");
 
   if (organizationName.length < 2) {
-    redirect(
-      `/kurulum?error=${encodeURIComponent(
-        "Kurum adı en az 2 karakter olmalıdır.",
-      )}`,
-    );
+    redirect(`/kurulum?error=${encodeURIComponent("Kurum adı en az 2 karakter olmalıdır.")}`);
   }
 
   if (fullName.length < 2) {
-    redirect(
-      `/kurulum?error=${encodeURIComponent(
-        "Yönetici adı en az 2 karakter olmalıdır.",
-      )}`,
-    );
+    redirect(`/kurulum?error=${encodeURIComponent("Yönetici adı en az 2 karakter olmalıdır.")}`);
   }
 
   const supabase = await createClient();
 
-  const {
-    data: claimsData,
-    error: claimsError,
-  } = await supabase.auth.getClaims();
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
 
   if (claimsError || !claimsData?.claims?.sub) {
-    redirect(
-      `/giris?error=${encodeURIComponent(
-        "Kurulum için önce giriş yapmalısınız.",
-      )}`,
-    );
+    redirect(`/giris?error=${encodeURIComponent("Kurulum için önce giriş yapmalısınız.")}`);
+  }
+
+  // Sayfa yönlendirmesi atlanıp bu action doğrudan çağrılsa bile,
+  // sistemde zaten bir kurum varsa işlem burada da durdurulur.
+  const { data: systemBootstrapped } = await supabase.rpc("has_any_organization");
+
+  if (systemBootstrapped) {
+    redirect("/hesap-erisimi");
   }
 
   let logoPath: string | undefined;
@@ -50,16 +41,12 @@ export async function completeInitialSetup(formData: FormData) {
   if (logoFile instanceof File && logoFile.size > 0) {
     if (!ALLOWED_LOGO_TYPES.includes(logoFile.type)) {
       redirect(
-        `/kurulum?error=${encodeURIComponent(
-          "Logo yalnızca PNG, JPEG, WEBP veya SVG olabilir.",
-        )}`,
+        `/kurulum?error=${encodeURIComponent("Logo yalnızca PNG, JPEG, WEBP veya SVG olabilir.")}`,
       );
     }
 
     if (logoFile.size > MAX_LOGO_SIZE_BYTES) {
-      redirect(
-        `/kurulum?error=${encodeURIComponent("Logo dosyası en fazla 2 MB olabilir.")}`,
-      );
+      redirect(`/kurulum?error=${encodeURIComponent("Logo dosyası en fazla 2 MB olabilir.")}`);
     }
 
     const extension =

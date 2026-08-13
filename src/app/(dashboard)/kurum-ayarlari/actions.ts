@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"];
@@ -39,7 +40,8 @@ export async function updateOrganizationSettings(formData: FormData) {
       );
     }
 
-    const extension = logoFile.type.split("/")[1] === "svg+xml" ? "svg" : logoFile.type.split("/")[1];
+    const extension =
+      logoFile.type.split("/")[1] === "svg+xml" ? "svg" : logoFile.type.split("/")[1];
     const path = `${profile.id}/logo-${Date.now()}.${extension}`;
 
     const { error: uploadError } = await supabase.storage
@@ -71,16 +73,44 @@ export async function updateOrganizationSettings(formData: FormData) {
   if (updateError) {
     console.error("Kurum ayarları güncellenemedi:", updateError);
 
-    redirect(
-      `/kurum-ayarlari/genel?error=${encodeURIComponent("Kurum ayarları güncellenemedi.")}`,
-    );
+    redirect(`/kurum-ayarlari/genel?error=${encodeURIComponent("Kurum ayarları güncellenemedi.")}`);
   }
 
   revalidatePath("/kurum-ayarlari/genel");
   revalidatePath("/", "layout");
 
+  redirect(`/kurum-ayarlari/genel?success=${encodeURIComponent("Kurum ayarları güncellendi.")}`);
+}
+
+export async function updateRegistrationTemplates(formData: FormData) {
+  const profile = await requireRole(["admin"]);
+
+  const institutionRulesText = String(formData.get("institutionRulesText") ?? "").trim();
+
+  const kvkkNoticeText = String(formData.get("kvkkNoticeText") ?? "").trim();
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("organizations")
+    .update({
+      registration_institution_rules_text: institutionRulesText || null,
+      registration_kvkk_notice_text: kvkkNoticeText || null,
+    })
+    .eq("id", profile.organizationId);
+
+  if (error) {
+    console.error("Kayıt formu şablon metinleri güncellenemedi:", error);
+
+    redirect(
+      `/kurum-ayarlari/belgeler?error=${encodeURIComponent("Şablon metinleri güncellenemedi.")}`,
+    );
+  }
+
+  revalidatePath("/kurum-ayarlari/belgeler");
+
   redirect(
-    `/kurum-ayarlari/genel?success=${encodeURIComponent("Kurum ayarları güncellendi.")}`,
+    `/kurum-ayarlari/belgeler?success=${encodeURIComponent("Şablon metinleri güncellendi.")}`,
   );
 }
 
@@ -90,7 +120,9 @@ export async function updateContactInfo(formData: FormData) {
   const legalName = String(formData.get("legalName") ?? "").trim();
   const taxNumber = String(formData.get("taxNumber") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim().toLocaleLowerCase("tr-TR");
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLocaleLowerCase("tr-TR");
 
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     redirect(
@@ -129,17 +161,10 @@ export async function updateWhatsappSettings(formData: FormData) {
   const profile = await requireRole(["admin"]);
 
   const reminderDay = Number(formData.get("reminderDay"));
-  const template = String(formData.get("template") ?? "").trim();
 
   if (!Number.isInteger(reminderDay) || reminderDay < 1 || reminderDay > 28) {
     redirect(
       `/kurum-ayarlari/whatsapp?error=${encodeURIComponent("Gönderim günü 1 ile 28 arasında olmalıdır.")}`,
-    );
-  }
-
-  if (template.length < 10) {
-    redirect(
-      `/kurum-ayarlari/whatsapp?error=${encodeURIComponent("Mesaj şablonu en az 10 karakter olmalıdır.")}`,
     );
   }
 
@@ -149,7 +174,6 @@ export async function updateWhatsappSettings(formData: FormData) {
     .from("organizations")
     .update({
       whatsapp_reminder_day: reminderDay,
-      whatsapp_reminder_template: template,
     })
     .eq("id", profile.organizationId);
 
@@ -166,4 +190,100 @@ export async function updateWhatsappSettings(formData: FormData) {
   redirect(
     `/kurum-ayarlari/whatsapp?success=${encodeURIComponent("WhatsApp ayarları güncellendi.")}`,
   );
+}
+
+export async function updateAutomationSettings(formData: FormData) {
+  const profile = await requireRole(["admin"]);
+
+  const enabled = formData.get("enabled") === "on";
+  const sessionsDay = Number(formData.get("sessionsDay"));
+  const accrualsDay = Number(formData.get("accrualsDay"));
+
+  if (!Number.isInteger(sessionsDay) || sessionsDay < 1 || sessionsDay > 28) {
+    redirect(
+      `/kurum-ayarlari/otomasyon?error=${encodeURIComponent(
+        "Ders oturumu üretim günü 1 ile 28 arasında olmalıdır.",
+      )}`,
+    );
+  }
+
+  if (!Number.isInteger(accrualsDay) || accrualsDay < 1 || accrualsDay > 28) {
+    redirect(
+      `/kurum-ayarlari/otomasyon?error=${encodeURIComponent(
+        "Tahakkuk üretim günü 1 ile 28 arasında olmalıdır.",
+      )}`,
+    );
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("organizations")
+    .update({
+      monthly_automation_enabled: enabled,
+      sessions_generation_day: sessionsDay,
+      accruals_generation_day: accrualsDay,
+    })
+    .eq("id", profile.organizationId);
+
+  if (error) {
+    console.error("Otomasyon ayarları güncellenemedi:", error);
+
+    redirect(
+      `/kurum-ayarlari/otomasyon?error=${encodeURIComponent("Otomasyon ayarları güncellenemedi.")}`,
+    );
+  }
+
+  revalidatePath("/kurum-ayarlari/otomasyon");
+
+  redirect(
+    `/kurum-ayarlari/otomasyon?success=${encodeURIComponent("Otomasyon ayarları güncellendi.")}`,
+  );
+}
+
+export async function retryAutomationJob(formData: FormData) {
+  const profile = await requireRole(["admin"]);
+
+  const jobType = String(formData.get("jobType") ?? "").trim();
+  const period = String(formData.get("period") ?? "").trim();
+
+  if (!["lesson_sessions", "accruals"].includes(jobType)) {
+    redirect(`/kurum-ayarlari/otomasyon?error=${encodeURIComponent("Geçersiz iş türü.")}`);
+  }
+
+  if (!/^\d{4}-\d{2}-01$/.test(period)) {
+    redirect(`/kurum-ayarlari/otomasyon?error=${encodeURIComponent("Geçersiz dönem.")}`);
+  }
+
+  let adminClient;
+
+  try {
+    adminClient = createAdminClient();
+  } catch (error) {
+    console.error("Supabase yönetici istemcisi oluşturulamadı:", error);
+
+    redirect(
+      `/kurum-ayarlari/otomasyon?error=${encodeURIComponent(
+        "Yeniden deneme anahtarı sunucuda tanımlı değil.",
+      )}`,
+    );
+  }
+
+  const { error } = await adminClient.rpc("run_monthly_automation_job", {
+    p_organization_id: profile.organizationId,
+    p_job_type: jobType,
+    p_period: period,
+    p_triggered_by: "manual_retry",
+    p_triggered_by_profile_id: profile.id,
+  });
+
+  if (error) {
+    console.error("Otomasyon işi yeniden denenemedi:", error);
+
+    redirect(`/kurum-ayarlari/otomasyon?error=${encodeURIComponent("İşlem yeniden denenemedi.")}`);
+  }
+
+  revalidatePath("/kurum-ayarlari/otomasyon");
+
+  redirect(`/kurum-ayarlari/otomasyon?success=${encodeURIComponent("İş yeniden başlatıldı.")}`);
 }

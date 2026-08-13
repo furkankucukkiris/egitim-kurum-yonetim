@@ -3,11 +3,7 @@
 import { useState } from "react";
 import { archiveStudent } from "./actions";
 
-export function ArchiveStudentForm({
-  studentId,
-}: {
-  studentId: string;
-}) {
+export function ArchiveStudentForm({ studentId }: { studentId: string }) {
   const [open, setOpen] = useState(false);
 
   if (!open) {
@@ -15,7 +11,7 @@ export function ArchiveStudentForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-xl border border-rose-200 dark:border-rose-800/40 bg-panel px-4 py-3 text-sm font-semibold text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:bg-rose-500/10"
+        className="rounded-xl border border-danger/30 bg-surface px-4 py-3 text-sm font-semibold text-danger hover:bg-danger-soft"
       >
         Öğrenciyi arşivle
       </button>
@@ -25,7 +21,7 @@ export function ArchiveStudentForm({
   return (
     <form
       action={archiveStudent}
-      className="rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-5"
+      className="rounded-2xl border border-danger/30 bg-danger-soft p-5"
       onSubmit={(event) => {
         const accepted = window.confirm(
           "Öğrenci arşivlenecek ve aktif ders kayıtları kapatılacak. Devam edilsin mi?",
@@ -36,30 +32,23 @@ export function ArchiveStudentForm({
         }
       }}
     >
-      <input
-        type="hidden"
-        name="studentId"
-        value={studentId}
-      />
+      <input type="hidden" name="studentId" value={studentId} />
 
-      <h3 className="font-bold text-rose-800 dark:text-rose-400">
-        Öğrenciyi arşivle
-      </h3>
+      <h3 className="font-bold text-danger text-danger">Öğrenciyi arşivle</h3>
 
-      <p className="mt-2 text-sm leading-6 text-rose-700 dark:text-rose-400">
+      <p className="mt-2 text-sm leading-6 text-danger">
         Öğrenci silinmeyecek; kayıt geçmişi korunacak ve aktif ders kayıtları kapatılacaktır.
       </p>
 
-      <label className="mt-4 block text-sm font-medium text-rose-900 dark:text-rose-300">
+      <label className="mt-4 block text-sm font-medium text-danger text-danger">
         Arşivleme nedeni
-
         <textarea
           name="exitReason"
           rows={3}
           required
           minLength={3}
           placeholder="Örneğin: Kurumdan ayrıldı"
-          className="mt-2 w-full rounded-xl border border-rose-200 dark:border-rose-800/40 bg-panel px-4 py-3 text-sm outline-none"
+          className="mt-2 w-full rounded-xl border border-danger/30 bg-surface px-4 py-3 text-sm outline-none"
         />
       </label>
 
@@ -67,14 +56,14 @@ export function ArchiveStudentForm({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-xl border border-rose-200 dark:border-rose-800/40 bg-panel px-4 py-2 text-sm font-semibold text-rose-700 dark:text-rose-400"
+          className="rounded-xl border border-danger/30 bg-surface px-4 py-2 text-sm font-semibold text-danger"
         >
           Vazgeç
         </button>
 
         <button
           type="submit"
-          className="rounded-xl bg-rose-700 px-4 py-2 text-sm font-semibold text-white"
+          className="rounded-xl bg-danger px-4 py-2 text-sm font-semibold text-on-primary"
         >
           Arşivlemeyi onayla
         </button>

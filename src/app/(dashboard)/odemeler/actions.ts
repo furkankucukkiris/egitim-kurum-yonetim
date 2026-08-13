@@ -6,14 +6,12 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMonthlyAccruals(formData: FormData) {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const month = readText(formData, "month");
 
   if (!isMonthValue(month)) {
-    redirect(
-      `/odemeler?error=${encodeURIComponent("Geçerli bir ay seçmelisiniz.")}`,
-    );
+    redirect(`/odemeler?error=${encodeURIComponent("Geçerli bir ay seçmelisiniz.")}`);
   }
 
   const supabase = await createClient();
@@ -32,13 +30,9 @@ export async function generateMonthlyAccruals(formData: FormData) {
     );
   }
 
-  const result = (data ?? [])[0] as
-    | { created_count: number; existing_count: number }
-    | undefined;
+  const result = (data ?? [])[0] as { created_count: number; existing_count: number } | undefined;
 
-  const messageParts = [
-    `${result?.created_count ?? 0} yeni tahakkuk oluşturuldu.`,
-  ];
+  const messageParts = [`${result?.created_count ?? 0} yeni tahakkuk oluşturuldu.`];
 
   if (result && result.existing_count > 0) {
     messageParts.push(`${result.existing_count} kayıt zaten mevcuttu.`);
@@ -46,51 +40,42 @@ export async function generateMonthlyAccruals(formData: FormData) {
 
   revalidatePath("/odemeler");
 
-  redirect(
-    `/odemeler?month=${month}&success=${encodeURIComponent(
-      messageParts.join(" "),
-    )}`,
-  );
+  redirect(`/odemeler?month=${month}&success=${encodeURIComponent(messageParts.join(" "))}`);
 }
 
 export async function recordPayment(formData: FormData) {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
   const studentId = readText(formData, "studentId");
   const courseId = readText(formData, "courseId");
   const month = readText(formData, "month");
   const method = readText(formData, "method");
   const note = readText(formData, "note");
+  const cashAccountId = readText(formData, "cashAccountId");
 
   const amount = parseMoney(readText(formData, "amount"));
 
-  const redirectBase = isMonthValue(month)
-    ? `/odemeler?month=${month}`
-    : "/odemeler";
+  const redirectBase = isMonthValue(month) ? `/odemeler?month=${month}` : "/odemeler";
 
   if (!studentId || !courseId) {
     redirect(
-      `${redirectBase}&error=${encodeURIComponent(
-        "Öğrenci veya ders bilgisi bulunamadı.",
-      )}`,
+      `${redirectBase}&error=${encodeURIComponent("Öğrenci veya ders bilgisi bulunamadı.")}`,
     );
   }
 
   if (amount === null || amount <= 0) {
-    redirect(
-      `${redirectBase}&error=${encodeURIComponent(
-        "Geçerli bir tutar girin.",
-      )}`,
-    );
+    redirect(`${redirectBase}&error=${encodeURIComponent("Geçerli bir tutar girin.")}`);
   }
 
   const validMethods = ["cash", "bank_transfer", "card", "online", "other"];
 
   if (!validMethods.includes(method)) {
+    redirect(`${redirectBase}&error=${encodeURIComponent("Geçerli bir ödeme yöntemi seçin.")}`);
+  }
+
+  if (method === "cash" && !cashAccountId) {
     redirect(
-      `${redirectBase}&error=${encodeURIComponent(
-        "Geçerli bir ödeme yöntemi seçin.",
-      )}`,
+      `${redirectBase}&error=${encodeURIComponent("Nakit ödeme için bir kasa hesabı seçin.")}`,
     );
   }
 
@@ -102,23 +87,18 @@ export async function recordPayment(formData: FormData) {
     p_amount: amount,
     p_method: method,
     p_note: note || null,
+    p_cash_account_id: method === "cash" ? cashAccountId : null,
   });
 
   if (error) {
     console.error("Ödeme kaydedilemedi:", error);
 
-    redirect(
-      `${redirectBase}&error=${encodeURIComponent(
-        getDatabaseErrorMessage(error.message),
-      )}`,
-    );
+    redirect(`${redirectBase}&error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath("/odemeler");
 
-  redirect(
-    `${redirectBase}&success=${encodeURIComponent("Ödeme kaydedildi.")}`,
-  );
+  redirect(`${redirectBase}&success=${encodeURIComponent("Ödeme kaydedildi.")}`);
 }
 
 function parseMoney(value: string) {
@@ -150,6 +130,8 @@ function getDatabaseErrorMessage(message: string) {
     "Geçerli bir ödeme yöntemi seçilmelidir.",
     "Öğrenci kaydı bulunamadı.",
     "Öğrencinin bu derste kaydı bulunamadı.",
+    "Nakit ödeme için bir kasa hesabı seçilmelidir.",
+    "Kasa hesabı bulunamadı.",
   ];
 
   const matched = safeMessages.find((item) => message.includes(item));

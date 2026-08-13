@@ -7,19 +7,22 @@ export default async function UserAccountsSettingsPage() {
 
   return (
     <Card className="max-w-xl p-8 text-center">
-      <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-fill text-xl">
+      <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-surface-muted text-xl">
         ◇
       </div>
 
-      <h2 className="mt-4 text-lg font-bold text-ink">Kullanıcı Hesapları</h2>
+      <h2 className="mt-4 text-lg font-bold text-text-primary">Kullanıcı Hesapları</h2>
 
-      <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-muted">
-        Finans ve görüntüleyici rolündeki kullanıcı hesaplarının buradan
-        yönetilmesi yakında eklenecek. Öğretmen hesapları şimdilik{" "}
-        <Link href="/ogretmenler" className="font-semibold text-brand-700 underline underline-offset-4 dark:text-brand-100">
+      <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-text-secondary">
+        Sistemde yalnızca yönetici ve öğretmen rolleri kullanılır. Öğretmen hesapları{" "}
+        <Link
+          href="/ogretmenler"
+          className="font-semibold text-primary underline underline-offset-4 text-primary"
+        >
           Öğretmenler
         </Link>{" "}
-        sayfasından yönetiliyor.
+        sayfasından yönetilir; yeni yönetici hesabı yalnızca Supabase Dashboard üzerinden
+        oluşturulabilir.
       </p>
     </Card>
   );

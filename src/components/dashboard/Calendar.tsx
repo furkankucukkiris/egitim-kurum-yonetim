@@ -8,8 +8,18 @@ import type { Holiday } from "@/lib/holidays";
 const weekdayLabels = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
 
 const monthLabels = [
-  "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
-  "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
+  "Ocak",
+  "Şubat",
+  "Mart",
+  "Nisan",
+  "Mayıs",
+  "Haziran",
+  "Temmuz",
+  "Ağustos",
+  "Eylül",
+  "Ekim",
+  "Kasım",
+  "Aralık",
 ];
 
 function pad(value: number) {
@@ -38,12 +48,8 @@ export function Calendar({
   const [month, setMonth] = useState(Number(todayKey.slice(5, 7)));
 
   const monthPrefix = `${year}-${pad(month)}`;
-  const holidaysThisMonth = holidays.filter((holiday) =>
-    holiday.date.startsWith(monthPrefix),
-  );
-  const holidayByDate = new Map(
-    holidaysThisMonth.map((holiday) => [holiday.date, holiday]),
-  );
+  const holidaysThisMonth = holidays.filter((holiday) => holiday.date.startsWith(monthPrefix));
+  const holidayByDate = new Map(holidaysThisMonth.map((holiday) => [holiday.date, holiday]));
 
   const blanks = leadingBlankCount(year, month);
   const totalDays = daysInMonth(year, month);
@@ -74,19 +80,19 @@ export function Calendar({
   return (
     <Card>
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-ink">Takvim</h3>
+        <h3 className="font-semibold text-text-primary">Takvim</h3>
 
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={goToPreviousMonth}
             aria-label="Önceki ay"
-            className="grid h-7 w-7 place-items-center rounded-lg text-muted transition hover:bg-fill hover:text-ink"
+            className="grid h-7 w-7 place-items-center rounded-lg text-text-secondary transition hover:bg-surface-muted hover:text-text-primary"
           >
             ‹
           </button>
 
-          <p className="w-28 text-center text-sm font-medium text-ink">
+          <p className="w-28 text-center text-sm font-medium text-text-primary">
             {monthLabels[month - 1]} {year}
           </p>
 
@@ -94,14 +100,14 @@ export function Calendar({
             type="button"
             onClick={goToNextMonth}
             aria-label="Sonraki ay"
-            className="grid h-7 w-7 place-items-center rounded-lg text-muted transition hover:bg-fill hover:text-ink"
+            className="grid h-7 w-7 place-items-center rounded-lg text-text-secondary transition hover:bg-surface-muted hover:text-text-primary"
           >
             ›
           </button>
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-7 gap-1 text-center text-xs font-medium text-muted">
+      <div className="mt-4 grid grid-cols-7 gap-1 text-center text-xs font-medium text-text-secondary">
         {weekdayLabels.map((label) => (
           <div key={label} className="py-1">
             {label}
@@ -121,17 +127,17 @@ export function Calendar({
 
           const dayClasses = `relative grid aspect-square place-items-center rounded-lg text-sm transition ${
             isToday
-              ? "bg-terra-700 font-bold text-white"
+              ? "bg-primary font-bold text-on-primary"
               : holiday
-                ? "bg-rose-50 dark:bg-rose-500/10 font-medium text-rose-700 dark:text-rose-400"
-                : "text-ink"
-          } ${canNavigateToSchedule ? "hover:ring-2 hover:ring-terra-500/50" : ""}`;
+                ? "bg-danger-soft font-medium text-danger"
+                : "text-text-primary"
+          } ${canNavigateToSchedule ? "hover:ring-2 hover:ring-focus-ring" : ""}`;
 
           const content = (
             <>
               {day}
               {holiday && !isToday && (
-                <span className="absolute bottom-1 h-1 w-1 rounded-full bg-rose-500" />
+                <span className="absolute bottom-1 h-1 w-1 rounded-full bg-danger-soft" />
               )}
             </>
           );
@@ -158,13 +164,13 @@ export function Calendar({
       </div>
 
       {holidaysThisMonth.length > 0 && (
-        <div className="mt-4 space-y-1.5 border-t border-line pt-3">
+        <div className="mt-4 space-y-1.5 border-t border-border pt-3">
           {holidaysThisMonth.map((holiday) => (
             <div key={holiday.date} className="flex items-baseline gap-2 text-xs">
-              <span className="font-semibold text-rose-700 dark:text-rose-400">
+              <span className="font-semibold text-danger">
                 {Number(holiday.date.slice(8, 10))} {monthLabels[month - 1]}
               </span>
-              <span className="text-muted">
+              <span className="text-text-secondary">
                 {holiday.name}
                 {holiday.halfDay ? " (yarım gün)" : ""}
               </span>

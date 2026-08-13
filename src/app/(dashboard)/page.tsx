@@ -10,17 +10,31 @@ import { formatTry } from "@/lib/utils";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-type AccrualRow = {
-  net_amount: number;
-  allocated_amount: number;
-  period_start: string;
-  enrollment: {
-    course: { id: string; name: string } | null;
-  } | null;
+// get_dashboard_financial_summary()/get_dashboard_course_performance()
+// (supabase/migrations/20260811110000_add_dashboard_financial_summary.sql)
+// tüm tahakkuk/tahsilat hesaplarını merkezi olarak yapar — bu sayfa
+// yalnızca sonucu biçimlendirir, kendi başına toplama/gruplama
+// mantığı içermez.
+type FinancialSummaryRow = {
+  active_student_count: number;
+  monthly_accrued: number | string;
+  monthly_collected: number | string;
+  monthly_cash_received: number | string;
+  prior_period_carryover: number | string;
+  prior_period_carryover_count: number;
+  total_open_receivable: number | string;
+  total_open_receivable_count: number;
+  student_advance_balance: number | string;
+  today_active_session_count: number;
+  today_total_session_count: number;
 };
 
-type EnrollmentCountRow = {
+type CoursePerformanceRow = {
   course_id: string;
+  course_name: string;
+  active_student_count: number;
+  month_net: number | string;
+  month_collected: number | string;
 };
 
 type PaymentRow = {
@@ -42,9 +56,19 @@ type SessionRow = {
   ends_at: string;
   room_name: string | null;
   is_makeup: boolean;
+  is_trial: boolean;
   cancelled_at: string | null;
   course: { name: string } | null;
   teacher: { full_name: string } | null;
+};
+
+type ProspectFollowUpRow = {
+  id: string;
+  student_first_name: string;
+  student_last_name: string;
+  phone: string;
+  next_follow_up_date: string;
+  assigned: { full_name: string } | null;
 };
 
 export default async function DashboardPage() {
@@ -52,6 +76,10 @@ export default async function DashboardPage() {
 
   if (profile.role === "teacher") {
     redirect("/ogretmen-paneli");
+  }
+
+  if (profile.role !== "admin") {
+    redirect("/yetkisiz");
   }
 
   const supabase = await createClient();
@@ -62,72 +90,81 @@ export default async function DashboardPage() {
   const currentYear = Number(today.slice(0, 4));
   const holidays = getHolidaysForYearRange(currentYear - 1, currentYear + 6);
 
+  const nextWeek = addDays(today, 7);
+
   const [
-    studentCountResult,
-    accrualsResult,
-    enrollmentsResult,
+    summaryResult,
+    coursePerformanceResult,
     paymentsResult,
     sessionsResult,
+    followUpTodayResult,
+    followUpUpcomingResult,
+    waitlistOpportunitiesResult,
   ] = await Promise.all([
-    supabase
-      .from("students")
-      .select("id", { count: "exact", head: true })
-      .eq("organization_id", profile.organizationId)
-      .eq("status", "active"),
-    supabase
-      .from("accruals")
-      .select(`
-        net_amount,
-        allocated_amount,
-        period_start,
-        enrollment:enrollments!inner (
-          course:courses!inner ( id, name )
-        )
-      `)
-      .eq("organization_id", profile.organizationId)
-      .not("status", "in", "(cancelled,refunded)")
-      .lte("period_start", monthStart),
-    supabase
-      .from("enrollments")
-      .select("course_id")
-      .eq("organization_id", profile.organizationId)
-      .eq("status", "active"),
+    supabase.rpc("get_dashboard_financial_summary", {
+      p_month_start: monthStart,
+    }),
+    supabase.rpc("get_dashboard_course_performance", {
+      p_month_start: monthStart,
+    }),
     supabase
       .from("payments")
-      .select(`
-        id, amount, received_at,
-        student:students ( first_name, last_name ),
-        payment_allocations (
-          accrual:accruals (
-            enrollment:enrollments (
-              course:courses ( name )
+      .select(
+        `
+          id, amount, received_at,
+          student:students ( first_name, last_name ),
+          payment_allocations (
+            accrual:accruals (
+              enrollment:enrollments (
+                course:courses ( name )
+              )
             )
           )
-        )
-      `)
+        `,
+      )
       .eq("organization_id", profile.organizationId)
       .eq("is_refunded", false)
       .order("received_at", { ascending: false })
       .limit(5),
     supabase
       .from("lesson_sessions")
-      .select(`
-        starts_at, ends_at, room_name, is_makeup, cancelled_at,
-        course:courses ( name ),
-        teacher:profiles ( full_name )
-      `)
+      .select(
+        `
+          starts_at, ends_at, room_name, is_makeup, is_trial, cancelled_at,
+          course:courses ( name ),
+          teacher:profiles!lesson_sessions_teacher_profile_id_fkey ( full_name )
+        `,
+      )
       .eq("organization_id", profile.organizationId)
       .gte("starts_at", `${today}T00:00:00+03:00`)
       .lt("starts_at", `${tomorrow}T00:00:00+03:00`)
       .order("starts_at", { ascending: true }),
+    supabase
+      .from("prospects")
+      .select(
+        "id, student_first_name, student_last_name, phone, next_follow_up_date, assigned:profiles!prospects_assigned_profile_id_fkey(full_name)",
+      )
+      .eq("organization_id", profile.organizationId)
+      .eq("next_follow_up_date", today)
+      .order("student_last_name", { ascending: true }),
+    supabase
+      .from("prospects")
+      .select(
+        "id, student_first_name, student_last_name, phone, next_follow_up_date, assigned:profiles!prospects_assigned_profile_id_fkey(full_name)",
+      )
+      .eq("organization_id", profile.organizationId)
+      .gt("next_follow_up_date", today)
+      .lte("next_follow_up_date", nextWeek)
+      .order("next_follow_up_date", { ascending: true }),
+    supabase.rpc("get_waitlist_opportunities"),
   ]);
 
-  if (accrualsResult.error) {
-    console.error("Tahakkuk özeti alınamadı:", accrualsResult.error);
+  if (summaryResult.error) {
+    console.error("Finans özeti alınamadı:", summaryResult.error);
   }
 
-  if (enrollmentsResult.error) {
-    console.error("Kayıt özeti alınamadı:", enrollmentsResult.error);
+  if (coursePerformanceResult.error) {
+    console.error("Ders performansı alınamadı:", coursePerformanceResult.error);
   }
 
   if (paymentsResult.error) {
@@ -138,91 +175,66 @@ export default async function DashboardPage() {
     console.error("Bugünün ders akışı alınamadı:", sessionsResult.error);
   }
 
-  const activeStudentCount = studentCountResult.count ?? 0;
-  const accruals = (accrualsResult.data ?? []) as unknown as AccrualRow[];
-  const enrollmentCounts = (enrollmentsResult.data ?? []) as unknown as EnrollmentCountRow[];
-  const payments = (paymentsResult.data ?? []) as unknown as PaymentRow[];
-  const sessions = (sessionsResult.data ?? []) as unknown as SessionRow[];
-
-  const activeStudentsByCourse = new Map<string, number>();
-
-  for (const enrollment of enrollmentCounts) {
-    activeStudentsByCourse.set(
-      enrollment.course_id,
-      (activeStudentsByCourse.get(enrollment.course_id) ?? 0) + 1,
-    );
+  if (followUpTodayResult.error) {
+    console.error("Bugünkü takip listesi alınamadı:", followUpTodayResult.error);
   }
 
-  let monthlyAccrued = 0;
-  let totalPending = 0;
-  const pendingStudentPeriods = new Set<string>();
-
-  type CoursePerformance = {
-    id: string;
-    name: string;
-    monthNet: number;
-    monthCollected: number;
-  };
-
-  const courseMap = new Map<string, CoursePerformance>();
-
-  for (const accrual of accruals) {
-    const course = accrual.enrollment?.course;
-
-    if (!course) {
-      continue;
-    }
-
-    const netAmount = Number(accrual.net_amount);
-    const allocatedAmount = Number(accrual.allocated_amount);
-    const pending = Math.max(0, netAmount - allocatedAmount);
-
-    totalPending += pending;
-
-    if (pending > 0.01) {
-      pendingStudentPeriods.add(`${course.id}:${accrual.period_start}`);
-    }
-
-    const isThisMonth = accrual.period_start === monthStart;
-
-    if (isThisMonth) {
-      monthlyAccrued += netAmount;
-
-      const entry = courseMap.get(course.id) ?? {
-        id: course.id,
-        name: course.name,
-        monthNet: 0,
-        monthCollected: 0,
-      };
-
-      entry.monthNet += netAmount;
-      entry.monthCollected += allocatedAmount;
-      courseMap.set(course.id, entry);
-    }
+  if (followUpUpcomingResult.error) {
+    console.error("Yaklaşan takip listesi alınamadı:", followUpUpcomingResult.error);
   }
 
-  const coursePerformance = Array.from(courseMap.values())
-    .map((course) => ({
-      ...course,
-      studentCount: activeStudentsByCourse.get(course.id) ?? 0,
-      collectionRate:
-        course.monthNet > 0
-          ? Math.round((course.monthCollected / course.monthNet) * 100)
-          : 0,
-    }))
-    .sort((a, b) => b.monthNet - a.monthNet);
+  if (waitlistOpportunitiesResult.error) {
+    console.error("Bekleme listesi fırsatları alınamadı:", waitlistOpportunitiesResult.error);
+  }
+
+  const summaryRow = ((summaryResult.data ?? []) as unknown as FinancialSummaryRow[])[0];
+
+  const summary = summaryRow
+    ? {
+        activeStudentCount: summaryRow.active_student_count,
+        monthlyAccrued: Number(summaryRow.monthly_accrued),
+        monthlyCollected: Number(summaryRow.monthly_collected),
+        monthlyCashReceived: Number(summaryRow.monthly_cash_received),
+        priorPeriodCarryover: Number(summaryRow.prior_period_carryover),
+        priorPeriodCarryoverCount: summaryRow.prior_period_carryover_count,
+        totalOpenReceivable: Number(summaryRow.total_open_receivable),
+        totalOpenReceivableCount: summaryRow.total_open_receivable_count,
+        studentAdvanceBalance: Number(summaryRow.student_advance_balance),
+        todayActiveSessionCount: summaryRow.today_active_session_count,
+        todayTotalSessionCount: summaryRow.today_total_session_count,
+      }
+    : null;
+
+  const summaryFailed = Boolean(summaryResult.error) || !summary;
 
   const overallCollectionRate =
-    monthlyAccrued > 0
-      ? Math.round(
-          (Array.from(courseMap.values()).reduce(
-            (sum, course) => sum + course.monthCollected,
-            0,
-          ) /
-            monthlyAccrued) *
-            100,
-        )
+    summary && summary.monthlyAccrued > 0
+      ? Math.round((summary.monthlyCollected / summary.monthlyAccrued) * 100)
       : 0;
+
+  const coursePerformance = (
+    (coursePerformanceResult.data ?? []) as unknown as CoursePerformanceRow[]
+  ).map((row) => {
+    const monthNet = Number(row.month_net);
+    const monthCollected = Number(row.month_collected);
+
+    return {
+      id: row.course_id,
+      name: row.course_name,
+      studentCount: row.active_student_count,
+      monthNet,
+      monthCollected,
+      collectionRate: monthNet > 0 ? Math.round((monthCollected / monthNet) * 100) : 0,
+    };
+  });
+
+  const payments = (paymentsResult.data ?? []) as unknown as PaymentRow[];
+  const sessions = (sessionsResult.data ?? []) as unknown as SessionRow[];
+  const followUpToday = (followUpTodayResult.data ?? []) as unknown as ProspectFollowUpRow[];
+  const followUpUpcoming = (followUpUpcomingResult.data ?? []) as unknown as ProspectFollowUpRow[];
+  const openWaitlistOpportunityCount = (
+    (waitlistOpportunitiesResult.data ?? []) as unknown as { available_seats: number }[]
+  ).filter((item) => item.available_seats > 0).length;
 
   const todaySessions = sessions.map((session) => ({
     time: formatTime(session.starts_at),
@@ -231,9 +243,11 @@ export default async function DashboardPage() {
     room: session.room_name ?? "Belirtilmedi",
     status: session.cancelled_at
       ? "İptal"
-      : session.is_makeup
-        ? "Telafi"
-        : "Planlandı",
+      : session.is_trial
+        ? "Deneme"
+        : session.is_makeup
+          ? "Telafi"
+          : "Planlandı",
   }));
 
   return (
@@ -242,62 +256,120 @@ export default async function DashboardPage() {
         title="Genel Bakış"
         description="Öğrenci, tahsilat ve ders performansının güncel özeti."
         action={
-          profile.role === "admin" || profile.role === "finance" ? (
-            <Link
-              href="/ogrenciler/yeni"
-              className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90"
-            >
-              + Yeni öğrenci
-            </Link>
-          ) : undefined
+          <Link
+            href="/ogrenciler/yeni"
+            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover"
+          >
+            + Yeni öğrenci
+          </Link>
         }
       />
+
+      {summaryFailed && (
+        <div className="mb-5 rounded-2xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
+          Finans özeti alınamadı. Aşağıdaki finans göstergeleri güncel olmayabilir — sayfayı
+          yenileyin, sorun devam ederse teknik ekiple paylaşın.
+        </div>
+      )}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           label="Aktif Öğrenci"
-          value={String(activeStudentCount)}
+          value={summary ? String(summary.activeStudentCount) : "—"}
           detail="Şu an kayıtlı"
           icon="◎"
         />
 
         <StatCard
-          label="Aylık Tahakkuk"
-          value={formatTry(monthlyAccrued)}
-          detail={`%${overallCollectionRate} tahsil edildi`}
+          label="Bu Ay Tahakkuk"
+          value={summary ? formatTry(summary.monthlyAccrued) : "—"}
+          detail={summary ? `${formatLongMonth(monthStart)} dönemi toplam borç` : "Veri alınamadı"}
           icon="₺"
         />
 
         <StatCard
-          label="Bekleyen Ödeme"
-          value={formatTry(totalPending)}
-          detail={`${pendingStudentPeriods.size} bekleyen dönem`}
+          label="Bu Ay Tahsil Edilen"
+          value={summary ? formatTry(summary.monthlyCollected) : "—"}
+          detail={summary ? `%${overallCollectionRate} tahsilat oranı` : "Veri alınamadı"}
+          icon="✓"
+        />
+
+        <StatCard
+          label="Bu Ay Kasaya Giren"
+          value={summary ? formatTry(summary.monthlyCashReceived) : "—"}
+          detail="Ödeme tarihi bu ay olan tüm tahsilat"
+          icon="↓"
+        />
+
+        <StatCard
+          label="Devreden Borç"
+          value={summary ? formatTry(summary.priorPeriodCarryover) : "—"}
+          detail={summary ? `${summary.priorPeriodCarryoverCount} önceki dönem` : "Veri alınamadı"}
           icon="!"
         />
 
         <StatCard
-          label="Bugünkü Ders"
-          value={String(todaySessions.length)}
-          detail={`${todaySessions.filter((s) => s.status === "Planlandı").length} planlı`}
+          label="Toplam Açık Alacak"
+          value={summary ? formatTry(summary.totalOpenReceivable) : "—"}
+          detail={summary ? `${summary.totalOpenReceivableCount} bekleyen dönem` : "Veri alınamadı"}
+          icon="Σ"
+        />
+
+        <StatCard
+          label="Öğrenci Avans/Bakiye"
+          value={summary ? formatTry(summary.studentAdvanceBalance) : "—"}
+          detail="Tahakkuka henüz işlenmemiş ödeme"
+          icon="+"
+        />
+
+        <StatCard
+          label="Bugünkü Aktif Ders"
+          value={summary ? String(summary.todayActiveSessionCount) : "—"}
+          detail={
+            summary && summary.todayTotalSessionCount > summary.todayActiveSessionCount
+              ? `${summary.todayTotalSessionCount - summary.todayActiveSessionCount} iptal hariç`
+              : "İptaller hariç"
+          }
           icon="↗"
+        />
+
+        <StatCard
+          label="Bugün Aranacak Aday"
+          value={String(followUpToday.length)}
+          detail="Sonraki takip tarihi bugün"
+          icon="☆"
+        />
+
+        <StatCard
+          label="Yaklaşan Takip"
+          value={String(followUpUpcoming.length)}
+          detail="Önümüzdeki 7 gün"
+          icon="◔"
+        />
+
+        <StatCard
+          label="Kapasitesi Açılan Grup"
+          value={String(openWaitlistOpportunityCount)}
+          detail="Bekleme listesi olan, boş yeri açılan gruplar"
+          icon="◷"
         />
       </section>
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
         <Card className="overflow-hidden p-0">
-          <div className="border-b border-line px-5 py-4">
-            <h3 className="font-semibold text-ink">Son ödemeler</h3>
-            <p className="mt-1 text-sm text-muted">Tahsilatların son hareketleri</p>
+          <div className="border-b border-border px-5 py-4">
+            <h3 className="font-semibold text-text-primary">Son ödemeler</h3>
+            <p className="mt-1 text-sm text-text-secondary">Tahsilatların son hareketleri</p>
           </div>
 
           {payments.length === 0 ? (
-            <p className="px-5 py-10 text-center text-sm text-muted">
+            <p className="px-5 py-10 text-center text-sm text-text-secondary">
               Henüz kayıtlı bir tahsilat yok.
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[600px] text-left text-sm">
-                <thead className="bg-fill text-xs uppercase tracking-wide text-muted">
+                <thead className="bg-surface-muted text-xs uppercase tracking-wide text-text-secondary">
                   <tr>
                     <th className="px-5 py-3">Öğrenci</th>
                     <th className="px-5 py-3">Ders</th>
@@ -316,19 +388,19 @@ export default async function DashboardPage() {
                     );
 
                     return (
-                      <tr key={payment.id} className="hover:bg-fill/50">
-                        <td className="px-5 py-4 font-medium text-ink">
+                      <tr key={payment.id} className="hover:bg-surface-muted/50">
+                        <td className="px-5 py-4 font-medium text-text-primary">
                           {payment.student
                             ? `${payment.student.first_name} ${payment.student.last_name}`
                             : "Bilinmiyor"}
                         </td>
-                        <td className="px-5 py-4 text-muted">
-                          {courseNames.length > 0 ? courseNames.join(", ") : "—"}
+                        <td className="px-5 py-4 text-text-secondary">
+                          {courseNames.length > 0 ? courseNames.join(", ") : "Avans / dağıtılmamış"}
                         </td>
-                        <td className="px-5 py-4 text-muted">
+                        <td className="px-5 py-4 text-text-secondary">
                           {formatDate(payment.received_at)}
                         </td>
-                        <td className="px-5 py-4 font-semibold text-ink">
+                        <td className="px-5 py-4 font-semibold text-text-primary">
                           {formatTry(payment.amount)}
                         </td>
                       </tr>
@@ -342,11 +414,11 @@ export default async function DashboardPage() {
 
         <div className="space-y-6">
           <Card>
-            <h3 className="font-semibold text-ink">Ders performansı</h3>
-            <p className="mt-1 text-sm text-muted">Bu ayın tahakkuku ve tahsilat oranı</p>
+            <h3 className="font-semibold text-text-primary">Ders performansı</h3>
+            <p className="mt-1 text-sm text-text-secondary">Bu ayın tahakkuku ve tahsilat oranı</p>
 
             {coursePerformance.length === 0 ? (
-              <p className="mt-5 text-sm text-muted">
+              <p className="mt-5 text-sm text-text-secondary">
                 Bu ay için henüz tahakkuk oluşturulmadı.
               </p>
             ) : (
@@ -355,18 +427,18 @@ export default async function DashboardPage() {
                   <div key={course.id}>
                     <div className="mb-2 flex items-center justify-between gap-4 text-sm">
                       <div>
-                        <span className="font-semibold text-ink">{course.name}</span>
-                        <span className="ml-2 text-muted">
+                        <span className="font-semibold text-text-primary">{course.name}</span>
+                        <span className="ml-2 text-text-secondary">
                           {course.studentCount} öğrenci
                         </span>
                       </div>
-                      <span className="font-semibold text-ink">
+                      <span className="font-semibold text-text-primary">
                         {formatTry(course.monthCollected)}
                       </span>
                     </div>
-                    <div className="h-2 rounded-full bg-fill">
+                    <div className="h-2 rounded-full bg-surface-muted">
                       <div
-                        className="h-2 rounded-full bg-terra-500"
+                        className="h-2 rounded-full bg-primary-soft"
                         style={{ width: `${Math.min(100, course.collectionRate)}%` }}
                       />
                     </div>
@@ -385,8 +457,43 @@ export default async function DashboardPage() {
       </section>
 
       <section className="mt-6">
-        <h3 className="mb-3 font-semibold text-ink">Bugünün ders akışı</h3>
+        <h3 className="mb-3 font-semibold text-text-primary">Bugünün ders akışı</h3>
         <TodaySessionsList sessions={todaySessions} />
+      </section>
+
+      <section className="mt-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-semibold text-text-primary">Bugün aranacak aday öğrenciler</h3>
+          <Link
+            href="/aday-ogrenciler"
+            className="text-sm text-primary hover:underline"
+          >
+            Tümünü gör →
+          </Link>
+        </div>
+
+        {followUpToday.length === 0 ? (
+          <Card className="p-6 text-center text-sm text-text-secondary">
+            Bugün için takip edilmesi gereken aday öğrenci yok.
+          </Card>
+        ) : (
+          <div className="space-y-2.5">
+            {followUpToday.map((prospect) => (
+              <Link key={prospect.id} href={`/aday-ogrenciler/${prospect.id}`}>
+                <Card className="flex items-center justify-between gap-4 p-3.5 transition hover:bg-surface-muted">
+                  <div>
+                    <p className="text-sm font-medium text-text-primary">
+                      {prospect.student_first_name} {prospect.student_last_name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-text-secondary">
+                      {prospect.phone} · {prospect.assigned?.full_name ?? "Atanmamış"}
+                    </p>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
     </>
   );
@@ -408,6 +515,14 @@ function formatDate(value: string) {
     month: "2-digit",
     year: "numeric",
   }).format(new Date(value));
+}
+
+function formatLongMonth(monthStartValue: string) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    timeZone: "Europe/Istanbul",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${monthStartValue}T12:00:00+03:00`));
 }
 
 function getTodayInIstanbul() {

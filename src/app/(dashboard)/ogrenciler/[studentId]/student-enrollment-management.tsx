@@ -1,15 +1,8 @@
 "use client";
 
-import {
-  useActionState,
-  useMemo,
-  useState,
-} from "react";
+import { useActionState, useMemo, useState } from "react";
 
-import {
-  createEnrollment,
-  updateEnrollmentMeb,
-} from "./enrollment-actions";
+import { createEnrollment, updateEnrollmentMeb } from "./enrollment-actions";
 
 type CourseOption = {
   id: string;
@@ -53,6 +46,12 @@ type EnrollmentItem = {
   mebValidUntil: string;
   mebNonRegistrationReason: string;
   mebNote: string;
+  responsibleProfileId: string;
+};
+
+type ProfileOption = {
+  id: string;
+  full_name: string;
 };
 
 type Props = {
@@ -61,6 +60,7 @@ type Props = {
   courses: CourseOption[];
   groups: GroupOption[];
   enrollments: EnrollmentItem[];
+  profiles: ProfileOption[];
 };
 
 type ActionState = {
@@ -71,10 +71,7 @@ const initialState: ActionState = {
   error: null,
 };
 
-const weekdayLabels: Record<
-  number,
-  string
-> = {
+const weekdayLabels: Record<number, string> = {
   1: "Pazartesi",
   2: "Salı",
   3: "Çarşamba",
@@ -87,14 +84,8 @@ const weekdayLabels: Record<
 const mebStatusOptions = [
   ["registered", "MEB kayıtlı"],
   ["pending", "MEB kayıt işlemi bekliyor"],
-  [
-    "not_registered",
-    "MEB kayıtlı değil",
-  ],
-  [
-    "not_eligible",
-    "MEB kaydı yapılamıyor",
-  ],
+  ["not_registered", "MEB kayıtlı değil"],
+  ["not_eligible", "MEB kaydı yapılamıyor"],
   ["rejected", "MEB kaydı reddedildi"],
   ["ended", "MEB kaydı sona erdi"],
   ["unchecked", "Kontrol edilmedi"],
@@ -106,45 +97,26 @@ export function StudentEnrollmentManagement({
   courses,
   groups,
   enrollments,
+  profiles,
 }: Props) {
-  const [formOpen, setFormOpen] =
-    useState(false);
+  const [formOpen, setFormOpen] = useState(false);
 
-  const [
-    state,
-    formAction,
-    isPending,
-  ] = useActionState(
-    createEnrollment,
-    initialState,
-  );
+  const [state, formAction, isPending] = useActionState(createEnrollment, initialState);
 
-  const firstCourse =
-    courses[0] ?? null;
+  const firstCourse = courses[0] ?? null;
 
-  const firstGroup =
-    groups.find(
-      (group) =>
-        group.courseId ===
-        firstCourse?.id,
-    ) ?? null;
+  const firstGroup = groups.find((group) => group.courseId === firstCourse?.id) ?? null;
 
   const [values, setValues] = useState({
-    courseId:
-      firstCourse?.id ?? "",
+    courseId: firstCourse?.id ?? "",
 
-    classGroupId:
-      firstGroup?.id ?? "",
+    classGroupId: firstGroup?.id ?? "",
 
-    startsOn:
-      getTodayInIstanbul(),
+    startsOn: getTodayInIstanbul(),
 
     endsOn: "",
 
-    listMonthlyFee: String(
-      firstCourse
-        ?.defaultMonthlyFee ?? "",
-    ),
+    listMonthlyFee: String(firstCourse?.defaultMonthlyFee ?? ""),
 
     discountType: "none",
     discountValue: "0",
@@ -161,329 +133,215 @@ export function StudentEnrollmentManagement({
     mebNote: "",
   });
 
-  const availableGroups =
-    useMemo(
-      () =>
-        groups.filter(
-          (group) =>
-            group.courseId ===
-            values.courseId,
-        ),
-      [groups, values.courseId],
-    );
+  const availableGroups = useMemo(
+    () => groups.filter((group) => group.courseId === values.courseId),
+    [groups, values.courseId],
+  );
 
-  const selectedCourse =
-    courses.find(
-      (course) =>
-        course.id === values.courseId,
-    );
+  const selectedCourse = courses.find((course) => course.id === values.courseId);
 
-  const netMonthlyFee =
-    calculateNetFee(
-      values.listMonthlyFee,
-      values.discountType,
-      values.discountValue,
-    );
+  const netMonthlyFee = calculateNetFee(
+    values.listMonthlyFee,
+    values.discountType,
+    values.discountValue,
+  );
 
-  const reasonRequired = [
-    "not_registered",
-    "not_eligible",
-    "rejected",
-  ].includes(values.mebStatus);
+  const reasonRequired = ["not_registered", "not_eligible", "rejected"].includes(values.mebStatus);
 
-  function updateValue(
-    field: keyof typeof values,
-    value: string,
-  ) {
+  function updateValue(field: keyof typeof values, value: string) {
     setValues((current) => ({
       ...current,
       [field]: value,
     }));
   }
 
-  function changeCourse(
-    courseId: string,
-  ) {
-    const course = courses.find(
-      (item) =>
-        item.id === courseId,
-    );
+  function changeCourse(courseId: string) {
+    const course = courses.find((item) => item.id === courseId);
 
-    const firstCourseGroup =
-      groups.find(
-        (group) =>
-          group.courseId ===
-          courseId,
-      );
+    const firstCourseGroup = groups.find((group) => group.courseId === courseId);
 
     setValues((current) => ({
       ...current,
 
       courseId,
 
-      classGroupId:
-        firstCourseGroup?.id ?? "",
+      classGroupId: firstCourseGroup?.id ?? "",
 
-      listMonthlyFee: String(
-        course?.defaultMonthlyFee ??
-        "",
-      ),
+      listMonthlyFee: String(course?.defaultMonthlyFee ?? ""),
     }));
   }
 
   return (
-    <section className="mt-8 rounded-2xl border border-line bg-panel p-6 shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-brand-50 pb-5 sm:flex-row sm:items-center sm:justify-between">
+    <section className="mt-8 rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <div className="flex flex-col gap-4 border-b border-primary-soft pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-bold">
-            Ders kayıtları
-          </h2>
+          <h2 className="text-lg font-bold">Ders kayıtları</h2>
 
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-sm text-text-secondary">
             Öğrencinin ders, seans, ücret ve MEB kayıt durumlarını yönetin.
           </p>
         </div>
 
-        {!isArchived &&
-          courses.length > 0 && (
-            <button
-              type="button"
-              onClick={() =>
-                setFormOpen(
-                  (current) =>
-                    !current,
-                )
-              }
-              className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white"
-            >
-              {formOpen
-                ? "Formu kapat"
-                : "+ Derse kaydet"}
-            </button>
-          )}
+        {!isArchived && courses.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setFormOpen((current) => !current)}
+            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary"
+          >
+            {formOpen ? "Formu kapat" : "+ Derse kaydet"}
+          </button>
+        )}
       </div>
 
       {enrollments.length === 0 ? (
-        <div className="mt-5 rounded-xl bg-fill p-6 text-center text-sm text-muted">
+        <div className="mt-5 rounded-xl bg-surface-muted p-6 text-center text-sm text-text-secondary">
           Öğrencinin henüz bir ders kaydı bulunmuyor.
         </div>
       ) : (
         <div className="mt-5 grid gap-5 xl:grid-cols-2">
-          {enrollments.map(
-            (enrollment) => (
-              <article
-                key={enrollment.id}
-                className="rounded-2xl border border-line p-5"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-lg font-bold">
-                      {
-                        enrollment.courseName
-                      }
-                    </h3>
+          {enrollments.map((enrollment) => (
+            <article key={enrollment.id} className="rounded-2xl border border-border p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-bold">{enrollment.courseName}</h3>
 
-                    <p className="mt-1 text-sm text-muted">
-                      {
-                        enrollment.groupName
-                      }
-                    </p>
-                  </div>
-
-                  <EnrollmentStatusBadge
-                    status={
-                      enrollment.status
-                    }
-                  />
+                  <p className="mt-1 text-sm text-text-secondary">{enrollment.groupName}</p>
                 </div>
 
-                <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
-                  <Info
-                    label="Öğretmen"
-                    value={
-                      enrollment.teacherName
-                    }
-                  />
+                <EnrollmentStatusBadge status={enrollment.status} />
+              </div>
 
-                  <Info
-                    label="Program"
-                    value={
-                      enrollment.weekday
-                        ? `${
-                            weekdayLabels[
-                              enrollment
-                                .weekday
-                            ]
-                          } ${
-                            enrollment.startTime
-                          }`
-                        : "Belirtilmedi"
-                    }
-                  />
+              <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
+                <Info label="Öğretmen" value={enrollment.teacherName} />
 
-                  <Info
-                    label="Başlangıç"
-                    value={formatDate(
-                      enrollment.startsOn,
-                    )}
-                  />
+                <Info
+                  label="Program"
+                  value={
+                    enrollment.weekday
+                      ? `${weekdayLabels[enrollment.weekday]} ${enrollment.startTime}`
+                      : "Belirtilmedi"
+                  }
+                />
 
-                  <Info
-                    label="Ödeme günü"
-                    value={`Her ayın ${enrollment.dueDay}. günü`}
-                  />
+                <Info label="Başlangıç" value={formatDate(enrollment.startsOn)} />
 
-                  <Info
-                    label="Liste ücreti"
-                    value={formatMoney(
-                      enrollment.listMonthlyFee,
-                    )}
-                  />
+                <Info label="Ödeme günü" value={`Her ayın ${enrollment.dueDay}. günü`} />
 
-                  <Info
-                    label="Net aylık ücret"
-                    value={formatMoney(
-                      enrollment.netMonthlyFee,
-                    )}
-                    emphasized
-                  />
-                </dl>
+                <Info label="Liste ücreti" value={formatMoney(enrollment.listMonthlyFee)} />
 
-                <div className="mt-5 border-t border-brand-50 pt-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <MebBadge
-                      status={
-                        enrollment.mebStatus
-                      }
+                <Info
+                  label="Net aylık ücret"
+                  value={formatMoney(enrollment.netMonthlyFee)}
+                  emphasized
+                />
+              </dl>
+
+              <div className="mt-5 border-t border-primary-soft pt-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <MebBadge status={enrollment.mebStatus} />
+
+                  {enrollment.mebNonRegistrationReason && (
+                    <span className="text-xs text-danger">
+                      {enrollment.mebNonRegistrationReason}
+                    </span>
+                  )}
+                </div>
+
+                <details className="mt-4 rounded-xl bg-surface-muted">
+                  <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">
+                    MEB kaydını güncelle
+                  </summary>
+
+                  <form
+                    action={updateEnrollmentMeb}
+                    className="grid gap-4 border-t border-border p-4 md:grid-cols-2"
+                  >
+                    <input type="hidden" name="studentId" value={studentId} />
+
+                    <input type="hidden" name="enrollmentId" value={enrollment.id} />
+
+                    <SelectMebStatus defaultValue={enrollment.mebStatus} />
+
+                    <Field
+                      label="MEB kayıt numarası"
+                      name="mebRegistrationNumber"
+                      defaultValue={enrollment.mebRegistrationNumber}
                     />
 
-                    {enrollment
-                      .mebNonRegistrationReason && (
-                      <span className="text-xs text-rose-700 dark:text-rose-400">
-                        {
-                          enrollment
-                            .mebNonRegistrationReason
-                        }
-                      </span>
-                    )}
-                  </div>
+                    <Field
+                      label="MEB başlangıç tarihi"
+                      name="mebValidFrom"
+                      type="date"
+                      defaultValue={enrollment.mebValidFrom}
+                    />
 
-                  <details className="mt-4 rounded-xl bg-fill">
-                    <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">
-                      MEB kaydını güncelle
-                    </summary>
+                    <Field
+                      label="MEB bitiş tarihi"
+                      name="mebValidUntil"
+                      type="date"
+                      defaultValue={enrollment.mebValidUntil}
+                    />
 
-                    <form
-                      action={
-                        updateEnrollmentMeb
-                      }
-                      className="grid gap-4 border-t border-line p-4 md:grid-cols-2"
-                    >
-                      <input
-                        type="hidden"
-                        name="studentId"
-                        value={studentId}
-                      />
+                    <label className="block text-sm font-medium">
+                      Sorumlu kişi
+                      <select
+                        name="responsibleProfileId"
+                        defaultValue={enrollment.responsibleProfileId}
+                        className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm"
+                      >
+                        <option value="">Atanmadı</option>
 
-                      <input
-                        type="hidden"
-                        name="enrollmentId"
-                        value={
-                          enrollment.id
-                        }
-                      />
+                        {profiles.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            {item.full_name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
 
-                      <SelectMebStatus
-                        defaultValue={
-                          enrollment.mebStatus
-                        }
-                      />
-
+                    <div className="md:col-span-2">
                       <Field
-                        label="MEB kayıt numarası"
-                        name="mebRegistrationNumber"
-                        defaultValue={
-                          enrollment
-                            .mebRegistrationNumber
-                        }
+                        label="Kayıt yapılamama nedeni"
+                        name="mebNonRegistrationReason"
+                        defaultValue={enrollment.mebNonRegistrationReason}
                       />
+                    </div>
 
+                    <div className="md:col-span-2">
                       <Field
-                        label="MEB başlangıç tarihi"
-                        name="mebValidFrom"
-                        type="date"
-                        defaultValue={
-                          enrollment
-                            .mebValidFrom
-                        }
+                        label="MEB açıklaması"
+                        name="mebNote"
+                        defaultValue={enrollment.mebNote}
                       />
+                    </div>
 
-                      <Field
-                        label="MEB bitiş tarihi"
-                        name="mebValidUntil"
-                        type="date"
-                        defaultValue={
-                          enrollment
-                            .mebValidUntil
-                        }
-                      />
-
-                      <div className="md:col-span-2">
-                        <Field
-                          label="Kayıt yapılamama nedeni"
-                          name="mebNonRegistrationReason"
-                          defaultValue={
-                            enrollment
-                              .mebNonRegistrationReason
-                          }
-                        />
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <Field
-                          label="MEB açıklaması"
-                          name="mebNote"
-                          defaultValue={
-                            enrollment
-                              .mebNote
-                          }
-                        />
-                      </div>
-
-                      <div className="md:col-span-2 flex justify-end">
-                        <button
-                          type="submit"
-                          className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white"
-                        >
-                          MEB durumunu kaydet
-                        </button>
-                      </div>
-                    </form>
-                  </details>
-                </div>
-              </article>
-            ),
-          )}
+                    <div className="md:col-span-2 flex justify-end">
+                      <button
+                        type="submit"
+                        className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary"
+                      >
+                        MEB durumunu kaydet
+                      </button>
+                    </div>
+                  </form>
+                </details>
+              </div>
+            </article>
+          ))}
         </div>
       )}
 
       {formOpen && !isArchived && (
         <form
           action={formAction}
-          className="mt-7 rounded-2xl border border-line bg-fill p-5"
+          className="mt-7 rounded-2xl border border-border bg-surface-muted p-5"
         >
-          <input
-            type="hidden"
-            name="studentId"
-            value={studentId}
-          />
+          <input type="hidden" name="studentId" value={studentId} />
 
-          <h3 className="font-bold">
-            Yeni ders kaydı
-          </h3>
+          <h3 className="font-bold">Yeni ders kaydı</h3>
 
           {state.error && (
-            <div className="mt-4 rounded-xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
+            <div className="mt-4 rounded-xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
               {state.error}
             </div>
           )}
@@ -491,89 +349,49 @@ export function StudentEnrollmentManagement({
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <label className="block text-sm font-medium">
               Ders
-              <span className="ml-1 text-rose-600 dark:text-rose-400">
-                *
-              </span>
-
+              <span className="ml-1 text-danger text-danger">*</span>
               <select
                 name="courseId"
                 required
                 value={values.courseId}
-                onChange={(event) =>
-                  changeCourse(
-                    event.target.value,
-                  )
-                }
-                className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
+                onChange={(event) => changeCourse(event.target.value)}
+                className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm"
               >
-                {courses.map(
-                  (course) => (
-                    <option
-                      key={course.id}
-                      value={course.id}
-                    >
-                      {course.name}
-                    </option>
-                  ),
-                )}
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.name}
+                  </option>
+                ))}
               </select>
-
               {selectedCourse && (
-                <span className="mt-2 block text-xs text-muted">
-                  Dersin genel MEB durumu:{" "}
-                  {translateCourseMebStatus(
-                    selectedCourse.mebStatus,
-                  )}
+                <span className="mt-2 block text-xs text-text-secondary">
+                  Dersin genel MEB durumu: {translateCourseMebStatus(selectedCourse.mebStatus)}
                 </span>
               )}
             </label>
 
             <label className="block text-sm font-medium">
               Ders seansı
-              <span className="ml-1 text-rose-600 dark:text-rose-400">
-                *
-              </span>
-
+              <span className="ml-1 text-danger text-danger">*</span>
               <select
                 name="classGroupId"
                 required
-                value={
-                  values.classGroupId
-                }
-                onChange={(event) =>
-                  updateValue(
-                    "classGroupId",
-                    event.target.value,
-                  )
-                }
-                className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
+                value={values.classGroupId}
+                onChange={(event) => updateValue("classGroupId", event.target.value)}
+                className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm"
               >
-                <option value="">
-                  Seans seçin
-                </option>
+                <option value="">Seans seçin</option>
 
-                {availableGroups.map(
-                  (group) => (
-                    <option
-                      key={group.id}
-                      value={group.id}
-                      disabled={
-                        group.studentCount >=
-                        group.capacity
-                      }
-                    >
-                      {group.name} —{" "}
-                      {
-                        weekdayLabels[
-                          group.weekday
-                        ]
-                      }{" "}
-                      {group.startTime} —{" "}
-                      {group.studentCount}/
-                      {group.capacity}
-                    </option>
-                  ),
-                )}
+                {availableGroups.map((group) => (
+                  <option
+                    key={group.id}
+                    value={group.id}
+                    disabled={group.studentCount >= group.capacity}
+                  >
+                    {group.name} — {weekdayLabels[group.weekday]} {group.startTime} —{" "}
+                    {group.studentCount}/{group.capacity}
+                  </option>
+                ))}
               </select>
             </label>
 
@@ -583,12 +401,7 @@ export function StudentEnrollmentManagement({
               type="date"
               required
               value={values.startsOn}
-              onChange={(value) =>
-                updateValue(
-                  "startsOn",
-                  value,
-                )
-              }
+              onChange={(value) => updateValue("startsOn", value)}
             />
 
             <ControlledField
@@ -597,12 +410,7 @@ export function StudentEnrollmentManagement({
               type="date"
               value={values.endsOn}
               helperText="Süresiz devam edecekse boş bırakın."
-              onChange={(value) =>
-                updateValue(
-                  "endsOn",
-                  value,
-                )
-              }
+              onChange={(value) => updateValue("endsOn", value)}
             />
 
             <ControlledField
@@ -610,73 +418,34 @@ export function StudentEnrollmentManagement({
               name="listMonthlyFee"
               required
               inputMode="decimal"
-              value={
-                values.listMonthlyFee
-              }
-              onChange={(value) =>
-                updateValue(
-                  "listMonthlyFee",
-                  value,
-                )
-              }
+              value={values.listMonthlyFee}
+              onChange={(value) => updateValue("listMonthlyFee", value)}
             />
 
             <label className="block text-sm font-medium">
               İndirim türü
-
               <select
                 name="discountType"
-                value={
-                  values.discountType
-                }
-                onChange={(event) =>
-                  updateValue(
-                    "discountType",
-                    event.target.value,
-                  )
-                }
-                className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
+                value={values.discountType}
+                onChange={(event) => updateValue("discountType", event.target.value)}
+                className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm"
               >
-                <option value="none">
-                  İndirim yok
-                </option>
+                <option value="none">İndirim yok</option>
 
-                <option value="percent">
-                  Yüzde indirim
-                </option>
+                <option value="percent">Yüzde indirim</option>
 
-                <option value="fixed">
-                  Sabit tutar indirimi
-                </option>
+                <option value="fixed">Sabit tutar indirimi</option>
               </select>
             </label>
 
             <ControlledField
-              label={
-                values.discountType ===
-                "percent"
-                  ? "İndirim yüzdesi"
-                  : "İndirim tutarı"
-              }
+              label={values.discountType === "percent" ? "İndirim yüzdesi" : "İndirim tutarı"}
               name="discountValue"
               required
               inputMode="decimal"
-              readOnly={
-                values.discountType ===
-                "none"
-              }
-              value={
-                values.discountType ===
-                "none"
-                  ? "0"
-                  : values.discountValue
-              }
-              onChange={(value) =>
-                updateValue(
-                  "discountValue",
-                  value,
-                )
-              }
+              readOnly={values.discountType === "none"}
+              value={values.discountType === "none" ? "0" : values.discountValue}
+              onChange={(value) => updateValue("discountValue", value)}
             />
 
             <ControlledField
@@ -687,23 +456,14 @@ export function StudentEnrollmentManagement({
               max={28}
               required
               value={values.dueDay}
-              onChange={(value) =>
-                updateValue(
-                  "dueDay",
-                  value,
-                )
-              }
+              onChange={(value) => updateValue("dueDay", value)}
             />
 
-            <div className="rounded-xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 p-4">
-              <p className="text-xs font-semibold uppercase text-emerald-700 dark:text-emerald-400">
-                Net aylık ücret
-              </p>
+            <div className="rounded-xl border border-success/30 bg-success-soft p-4">
+              <p className="text-xs font-semibold uppercase text-success">Net aylık ücret</p>
 
-              <p className="mt-1 text-xl font-bold text-emerald-900 dark:text-emerald-300">
-                {formatMoney(
-                  netMonthlyFee,
-                )}
+              <p className="mt-1 text-xl font-bold text-success text-success">
+                {formatMoney(netMonthlyFee)}
               </p>
             </div>
 
@@ -712,115 +472,65 @@ export function StudentEnrollmentManagement({
                 label="Ders kayıt notu"
                 name="notes"
                 value={values.notes}
-                onChange={(value) =>
-                  updateValue(
-                    "notes",
-                    value,
-                  )
-                }
+                onChange={(value) => updateValue("notes", value)}
               />
             </div>
           </div>
 
-          <div className="mt-7 border-t border-line pt-6">
-            <h4 className="font-bold">
-              Öğrencinin bu dersteki MEB durumu
-            </h4>
+          <div className="mt-7 border-t border-border pt-6">
+            <h4 className="font-bold">Öğrencinin bu dersteki MEB durumu</h4>
 
-            <p className="mt-1 text-sm text-muted">
+            <p className="mt-1 text-sm text-text-secondary">
               Bu bilgi öğrencinin genel profiline değil, seçilen ders kaydına aittir.
             </p>
 
             <div className="mt-5 grid gap-5 md:grid-cols-2">
               <label className="block text-sm font-medium">
                 MEB kayıt durumu
-
                 <select
                   name="mebStatus"
-                  value={
-                    values.mebStatus
-                  }
-                  onChange={(event) =>
-                    updateValue(
-                      "mebStatus",
-                      event.target.value,
-                    )
-                  }
-                  className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
+                  value={values.mebStatus}
+                  onChange={(event) => updateValue("mebStatus", event.target.value)}
+                  className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm"
                 >
-                  {mebStatusOptions.map(
-                    ([value, label]) => (
-                      <option
-                        key={value}
-                        value={value}
-                      >
-                        {label}
-                      </option>
-                    ),
-                  )}
+                  {mebStatusOptions.map(([value, label]) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
                 </select>
               </label>
 
               <ControlledField
                 label="MEB kayıt numarası"
                 name="mebRegistrationNumber"
-                value={
-                  values.mebRegistrationNumber
-                }
-                onChange={(value) =>
-                  updateValue(
-                    "mebRegistrationNumber",
-                    value,
-                  )
-                }
+                value={values.mebRegistrationNumber}
+                onChange={(value) => updateValue("mebRegistrationNumber", value)}
               />
 
               <ControlledField
                 label="MEB geçerlilik başlangıcı"
                 name="mebValidFrom"
                 type="date"
-                value={
-                  values.mebValidFrom
-                }
-                onChange={(value) =>
-                  updateValue(
-                    "mebValidFrom",
-                    value,
-                  )
-                }
+                value={values.mebValidFrom}
+                onChange={(value) => updateValue("mebValidFrom", value)}
               />
 
               <ControlledField
                 label="MEB geçerlilik bitişi"
                 name="mebValidUntil"
                 type="date"
-                value={
-                  values.mebValidUntil
-                }
-                onChange={(value) =>
-                  updateValue(
-                    "mebValidUntil",
-                    value,
-                  )
-                }
+                value={values.mebValidUntil}
+                onChange={(value) => updateValue("mebValidUntil", value)}
               />
 
               <div className="md:col-span-2">
                 <ControlledField
                   label="MEB kaydının yapılamama nedeni"
                   name="mebNonRegistrationReason"
-                  required={
-                    reasonRequired
-                  }
-                  value={
-                    values.mebNonRegistrationReason
-                  }
-                  onChange={(value) =>
-                    updateValue(
-                      "mebNonRegistrationReason",
-                      value,
-                    )
-                  }
+                  required={reasonRequired}
+                  value={values.mebNonRegistrationReason}
+                  onChange={(value) => updateValue("mebNonRegistrationReason", value)}
                 />
               </div>
 
@@ -828,15 +538,8 @@ export function StudentEnrollmentManagement({
                 <ControlledField
                   label="MEB açıklaması"
                   name="mebNote"
-                  value={
-                    values.mebNote
-                  }
-                  onChange={(value) =>
-                    updateValue(
-                      "mebNote",
-                      value,
-                    )
-                  }
+                  value={values.mebNote}
+                  onChange={(value) => updateValue("mebNote", value)}
                 />
               </div>
             </div>
@@ -846,11 +549,9 @@ export function StudentEnrollmentManagement({
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+              className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary disabled:opacity-60"
             >
-              {isPending
-                ? "Ders kaydı oluşturuluyor..."
-                : "Öğrenciyi derse kaydet"}
+              {isPending ? "Ders kaydı oluşturuluyor..." : "Öğrenciyi derse kaydet"}
             </button>
           </div>
         </form>
@@ -878,10 +579,7 @@ function ControlledField({
   onChange: (value: string) => void;
   type?: string;
   required?: boolean;
-  inputMode?:
-    | "text"
-    | "decimal"
-    | "numeric";
+  inputMode?: "text" | "decimal" | "numeric";
   helperText?: string;
   readOnly?: boolean;
   min?: number;
@@ -891,11 +589,7 @@ function ControlledField({
     <label className="block text-sm font-medium">
       {label}
 
-      {required && (
-        <span className="ml-1 text-rose-600 dark:text-rose-400">
-          *
-        </span>
-      )}
+      {required && <span className="ml-1 text-danger text-danger">*</span>}
 
       <input
         name={name}
@@ -906,19 +600,11 @@ function ControlledField({
         readOnly={readOnly}
         min={min}
         max={max}
-        onChange={(event) =>
-          onChange(
-            event.target.value,
-          )
-        }
-        className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm read-only:bg-fill"
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm read-only:bg-surface-muted"
       />
 
-      {helperText && (
-        <span className="mt-2 block text-xs text-muted">
-          {helperText}
-        </span>
-      )}
+      {helperText && <span className="mt-2 block text-xs text-text-secondary">{helperText}</span>}
     </label>
   );
 }
@@ -942,36 +628,26 @@ function Field({
         name={name}
         type={type}
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
+        className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm"
       />
     </label>
   );
 }
 
-function SelectMebStatus({
-  defaultValue,
-}: {
-  defaultValue: string;
-}) {
+function SelectMebStatus({ defaultValue }: { defaultValue: string }) {
   return (
     <label className="block text-sm font-medium">
       MEB kayıt durumu
-
       <select
         name="mebStatus"
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
+        className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm"
       >
-        {mebStatusOptions.map(
-          ([value, label]) => (
-            <option
-              key={value}
-              value={value}
-            >
-              {label}
-            </option>
-          ),
-        )}
+        {mebStatusOptions.map(([value, label]) => (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        ))}
       </select>
     </label>
   );
@@ -988,28 +664,14 @@ function Info({
 }) {
   return (
     <div>
-      <dt className="text-muted">
-        {label}
-      </dt>
+      <dt className="text-text-secondary">{label}</dt>
 
-      <dd
-        className={`mt-1 ${
-          emphasized
-            ? "text-lg font-bold"
-            : "font-semibold"
-        }`}
-      >
-        {value}
-      </dd>
+      <dd className={`mt-1 ${emphasized ? "text-lg font-bold" : "font-semibold"}`}>{value}</dd>
     </div>
   );
 }
 
-function EnrollmentStatusBadge({
-  status,
-}: {
-  status: string;
-}) {
+function EnrollmentStatusBadge({ status }: { status: string }) {
   const label =
     status === "active"
       ? "Aktif"
@@ -1020,134 +682,85 @@ function EnrollmentStatusBadge({
           : "İptal edildi";
 
   return (
-    <span className="rounded-full bg-fill px-3 py-1 text-xs font-semibold text-brand-700">
+    <span className="rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold text-primary">
       {label}
     </span>
   );
 }
 
-function MebBadge({
-  status,
-}: {
-  status: string;
-}) {
+function MebBadge({ status }: { status: string }) {
   if (status === "registered") {
     return (
-      <span className="rounded-full bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-800 dark:text-emerald-400">
+      <span className="rounded-full bg-success-soft px-3 py-1 text-xs font-bold text-success text-success">
         Öğrenci MEB kayıtlı
       </span>
     );
   }
 
-  if (
-    status === "pending" ||
-    status === "unchecked"
-  ) {
+  if (status === "pending" || status === "unchecked") {
     return (
-      <span className="rounded-full bg-honey-100 dark:bg-honey-500/15 px-3 py-1 text-xs font-bold text-honey-700 dark:text-honey-500">
+      <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-bold text-accent-strong">
         MEB kontrolü gerekli
       </span>
     );
   }
 
   return (
-    <span className="rounded-full bg-rose-100 dark:bg-rose-500/15 px-3 py-1 text-xs font-bold text-rose-800 dark:text-rose-400">
+    <span className="rounded-full bg-danger-soft px-3 py-1 text-xs font-bold text-danger text-danger">
       MEB defterine ekleme
     </span>
   );
 }
 
-function calculateNetFee(
-  listValue: string,
-  discountType: string,
-  discountValue: string,
-) {
-  const list = parseInputNumber(
-    listValue,
-  );
+function calculateNetFee(listValue: string, discountType: string, discountValue: string) {
+  const list = parseInputNumber(listValue);
 
-  const discount =
-    parseInputNumber(
-      discountValue,
-    );
+  const discount = parseInputNumber(discountValue);
 
   if (discountType === "percent") {
-    return Math.max(
-      0,
-      list -
-        (list * discount) / 100,
-    );
+    return Math.max(0, list - (list * discount) / 100);
   }
 
   if (discountType === "fixed") {
-    return Math.max(
-      0,
-      list - discount,
-    );
+    return Math.max(0, list - discount);
   }
 
   return list;
 }
 
-function parseInputNumber(
-  value: string,
-) {
-  const number = Number(
-    value.replace(",", "."),
-  );
+function parseInputNumber(value: string) {
+  const number = Number(value.replace(",", "."));
 
-  return Number.isFinite(number)
-    ? number
-    : 0;
+  return Number.isFinite(number) ? number : 0;
 }
 
 function formatMoney(value: number) {
-  return new Intl.NumberFormat(
-    "tr-TR",
-    {
-      style: "currency",
-      currency: "TRY",
-    },
-  ).format(value);
+  return new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency: "TRY",
+  }).format(value);
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat(
-    "tr-TR",
-  ).format(
-    new Date(
-      `${value}T00:00:00.000Z`,
-    ),
-  );
+  return new Intl.DateTimeFormat("tr-TR").format(new Date(`${value}T00:00:00.000Z`));
 }
 
 function getTodayInIstanbul() {
-  return new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone:
-        "Europe/Istanbul",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    },
-  ).format(new Date());
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }
 
-function translateCourseMebStatus(
-  status: string,
-) {
-  const labels: Record<
-    string,
-    string
-  > = {
+function translateCourseMebStatus(status: string) {
+  const labels: Record<string, string> = {
     approved: "MEB onaylı",
     pending: "Başvuru bekliyor",
-    not_registered:
-      "MEB kayıtlı değil",
+    not_registered: "MEB kayıtlı değil",
     expired: "Süresi dolmuş",
-    unchecked:
-      "Kontrol edilmedi",
+    unchecked: "Kontrol edilmedi",
   };
 
   return labels[status] ?? status;

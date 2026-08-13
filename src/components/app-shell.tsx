@@ -7,7 +7,7 @@ import { logout } from "@/app/auth/actions";
 import type { AppRole } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { Signature } from "@/components/branding/signature";
 
 type NavigationItem = {
   href: string;
@@ -21,7 +21,7 @@ const navigation: NavigationItem[] = [
     href: "/",
     label: "Genel Bakış",
     icon: "⌂",
-    roles: ["admin", "finance", "viewer"],
+    roles: ["admin"],
   },
   {
     href: "/ogretmen-paneli",
@@ -33,7 +33,13 @@ const navigation: NavigationItem[] = [
     href: "/ogrenciler",
     label: "Öğrenciler",
     icon: "◎",
-    roles: ["admin", "finance"],
+    roles: ["admin"],
+  },
+  {
+    href: "/aday-ogrenciler",
+    label: "Aday Öğrenciler",
+    icon: "☆",
+    roles: ["admin"],
   },
   {
     href: "/dersler",
@@ -48,10 +54,22 @@ const navigation: NavigationItem[] = [
     roles: ["admin"],
   },
   {
+    href: "/bekleme-listesi",
+    label: "Bekleme Listesi",
+    icon: "◷",
+    roles: ["admin"],
+  },
+  {
     href: "/odemeler",
     label: "Ödemeler",
     icon: "₺",
-    roles: ["admin", "finance"],
+    roles: ["admin"],
+  },
+  {
+    href: "/giderler",
+    label: "Giderler",
+    icon: "▾",
+    roles: ["admin"],
   },
   {
     href: "/yoklama",
@@ -66,20 +84,22 @@ const navigation: NavigationItem[] = [
     roles: ["admin"],
   },
   {
+    href: "/hakedis",
+    label: "Hakediş",
+    icon: "◆",
+    roles: ["admin"],
+  },
+  {
     href: "/raporlar",
     label: "Raporlar",
     icon: "↗",
-    roles: ["admin", "finance", "viewer"],
+    roles: ["admin"],
   },
   {
     href: "/meb-yoklama",
     label: "MEB Yoklama",
     icon: "✓",
-    roles: [
-      "admin",
-      "finance",
-      "teacher",
-    ],
+    roles: ["admin", "teacher"],
   },
   {
     href: "/meb",
@@ -97,9 +117,7 @@ const navigation: NavigationItem[] = [
 
 const roleLabels: Record<AppRole, string> = {
   admin: "Yönetici",
-  finance: "Finans",
   teacher: "Öğretmen",
-  viewer: "Görüntüleyici",
 };
 
 type AppShellProps = {
@@ -120,27 +138,20 @@ export function AppShell({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  const visibleNavigation = navigation.filter((item) =>
-    item.roles.includes(userRole),
-  );
+  const visibleNavigation = navigation.filter((item) => item.roles.includes(userRole));
 
   return (
-    <div className="min-h-screen bg-surface text-ink">
-      <aside className="print:hidden fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-black/20 bg-brand-900 text-white lg:flex lg:flex-col">
+    <div className="min-h-screen bg-background text-text-primary">
+      <aside className="print:hidden fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-sidebar-hover bg-sidebar text-sidebar-text lg:flex lg:flex-col">
         <Brand institution={institution} logoUrl={institutionLogoUrl} />
 
-        <Navigation
-          items={visibleNavigation}
-          pathname={pathname}
-          onSelect={() => undefined}
-        />
+        <Navigation items={visibleNavigation} pathname={pathname} onSelect={() => undefined} />
 
-        <AppearanceSection />
+        <AccountSection userName={userName} userRole={userRole} />
 
-        <AccountSection
-          userName={userName}
-          userRole={userRole}
-        />
+        <div className="border-t border-white/10 px-5 py-4">
+          <Signature variant="sidebar" />
+        </div>
       </aside>
 
       {open && (
@@ -152,7 +163,7 @@ export function AppShell({
             onClick={() => setOpen(false)}
           />
 
-          <aside className="relative flex h-full w-[85%] max-w-80 flex-col bg-brand-900 text-white shadow-2xl">
+          <aside className="relative flex h-full w-[85%] max-w-80 flex-col bg-sidebar text-sidebar-text shadow-2xl">
             <Brand institution={institution} logoUrl={institutionLogoUrl} />
 
             <Navigation
@@ -161,29 +172,26 @@ export function AppShell({
               onSelect={() => setOpen(false)}
             />
 
-            <AppearanceSection />
+            <AccountSection userName={userName} userRole={userRole} />
 
-            <AccountSection
-              userName={userName}
-              userRole={userRole}
-            />
+        <div className="border-t border-white/10 px-5 py-4">
+          <Signature variant="sidebar" />
+        </div>
           </aside>
         </div>
       )}
 
       <div className="lg:pl-72 print:pl-0">
-        <header className="print:hidden sticky top-0 z-30 flex h-16 items-center justify-between border-b border-line bg-panel/95 px-4 backdrop-blur md:px-8">
+        <header className="print:hidden sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-surface/95 px-4 backdrop-blur md:px-8">
           <button
             type="button"
-            className="rounded-lg border border-line bg-panel px-3 py-2 text-sm font-medium text-ink transition hover:bg-fill lg:hidden"
+            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
             onClick={() => setOpen(true)}
           >
             Menü
           </button>
 
-          <div className="hidden text-sm text-muted sm:block">
-            Kurum Yönetim Sistemi
-          </div>
+          <div className="hidden text-sm text-text-secondary sm:block">Kurum Yönetim Sistemi</div>
 
           <div title={userName}>
             <Avatar name={userName} size={36} />
@@ -196,35 +204,23 @@ export function AppShell({
   );
 }
 
-function Brand({
-  institution,
-  logoUrl,
-}: {
-  institution: string;
-  logoUrl: string | null;
-}) {
+function Brand({ institution, logoUrl }: { institution: string; logoUrl: string | null }) {
   return (
     <div className="border-b border-white/10 p-6">
       {logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={logoUrl}
-          alt={institution}
-          className="mb-3 h-11 w-11 rounded-2xl object-cover"
-        />
+        <img src={logoUrl} alt={institution} className="mb-3 h-11 w-11 rounded-2xl object-cover" />
       ) : (
-        <div className="mb-3 grid h-11 w-11 place-items-center rounded-2xl bg-honey-500 font-black text-brand-900">
+        <div className="mb-3 grid h-11 w-11 place-items-center rounded-2xl bg-accent font-black text-on-accent">
           {getInitials(institution)}
         </div>
       )}
 
-      <p className="text-xs uppercase tracking-[0.2em] text-brand-200">
+      <p className="text-xs font-medium uppercase tracking-[0.2em] text-sidebar-muted">
         Yönetim Paneli
       </p>
 
-      <h1 className="mt-2 text-base font-semibold leading-snug">
-        {institution}
-      </h1>
+      <h1 className="mt-2 text-base font-semibold leading-snug">{institution}</h1>
     </div>
   );
 }
@@ -253,12 +249,9 @@ function Navigation({
   onSelect: () => void;
 }) {
   return (
-    <nav className="space-y-1 p-4">
+    <nav className="scrollbar-hidden min-h-0 flex-1 space-y-1 overflow-y-auto p-4">
       {items.map((item) => {
-        const active =
-          item.href === "/"
-            ? pathname === "/"
-            : pathname.startsWith(item.href);
+        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
         return (
           <Link
@@ -266,11 +259,12 @@ function Navigation({
             href={item.href}
             onClick={onSelect}
             className={cn(
-              "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition",
+              "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
               active
-                ? "bg-honey-500 text-brand-900 shadow-sm shadow-honey-500/30"
-                : "text-brand-100 hover:bg-white/10 hover:text-white",
+                ? "bg-sidebar-active text-on-sidebar-active"
+                : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-text",
             )}
+            aria-current={active ? "page" : undefined}
           >
             <span className="grid h-7 w-7 place-items-center rounded-lg bg-current/10 text-base">
               {item.icon}
@@ -284,45 +278,23 @@ function Navigation({
   );
 }
 
-function AppearanceSection() {
-  return (
-    <div className="border-t border-white/10 px-5 py-4">
-      <p className="mb-2.5 text-xs font-medium uppercase tracking-[0.15em] text-brand-200">
-        Görünüm
-      </p>
-
-      <ThemeToggle />
-    </div>
-  );
-}
-
-function AccountSection({
-  userName,
-  userRole,
-}: {
-  userName: string;
-  userRole: AppRole;
-}) {
+function AccountSection({ userName, userRole }: { userName: string; userRole: AppRole }) {
   return (
     <div className="mt-auto border-t border-white/10 p-5">
       <div className="mb-4 flex items-center gap-3">
         <Avatar name={userName} size={32} />
 
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-white">
-            {userName}
-          </p>
+          <p className="truncate text-sm font-semibold text-sidebar-text">{userName}</p>
 
-          <p className="mt-0.5 text-xs text-brand-200">
-            {roleLabels[userRole]}
-          </p>
+          <p className="mt-0.5 text-xs text-sidebar-muted">{roleLabels[userRole]}</p>
         </div>
       </div>
 
       <form action={logout}>
         <button
           type="submit"
-          className="w-full rounded-xl bg-white/10 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-white/15"
+          className="w-full rounded-xl bg-sidebar-hover px-4 py-3 text-left text-sm font-medium text-sidebar-text transition-colors hover:bg-sidebar-hover/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
         >
           Çıkış yap
         </button>

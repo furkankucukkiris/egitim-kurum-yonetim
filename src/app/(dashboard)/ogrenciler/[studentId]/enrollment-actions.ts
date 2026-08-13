@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
+import { isIsoDate, parseMoney } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
 type EnrollmentActionState = {
@@ -13,191 +14,97 @@ export async function createEnrollment(
   _previousState: EnrollmentActionState,
   formData: FormData,
 ): Promise<EnrollmentActionState> {
-  await requireRole(["admin", "finance"]);
+  await requireRole(["admin"]);
 
-  const studentId = readText(
-    formData,
-    "studentId",
-  );
+  const studentId = readText(formData, "studentId");
 
-  const courseId = readText(
-    formData,
-    "courseId",
-  );
+  const courseId = readText(formData, "courseId");
 
-  const classGroupId = readText(
-    formData,
-    "classGroupId",
-  );
+  const classGroupId = readText(formData, "classGroupId");
 
-  const startsOn = readText(
-    formData,
-    "startsOn",
-  );
+  const startsOn = readText(formData, "startsOn");
 
-  const endsOn = readText(
-    formData,
-    "endsOn",
-  );
+  const endsOn = readText(formData, "endsOn");
 
-  const listMonthlyFee = parseMoney(
-    readText(
-      formData,
-      "listMonthlyFee",
-    ),
-  );
+  const listMonthlyFee = parseMoney(readText(formData, "listMonthlyFee"));
 
-  const discountType = readText(
-    formData,
-    "discountType",
-  );
+  const discountType = readText(formData, "discountType");
 
-  const discountValue = parseMoney(
-    readText(
-      formData,
-      "discountValue",
-    ),
-  );
+  const discountValue = parseMoney(readText(formData, "discountValue"));
 
-  const dueDay = Number(
-    readText(formData, "dueDay"),
-  );
+  const dueDay = Number(readText(formData, "dueDay"));
 
-  const notes = readText(
-    formData,
-    "notes",
-  );
+  const notes = readText(formData, "notes");
 
-  const mebStatus = readText(
-    formData,
-    "mebStatus",
-  );
+  const mebStatus = readText(formData, "mebStatus");
 
-  const mebRegistrationNumber = readText(
-    formData,
-    "mebRegistrationNumber",
-  );
+  const mebRegistrationNumber = readText(formData, "mebRegistrationNumber");
 
-  const mebValidFrom = readText(
-    formData,
-    "mebValidFrom",
-  );
+  const mebValidFrom = readText(formData, "mebValidFrom");
 
-  const mebValidUntil = readText(
-    formData,
-    "mebValidUntil",
-  );
+  const mebValidUntil = readText(formData, "mebValidUntil");
 
-  const mebNonRegistrationReason =
-    readText(
-      formData,
-      "mebNonRegistrationReason",
-    );
+  const mebNonRegistrationReason = readText(formData, "mebNonRegistrationReason");
 
-  const mebNote = readText(
-    formData,
-    "mebNote",
-  );
+  const mebNote = readText(formData, "mebNote");
 
-  if (
-    !studentId ||
-    !courseId ||
-    !classGroupId
-  ) {
+  if (!studentId || !courseId || !classGroupId) {
     return {
-      error:
-        "Öğrenci, ders veya seans bilgisi bulunamadı.",
+      error: "Öğrenci, ders veya seans bilgisi bulunamadı.",
     };
   }
 
   if (!isIsoDate(startsOn)) {
     return {
-      error:
-        "Ders başlangıç tarihi geçerli değil.",
+      error: "Ders başlangıç tarihi geçerli değil.",
     };
   }
 
-  if (
-    endsOn &&
-    !isIsoDate(endsOn)
-  ) {
+  if (endsOn && !isIsoDate(endsOn)) {
     return {
-      error:
-        "Ders bitiş tarihi geçerli değil.",
+      error: "Ders bitiş tarihi geçerli değil.",
     };
   }
 
-  if (
-    endsOn &&
-    endsOn < startsOn
-  ) {
+  if (endsOn && endsOn < startsOn) {
     return {
-      error:
-        "Bitiş tarihi başlangıç tarihinden önce olamaz.",
+      error: "Bitiş tarihi başlangıç tarihinden önce olamaz.",
     };
   }
 
-  if (
-    listMonthlyFee === null ||
-    listMonthlyFee < 0
-  ) {
+  if (listMonthlyFee === null || listMonthlyFee < 0) {
     return {
-      error:
-        "Geçerli bir liste ücreti girin.",
+      error: "Geçerli bir liste ücreti girin.",
     };
   }
 
-  if (
-    ![
-      "none",
-      "percent",
-      "fixed",
-    ].includes(discountType)
-  ) {
+  if (!["none", "percent", "fixed"].includes(discountType)) {
     return {
-      error:
-        "Geçerli bir indirim türü seçin.",
+      error: "Geçerli bir indirim türü seçin.",
     };
   }
 
-  if (
-    discountValue === null ||
-    discountValue < 0
-  ) {
+  if (discountValue === null || discountValue < 0) {
     return {
-      error:
-        "Geçerli bir indirim değeri girin.",
+      error: "Geçerli bir indirim değeri girin.",
     };
   }
 
-  if (
-    discountType === "percent" &&
-    discountValue > 100
-  ) {
+  if (discountType === "percent" && discountValue > 100) {
     return {
-      error:
-        "Yüzde indirim 100 değerinden büyük olamaz.",
+      error: "Yüzde indirim 100 değerinden büyük olamaz.",
     };
   }
 
-  if (
-    discountType === "fixed" &&
-    discountValue > listMonthlyFee
-  ) {
+  if (discountType === "fixed" && discountValue > listMonthlyFee) {
     return {
-      error:
-        "Sabit indirim liste ücretinden büyük olamaz.",
+      error: "Sabit indirim liste ücretinden büyük olamaz.",
     };
   }
 
-  if (
-    !Number.isInteger(dueDay) ||
-    dueDay < 1 ||
-    dueDay > 28
-  ) {
+  if (!Number.isInteger(dueDay) || dueDay < 1 || dueDay > 28) {
     return {
-      error:
-        "Ödeme günü 1 ile 28 arasında olmalıdır.",
+      error: "Ödeme günü 1 ile 28 arasında olmalıdır.",
     };
   }
 
@@ -211,147 +118,105 @@ export async function createEnrollment(
     "unchecked",
   ];
 
-  if (
-    !validMebStatuses.includes(
-      mebStatus,
-    )
-  ) {
+  if (!validMebStatuses.includes(mebStatus)) {
     return {
-      error:
-        "Geçerli bir MEB kayıt durumu seçin.",
+      error: "Geçerli bir MEB kayıt durumu seçin.",
     };
   }
 
   if (
-    [
-      "not_registered",
-      "not_eligible",
-      "rejected",
-    ].includes(mebStatus) &&
+    ["not_registered", "not_eligible", "rejected"].includes(mebStatus) &&
     mebNonRegistrationReason.length < 3
   ) {
     return {
-      error:
-        "MEB kaydının neden yapılamadığını açıklayın.",
+      error: "MEB kaydının neden yapılamadığını açıklayın.",
     };
   }
 
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc(
-    "create_enrollment_with_meb_registration",
-    {
-      p_student_id: studentId,
-      p_course_id: courseId,
-      p_class_group_id:
-        classGroupId,
+  const { error } = await supabase.rpc("create_enrollment_with_meb_registration", {
+    p_student_id: studentId,
+    p_course_id: courseId,
+    p_class_group_id: classGroupId,
 
-      p_starts_on: startsOn,
-      p_ends_on: endsOn || null,
+    p_starts_on: startsOn,
+    p_ends_on: endsOn || null,
 
-      p_list_monthly_fee:
-        listMonthlyFee,
+    p_list_monthly_fee: listMonthlyFee,
 
-      p_discount_type:
-        discountType,
+    p_discount_type: discountType,
 
-      p_discount_value:
-        discountValue,
+    p_discount_value: discountValue,
 
-      p_due_day: dueDay,
-      p_notes: notes || null,
+    p_due_day: dueDay,
+    p_notes: notes || null,
 
-      p_meb_status: mebStatus,
+    p_meb_status: mebStatus,
 
-      p_meb_registration_number:
-        mebRegistrationNumber || null,
+    p_meb_registration_number: mebRegistrationNumber || null,
 
-      p_meb_valid_from:
-        mebValidFrom || null,
+    p_meb_valid_from: mebValidFrom || null,
 
-      p_meb_valid_until:
-        mebValidUntil || null,
+    p_meb_valid_until: mebValidUntil || null,
 
-      p_meb_non_registration_reason:
-        mebNonRegistrationReason || null,
+    p_meb_non_registration_reason: mebNonRegistrationReason || null,
 
-      p_meb_note:
-        mebNote || null,
-    },
-  );
+    p_meb_note: mebNote || null,
+  });
 
   if (error) {
-    console.error(
-      "Ders kaydı oluşturulamadı:",
-      {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-      },
-    );
+    console.error("Ders kaydı oluşturulamadı:", {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
+
+    if (error.code === "P0001") {
+      const { error: logError } = await supabase.rpc("log_rejected_scheduling_attempt", {
+        p_table_name: "enrollments",
+        p_action: "enroll_rejected",
+        p_reason: error.message,
+        p_payload: { studentId, courseId, classGroupId },
+      });
+
+      if (logError) {
+        console.error("Reddedilen kayıt girişimi kaydedilemedi:", logError);
+      }
+    }
 
     return {
-      error: getDatabaseErrorMessage(
-        error.message,
-      ),
+      error: getDatabaseErrorMessage(error),
     };
   }
 
-  revalidatePath(
-    `/ogrenciler/${studentId}`,
-  );
+  revalidatePath(`/ogrenciler/${studentId}`);
 
   revalidatePath("/program");
   revalidatePath("/meb-yoklama");
 
   redirect(
-    `/ogrenciler/${studentId}?success=${encodeURIComponent(
-      "Öğrenci ders seansına kaydedildi.",
-    )}`,
+    `/ogrenciler/${studentId}?success=${encodeURIComponent("Öğrenci ders seansına kaydedildi.")}`,
   );
 }
 
-export async function updateEnrollmentMeb(
-  formData: FormData,
-) {
-  await requireRole([
-    "admin",
-    "finance",
-  ]);
+export async function updateEnrollmentMeb(formData: FormData) {
+  await requireRole(["admin"]);
 
-  const studentId = readText(
-    formData,
-    "studentId",
-  );
+  const studentId = readText(formData, "studentId");
 
-  const enrollmentId = readText(
-    formData,
-    "enrollmentId",
-  );
+  const enrollmentId = readText(formData, "enrollmentId");
 
   if (!studentId || !enrollmentId) {
     redirect("/ogrenciler");
   }
 
-  const status = readText(
-    formData,
-    "mebStatus",
-  );
+  const status = readText(formData, "mebStatus");
 
-  const reason = readText(
-    formData,
-    "mebNonRegistrationReason",
-  );
+  const reason = readText(formData, "mebNonRegistrationReason");
 
-  if (
-    [
-      "not_registered",
-      "not_eligible",
-      "rejected",
-    ].includes(status) &&
-    reason.length < 3
-  ) {
+  if (["not_registered", "not_eligible", "rejected"].includes(status) && reason.length < 3) {
     redirect(
       `/ogrenciler/${studentId}?error=${encodeURIComponent(
         "MEB kayıt eksikliği için açıklama girilmelidir.",
@@ -361,62 +226,37 @@ export async function updateEnrollmentMeb(
 
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc(
-    "set_enrollment_meb_registration",
-    {
-      p_enrollment_id:
-        enrollmentId,
+  const { error } = await supabase.rpc("set_enrollment_meb_registration", {
+    p_enrollment_id: enrollmentId,
 
-      p_status: status,
+    p_status: status,
 
-      p_registration_number:
-        readText(
-          formData,
-          "mebRegistrationNumber",
-        ) || null,
+    p_registration_number: readText(formData, "mebRegistrationNumber") || null,
 
-      p_valid_from:
-        readText(
-          formData,
-          "mebValidFrom",
-        ) || null,
+    p_valid_from: readText(formData, "mebValidFrom") || null,
 
-      p_valid_until:
-        readText(
-          formData,
-          "mebValidUntil",
-        ) || null,
+    p_valid_until: readText(formData, "mebValidUntil") || null,
 
-      p_non_registration_reason:
-        reason || null,
+    p_non_registration_reason: reason || null,
 
-      p_note:
-        readText(
-          formData,
-          "mebNote",
-        ) || null,
-    },
-  );
+    p_note: readText(formData, "mebNote") || null,
+
+    p_responsible_profile_id: readText(formData, "responsibleProfileId") || null,
+  });
 
   if (error) {
-    console.error(
-      "Öğrenci MEB kaydı güncellenemedi:",
-      error,
-    );
+    console.error("Öğrenci MEB kaydı güncellenemedi:", error);
 
     redirect(
       `/ogrenciler/${studentId}?error=${encodeURIComponent(
-        process.env.NODE_ENV ===
-          "development"
+        process.env.NODE_ENV === "development"
           ? error.message
           : "Öğrenci MEB kaydı güncellenemedi.",
       )}`,
     );
   }
 
-  revalidatePath(
-    `/ogrenciler/${studentId}`,
-  );
+  revalidatePath(`/ogrenciler/${studentId}`);
 
   revalidatePath("/meb-yoklama");
   revalidatePath("/program");
@@ -428,58 +268,24 @@ export async function updateEnrollmentMeb(
   );
 }
 
-function parseMoney(value: string) {
-  const normalized = value
-    .replace(/\s/g, "")
-    .replace(",", ".");
+function readText(formData: FormData, name: string) {
+  return String(formData.get(name) ?? "").trim();
+}
 
-  if (
-    !/^\d+(\.\d{1,2})?$/.test(
-      normalized,
-    )
-  ) {
-    return null;
+type RpcError = {
+  message: string;
+  code?: string | null;
+};
+
+// P0001, plpgsql'deki `raise exception '...'`in varsayılan kodudur —
+// bu depodaki RPC'ler yalnızca kendi yazdığımız Türkçe metinleri bu
+// kodla fırlatır (program çakışması mesajı öğrenci/ders/seans adı
+// içerdiği için sabit bir allowlist'e sığmaz).
+function getDatabaseErrorMessage(error: RpcError) {
+  if (error.code === "P0001") {
+    return error.message;
   }
 
-  const amount = Number(normalized);
-
-  return Number.isFinite(amount)
-    ? amount
-    : null;
-}
-
-function isIsoDate(value: string) {
-  if (
-    !/^\d{4}-\d{2}-\d{2}$/.test(
-      value,
-    )
-  ) {
-    return false;
-  }
-
-  const date = new Date(
-    `${value}T00:00:00.000Z`,
-  );
-
-  return (
-    !Number.isNaN(date.getTime()) &&
-    date.toISOString().slice(0, 10) ===
-      value
-  );
-}
-
-function readText(
-  formData: FormData,
-  name: string,
-) {
-  return String(
-    formData.get(name) ?? "",
-  ).trim();
-}
-
-function getDatabaseErrorMessage(
-  message: string,
-) {
   const safeMessages = [
     "Öğrencinin bu derste zaten aktif veya dondurulmuş bir kaydı bulunuyor.",
     "Öğrencinin bu derste zaten açık bir kaydı bulunuyor.",
@@ -492,20 +298,14 @@ function getDatabaseErrorMessage(
     "Öğrenci kayıt tarihi seansın bitiş tarihinden sonra olamaz.",
   ];
 
-  const matched = safeMessages.find(
-    (item) =>
-      message.includes(item),
-  );
+  const matched = safeMessages.find((item) => error.message.includes(item));
 
   if (matched) {
     return matched;
   }
 
-  if (
-    process.env.NODE_ENV ===
-    "development"
-  ) {
-    return `Veritabanı hatası: ${message}`;
+  if (process.env.NODE_ENV === "development") {
+    return `Veritabanı hatası: ${error.message}`;
   }
 
   return "Öğrenci ders kaydı oluşturulamadı.";

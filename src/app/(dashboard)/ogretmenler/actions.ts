@@ -29,58 +29,42 @@ export async function createTeacherAccount(
 ): Promise<TeacherAccountActionState> {
   await requireRole(["admin"]);
 
-  const fullName = readText(
-    formData,
-    "fullName",
-  );
+  const fullName = readText(formData, "fullName");
 
-  const email = readText(
-    formData,
-    "email",
-  ).toLowerCase();
+  const email = readText(formData, "email").toLowerCase();
 
   const phone = readText(formData, "phone");
 
   if (fullName.length < 2) {
     return {
-      error:
-        "Öğretmen adı en az 2 karakter olmalıdır.",
+      error: "Öğretmen adı en az 2 karakter olmalıdır.",
       credentials: null,
     };
   }
 
   if (!isEmail(email)) {
     return {
-      error:
-        "Geçerli bir e-posta adresi girilmelidir.",
+      error: "Geçerli bir e-posta adresi girilmelidir.",
       credentials: null,
     };
   }
 
-  const temporaryPassword =
-    createTemporaryPassword();
+  const temporaryPassword = createTemporaryPassword();
 
   let adminClient;
 
   try {
     adminClient = createAdminClient();
   } catch (error) {
-    console.error(
-      "Supabase yönetici istemcisi oluşturulamadı:",
-      error,
-    );
+    console.error("Supabase yönetici istemcisi oluşturulamadı:", error);
 
     return {
-      error:
-        "Öğretmen hesabı oluşturma anahtarı sunucuda tanımlı değil.",
+      error: "Öğretmen hesabı oluşturma anahtarı sunucuda tanımlı değil.",
       credentials: null,
     };
   }
 
-  const {
-    data: authData,
-    error: authError,
-  } = await adminClient.auth.admin.createUser({
+  const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
     email,
     password: temporaryPassword,
     email_confirm: true,
@@ -90,54 +74,34 @@ export async function createTeacherAccount(
   });
 
   if (authError || !authData.user) {
-    console.error(
-      "Öğretmen Auth hesabı oluşturulamadı:",
-      authError,
-    );
+    console.error("Öğretmen Auth hesabı oluşturulamadı:", authError);
 
     return {
-      error: getAuthErrorMessage(
-        authError?.message ?? "",
-      ),
+      error: getAuthErrorMessage(authError?.message ?? ""),
       credentials: null,
     };
   }
 
   const supabase = await createClient();
 
-  const { error: profileError } =
-    await supabase.rpc(
-      "create_teacher_profile",
-      {
-        p_user_id: authData.user.id,
-        p_email: email,
-        p_full_name: fullName,
-        p_phone: phone || null,
-      },
-    );
+  const { error: profileError } = await supabase.rpc("create_teacher_profile", {
+    p_user_id: authData.user.id,
+    p_email: email,
+    p_full_name: fullName,
+    p_phone: phone || null,
+  });
 
   if (profileError) {
-    console.error(
-      "Öğretmen profili oluşturulamadı:",
-      profileError,
-    );
+    console.error("Öğretmen profili oluşturulamadı:", profileError);
 
-    const { error: cleanupError } =
-      await adminClient.auth.admin.deleteUser(
-        authData.user.id,
-      );
+    const { error: cleanupError } = await adminClient.auth.admin.deleteUser(authData.user.id);
 
     if (cleanupError) {
-      console.error(
-        "Eksik öğretmen Auth hesabı temizlenemedi:",
-        cleanupError,
-      );
+      console.error("Eksik öğretmen Auth hesabı temizlenemedi:", cleanupError);
     }
 
     return {
-      error: getDatabaseErrorMessage(
-        profileError.message,
-      ),
+      error: getDatabaseErrorMessage(profileError.message),
       credentials: null,
     };
   }
@@ -154,18 +118,12 @@ export async function createTeacherAccount(
   };
 }
 
-export async function setTeacherActive(
-  formData: FormData,
-) {
+export async function setTeacherActive(formData: FormData) {
   await requireRole(["admin"]);
 
-  const teacherId = readText(
-    formData,
-    "teacherId",
-  );
+  const teacherId = readText(formData, "teacherId");
 
-  const isActive =
-    readText(formData, "isActive") === "true";
+  const isActive = readText(formData, "isActive") === "true";
 
   if (!teacherId) {
     redirect("/ogretmenler");
@@ -173,27 +131,15 @@ export async function setTeacherActive(
 
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc(
-    "set_teacher_active",
-    {
-      p_teacher_profile_id: teacherId,
-      p_is_active: isActive,
-    },
-  );
+  const { error } = await supabase.rpc("set_teacher_active", {
+    p_teacher_profile_id: teacherId,
+    p_is_active: isActive,
+  });
 
   if (error) {
-    console.error(
-      "Öğretmen hesabı durumu değiştirilemedi:",
-      error,
-    );
+    console.error("Öğretmen hesabı durumu değiştirilemedi:", error);
 
-    redirect(
-      `/ogretmenler?error=${encodeURIComponent(
-        getDatabaseErrorMessage(
-          error.message,
-        ),
-      )}`,
-    );
+    redirect(`/ogretmenler?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath("/ogretmenler");
@@ -201,9 +147,7 @@ export async function setTeacherActive(
 
   redirect(
     `/ogretmenler?success=${encodeURIComponent(
-      isActive
-        ? "Öğretmen hesabı aktifleştirildi."
-        : "Öğretmen hesabı pasife alındı.",
+      isActive ? "Öğretmen hesabı aktifleştirildi." : "Öğretmen hesabı pasife alındı.",
     )}`,
   );
 }
@@ -214,44 +158,29 @@ export async function resetTeacherPassword(
 ): Promise<TeacherPasswordActionState> {
   await requireRole(["admin"]);
 
-  const teacherId = readText(
-    formData,
-    "teacherId",
-  );
+  const teacherId = readText(formData, "teacherId");
 
   if (!teacherId) {
     return {
-      error:
-        "Öğretmen hesabı kimliği bulunamadı.",
+      error: "Öğretmen hesabı kimliği bulunamadı.",
       credentials: null,
     };
   }
 
   const supabase = await createClient();
 
-  const {
-    data: teacher,
-    error: teacherError,
-  } = await supabase
+  const { data: teacher, error: teacherError } = await supabase
     .from("profiles")
     .select("id, email")
     .eq("id", teacherId)
     .eq("role", "teacher")
     .maybeSingle();
 
-  if (
-    teacherError ||
-    !teacher ||
-    !teacher.email
-  ) {
-    console.error(
-      "Parolası yenilenecek öğretmen bulunamadı:",
-      teacherError,
-    );
+  if (teacherError || !teacher || !teacher.email) {
+    console.error("Parolası yenilenecek öğretmen bulunamadı:", teacherError);
 
     return {
-      error:
-        "Geçerli e-posta adresi olan öğretmen hesabı bulunamadı.",
+      error: "Geçerli e-posta adresi olan öğretmen hesabı bulunamadı.",
       credentials: null,
     };
   }
@@ -261,60 +190,38 @@ export async function resetTeacherPassword(
   try {
     adminClient = createAdminClient();
   } catch (error) {
-    console.error(
-      "Supabase yönetici istemcisi oluşturulamadı:",
-      error,
-    );
+    console.error("Supabase yönetici istemcisi oluşturulamadı:", error);
 
     return {
-      error:
-        "Öğretmen parolası yenileme anahtarı sunucuda tanımlı değil.",
+      error: "Öğretmen parolası yenileme anahtarı sunucuda tanımlı değil.",
       credentials: null,
     };
   }
 
-  const { error: requirementError } =
-    await supabase.rpc(
-      "set_teacher_requires_password_change",
-      {
-        p_teacher_profile_id: teacherId,
-      },
-    );
+  const { error: requirementError } = await supabase.rpc("set_teacher_requires_password_change", {
+    p_teacher_profile_id: teacherId,
+  });
 
   if (requirementError) {
-    console.error(
-      "Parola değiştirme zorunluluğu ayarlanamadı:",
-      requirementError,
-    );
+    console.error("Parola değiştirme zorunluluğu ayarlanamadı:", requirementError);
 
     return {
-      error: getDatabaseErrorMessage(
-        requirementError.message,
-      ),
+      error: getDatabaseErrorMessage(requirementError.message),
       credentials: null,
     };
   }
 
-  const temporaryPassword =
-    createTemporaryPassword();
+  const temporaryPassword = createTemporaryPassword();
 
-  const { error: passwordError } =
-    await adminClient.auth.admin.updateUserById(
-      teacherId,
-      {
-        password: temporaryPassword,
-      },
-    );
+  const { error: passwordError } = await adminClient.auth.admin.updateUserById(teacherId, {
+    password: temporaryPassword,
+  });
 
   if (passwordError) {
-    console.error(
-      "Öğretmen geçici parolası yenilenemedi:",
-      passwordError,
-    );
+    console.error("Öğretmen geçici parolası yenilenemedi:", passwordError);
 
     return {
-      error:
-        "Yeni geçici parola oluşturulamadı.",
+      error: "Yeni geçici parola oluşturulamadı.",
       credentials: null,
     };
   }
@@ -331,24 +238,15 @@ export async function resetTeacherPassword(
 }
 
 function createTemporaryPassword() {
-  return `${randomBytes(12).toString(
-    "base64url",
-  )}Aa7!`;
+  return `${randomBytes(12).toString("base64url")}Aa7!`;
 }
 
-function readText(
-  formData: FormData,
-  name: string,
-) {
-  return String(
-    formData.get(name) ?? "",
-  ).trim();
+function readText(formData: FormData, name: string) {
+  return String(formData.get(name) ?? "").trim();
 }
 
 function isEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-    value,
-  );
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 function getAuthErrorMessage(message: string) {
@@ -362,10 +260,7 @@ function getAuthErrorMessage(message: string) {
     return "Bu e-posta adresiyle daha önce bir kullanıcı hesabı oluşturulmuş.";
   }
 
-  if (
-    normalized.includes("email") &&
-    normalized.includes("invalid")
-  ) {
+  if (normalized.includes("email") && normalized.includes("invalid")) {
     return "E-posta adresi geçerli değil.";
   }
 
@@ -376,17 +271,13 @@ function getAuthErrorMessage(message: string) {
   return "Öğretmen kullanıcı hesabı oluşturulamadı.";
 }
 
-function getDatabaseErrorMessage(
-  message: string,
-) {
+function getDatabaseErrorMessage(message: string) {
   const safeMessages = [
     "Bu e-posta adresiyle daha önce bir hesap oluşturulmuş.",
     "Öğretmen hesabı bulunamadı.",
   ];
 
-  const matchedMessage = safeMessages.find(
-    (item) => message.includes(item),
-  );
+  const matchedMessage = safeMessages.find((item) => message.includes(item));
 
   if (matchedMessage) {
     return matchedMessage;

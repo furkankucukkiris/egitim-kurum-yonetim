@@ -19,9 +19,7 @@ type CourseRow = {
   default_monthly_fee: number | string;
 };
 
-export default async function CourseDetailPage({
-  params,
-}: CoursePageProps) {
+export default async function CourseDetailPage({ params }: CoursePageProps) {
   await requireRole(["admin"]);
 
   const { courseId } = await params;
@@ -29,22 +27,21 @@ export default async function CourseDetailPage({
 
   const { data, error } = await supabase
     .from("courses")
-    .select(`
-      id,
-      name,
-      code,
-      course_type,
-      default_duration_minutes,
-      default_monthly_fee
-    `)
+    .select(
+      `
+        id,
+        name,
+        code,
+        course_type,
+        default_duration_minutes,
+        default_monthly_fee
+      `,
+    )
     .eq("id", courseId)
     .maybeSingle();
 
   if (error) {
-    console.error(
-      "Ders bilgisi alınamadı:",
-      error,
-    );
+    console.error("Ders bilgisi alınamadı:", error);
   }
 
   if (!data) {
@@ -67,11 +64,8 @@ export default async function CourseDetailPage({
           name: course.name,
           code: course.code ?? "",
           courseType: course.course_type,
-          durationMinutes:
-            course.default_duration_minutes,
-          monthlyFee: Number(
-            course.default_monthly_fee,
-          ),
+          durationMinutes: course.default_duration_minutes,
+          monthlyFee: Number(course.default_monthly_fee),
         }}
       />
     </>

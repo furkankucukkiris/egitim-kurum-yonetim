@@ -13,7 +13,7 @@ function getInitials(name: string) {
 export function Avatar({ name, size = 28 }: AvatarProps) {
   return (
     <div
-      className="flex items-center justify-center rounded-full bg-brand-100 text-brand-700 font-medium shrink-0"
+      className="flex items-center justify-center rounded-full bg-primary-soft text-primary font-medium shrink-0"
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {getInitials(name)}

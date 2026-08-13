@@ -3,7 +3,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export type AppRole = "admin" | "finance" | "teacher" | "viewer";
+export type AppRole = "admin" | "teacher";
 
 export type CurrentProfile = {
   id: string;
@@ -17,22 +17,27 @@ export type CurrentProfile = {
 };
 
 export async function requireProfile(): Promise<CurrentProfile> {
-  return loadProfile(false);
+  return loadProfile(false, false);
 }
 
 export async function requirePasswordChangeProfile(): Promise<CurrentProfile> {
-  return loadProfile(true);
+  return loadProfile(true, false);
+}
+
+// /mfa-kur, /mfa-dogrula ve /mfa-kurtar sayfalarının kendisi bu
+// kapıyı atlamak zorunda — aksi halde MFA henüz tamamlanmamış bir
+// admin bu sayfalara hiç ulaşamaz (yönlendirme döngüsü).
+export async function requireMfaGateBypassProfile(): Promise<CurrentProfile> {
+  return loadProfile(false, true);
 }
 
 async function loadProfile(
   allowRequiredPasswordChange: boolean,
+  allowMfaGateBypass: boolean,
 ): Promise<CurrentProfile> {
   const supabase = await createClient();
 
-  const {
-    data: claimsData,
-    error: claimsError,
-  } = await supabase.auth.getClaims();
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
 
   const userId = claimsData?.claims?.sub;
 
@@ -40,41 +45,36 @@ async function loadProfile(
     redirect("/giris");
   }
 
-  const {
-    data: profile,
-    error: profileError,
-  } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select(`
-      id,
-      organization_id,
-      full_name,
-      email,
-      role,
-      is_active,
-      must_change_password
-    `)
+    .select(
+      `
+        id,
+        organization_id,
+        full_name,
+        email,
+        role,
+        is_active,
+        must_change_password
+      `,
+    )
     .eq("id", userId)
     .eq("is_active", true)
     .maybeSingle();
 
   if (profileError || !profile) {
-    // Bu kullanıcının hiç profili yoksa (yeni bir kurum için
-    // oluşturulmuş yeni bir kullanıcı olabilir — sistemde başka
-    // kurumlar olsa bile) kendi kurulumuna yönlendirilir. Profili
-    // var ama pasifse (RLS bunu normal sorgudan gizler) hesap
-    // erişimi ekranı gösterilir.
-    const { data: hasOwnProfile } = await supabase.rpc(
-      "current_user_profile_exists",
-    );
+    // Sistem tek kurumla sınırlıdır: /kurulum yalnızca hiç kurum
+    // yokken (gerçek ilk kurulum) erişilebilir olmalı. Sistemde bir
+    // kurum zaten kurulmuşsa, bu kullanıcının hiç profili olmaması
+    // ile profilinin pasif olması aynı jenerik ekrana yönlendirilir
+    // — böylece hata mesajı kullanıcının sistemde tanınıp
+    // tanınmadığını ifşa etmez.
+    const { data: systemBootstrapped } = await supabase.rpc("has_any_organization");
 
-    redirect(hasOwnProfile ? "/hesap-erisimi" : "/kurulum");
+    redirect(systemBootstrapped ? "/hesap-erisimi" : "/kurulum");
   }
 
-  const {
-    data: organization,
-    error: organizationError,
-  } = await supabase
+  const { data: organization, error: organizationError } = await supabase
     .from("organizations")
     .select("name, logo_path")
     .eq("id", profile.organization_id)
@@ -84,17 +84,28 @@ async function loadProfile(
     redirect("/hesap-erisimi");
   }
 
-  if (
-    profile.must_change_password &&
-    !allowRequiredPasswordChange
-  ) {
+  if (profile.must_change_password && !allowRequiredPasswordChange) {
     redirect("/parola-yenile");
   }
 
+  // Parola değişikliği hâlâ bekliyorsa MFA kapısını değerlendirme —
+  // aksi halde /parola-yenile sayfasının kendisi (allowRequiredPasswordChange
+  // ile parola kapısını atlarken) MFA kapısına çarpıp döngüye girer.
+  if (profile.role === "admin" && !allowMfaGateBypass && !profile.must_change_password) {
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+    if (aal && aal.currentLevel !== "aal2") {
+      const { data: factorsData } = await supabase.auth.mfa.listFactors();
+
+      const hasVerifiedFactor = factorsData?.totp?.some((factor) => factor.status === "verified");
+
+      redirect(hasVerifiedFactor ? "/mfa-dogrula" : "/mfa-kur");
+    }
+  }
+
   const organizationLogoUrl = organization.logo_path
-    ? supabase.storage
-        .from("organization-logos")
-        .getPublicUrl(organization.logo_path).data.publicUrl
+    ? supabase.storage.from("organization-logos").getPublicUrl(organization.logo_path).data
+        .publicUrl
     : null;
 
   return {
@@ -105,14 +116,11 @@ async function loadProfile(
     fullName: profile.full_name,
     email: profile.email,
     role: profile.role as AppRole,
-    mustChangePassword:
-      profile.must_change_password,
+    mustChangePassword: profile.must_change_password,
   };
 }
 
-export async function requireRole(
-  allowedRoles: AppRole[],
-): Promise<CurrentProfile> {
+export async function requireRole(allowedRoles: AppRole[]): Promise<CurrentProfile> {
   const profile = await requireProfile();
 
   if (!allowedRoles.includes(profile.role)) {

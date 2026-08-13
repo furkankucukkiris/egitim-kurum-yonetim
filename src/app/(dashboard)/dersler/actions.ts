@@ -23,39 +23,25 @@ export async function createCourse(
 
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc(
-    "create_course",
-    {
-      p_name: values.name,
-      p_code: values.code || null,
-      p_course_type: values.courseType,
-      p_default_duration_minutes:
-        values.durationMinutes,
-      p_default_monthly_fee:
-        values.monthlyFee,
-    },
-  );
+  const { error } = await supabase.rpc("create_course", {
+    p_name: values.name,
+    p_code: values.code || null,
+    p_course_type: values.courseType,
+    p_default_duration_minutes: values.durationMinutes,
+    p_default_monthly_fee: values.monthlyFee,
+  });
 
   if (error) {
-    console.error(
-      "Ders oluşturulamadı:",
-      error,
-    );
+    console.error("Ders oluşturulamadı:", error);
 
     return {
-      error: getDatabaseErrorMessage(
-        error.message,
-      ),
+      error: getDatabaseErrorMessage(error.message),
     };
   }
 
   revalidatePath("/dersler");
 
-  redirect(
-    `/dersler?success=${encodeURIComponent(
-      "Ders tanımı oluşturuldu.",
-    )}`,
-  );
+  redirect(`/dersler?success=${encodeURIComponent("Ders tanımı oluşturuldu.")}`);
 }
 
 export async function updateCourse(
@@ -64,10 +50,7 @@ export async function updateCourse(
 ): Promise<CourseActionState> {
   await requireRole(["admin"]);
 
-  const courseId = readText(
-    formData,
-    "courseId",
-  );
+  const courseId = readText(formData, "courseId");
 
   if (!courseId) {
     return {
@@ -83,55 +66,35 @@ export async function updateCourse(
 
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc(
-    "update_course",
-    {
-      p_course_id: courseId,
-      p_name: values.name,
-      p_code: values.code || null,
-      p_course_type: values.courseType,
-      p_default_duration_minutes:
-        values.durationMinutes,
-      p_default_monthly_fee:
-        values.monthlyFee,
-    },
-  );
+  const { error } = await supabase.rpc("update_course", {
+    p_course_id: courseId,
+    p_name: values.name,
+    p_code: values.code || null,
+    p_course_type: values.courseType,
+    p_default_duration_minutes: values.durationMinutes,
+    p_default_monthly_fee: values.monthlyFee,
+  });
 
   if (error) {
-    console.error(
-      "Ders güncellenemedi:",
-      error,
-    );
+    console.error("Ders güncellenemedi:", error);
 
     return {
-      error: getDatabaseErrorMessage(
-        error.message,
-      ),
+      error: getDatabaseErrorMessage(error.message),
     };
   }
 
   revalidatePath("/dersler");
   revalidatePath(`/dersler/${courseId}`);
 
-  redirect(
-    `/dersler?success=${encodeURIComponent(
-      "Ders bilgileri güncellendi.",
-    )}`,
-  );
+  redirect(`/dersler?success=${encodeURIComponent("Ders bilgileri güncellendi.")}`);
 }
 
-export async function setCourseActive(
-  formData: FormData,
-) {
+export async function setCourseActive(formData: FormData) {
   await requireRole(["admin"]);
 
-  const courseId = readText(
-    formData,
-    "courseId",
-  );
+  const courseId = readText(formData, "courseId");
 
-  const isActive =
-    readText(formData, "isActive") === "true";
+  const isActive = readText(formData, "isActive") === "true";
 
   if (!courseId) {
     redirect("/dersler");
@@ -139,43 +102,27 @@ export async function setCourseActive(
 
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc(
-    "set_course_active",
-    {
-      p_course_id: courseId,
-      p_is_active: isActive,
-    },
-  );
+  const { error } = await supabase.rpc("set_course_active", {
+    p_course_id: courseId,
+    p_is_active: isActive,
+  });
 
   if (error) {
-    console.error(
-      "Ders durumu değiştirilemedi:",
-      error,
-    );
+    console.error("Ders durumu değiştirilemedi:", error);
 
-    redirect(
-      `/dersler?error=${encodeURIComponent(
-        getDatabaseErrorMessage(
-          error.message,
-        ),
-      )}`,
-    );
+    redirect(`/dersler?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath("/dersler");
 
   redirect(
     `/dersler?success=${encodeURIComponent(
-      isActive
-        ? "Ders tekrar aktifleştirildi."
-        : "Ders pasife alındı.",
+      isActive ? "Ders tekrar aktifleştirildi." : "Ders pasife alındı.",
     )}`,
   );
 }
 
-function readAndValidateCourse(
-  formData: FormData,
-):
+function readAndValidateCourse(formData: FormData):
   | {
       name: string;
       code: string;
@@ -187,54 +134,33 @@ function readAndValidateCourse(
   const name = readText(formData, "name");
   const code = readText(formData, "code");
 
-  const rawCourseType = readText(
-    formData,
-    "courseType",
-  );
+  const rawCourseType = readText(formData, "courseType");
 
-  const durationMinutes = Number(
-    readText(formData, "durationMinutes"),
-  );
+  const durationMinutes = Number(readText(formData, "durationMinutes"));
 
-  const monthlyFee = parseMoney(
-    readText(formData, "monthlyFee"),
-  );
+  const monthlyFee = parseMoney(readText(formData, "monthlyFee"));
 
   if (name.length < 2) {
     return {
-      error:
-        "Ders adı en az 2 karakter olmalıdır.",
+      error: "Ders adı en az 2 karakter olmalıdır.",
     };
   }
 
-  if (
-    rawCourseType !== "individual" &&
-    rawCourseType !== "group"
-  ) {
+  if (rawCourseType !== "individual" && rawCourseType !== "group") {
     return {
-      error:
-        "Geçerli bir ders türü seçin.",
+      error: "Geçerli bir ders türü seçin.",
     };
   }
 
-  if (
-    !Number.isInteger(durationMinutes) ||
-    durationMinutes < 15 ||
-    durationMinutes > 480
-  ) {
+  if (!Number.isInteger(durationMinutes) || durationMinutes < 15 || durationMinutes > 480) {
     return {
-      error:
-        "Ders süresi 15 ile 480 dakika arasında olmalıdır.",
+      error: "Ders süresi 15 ile 480 dakika arasında olmalıdır.",
     };
   }
 
-  if (
-    monthlyFee === null ||
-    monthlyFee < 0
-  ) {
+  if (monthlyFee === null || monthlyFee < 0) {
     return {
-      error:
-        "Geçerli bir aylık ücret girin.",
+      error: "Geçerli bir aylık ücret girin.",
     };
   }
 
@@ -248,9 +174,7 @@ function readAndValidateCourse(
 }
 
 function parseMoney(value: string) {
-  const normalized = value
-    .replace(/\s/g, "")
-    .replace(",", ".");
+  const normalized = value.replace(/\s/g, "").replace(",", ".");
 
   if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
     return null;
@@ -258,34 +182,19 @@ function parseMoney(value: string) {
 
   const amount = Number(normalized);
 
-  return Number.isFinite(amount)
-    ? amount
-    : null;
+  return Number.isFinite(amount) ? amount : null;
 }
 
-function readText(
-  formData: FormData,
-  name: string,
-) {
-  return String(
-    formData.get(name) ?? "",
-  ).trim();
+function readText(formData: FormData, name: string) {
+  return String(formData.get(name) ?? "").trim();
 }
 
-function getDatabaseErrorMessage(
-  message: string,
-) {
-  if (
-    message.includes(
-      "Aynı ders adı veya ders koduyla",
-    )
-  ) {
+function getDatabaseErrorMessage(message: string) {
+  if (message.includes("Aynı ders adı veya ders koduyla")) {
     return "Aynı ders adı veya ders koduyla daha önce bir kayıt oluşturulmuş.";
   }
 
-  if (
-    process.env.NODE_ENV === "development"
-  ) {
+  if (process.env.NODE_ENV === "development") {
     return `Veritabanı hatası: ${message}`;
   }
 

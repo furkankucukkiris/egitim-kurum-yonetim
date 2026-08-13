@@ -1,15 +1,8 @@
 "use client";
 
-import {
-  useActionState,
-  useState,
-} from "react";
+import { useActionState, useState } from "react";
 
-import {
-  addGuardian,
-  removeGuardian,
-  setPrimaryGuardian,
-} from "./actions";
+import { addGuardian, removeGuardian, setPrimaryGuardian } from "./actions";
 
 type GuardianItem = {
   id: string;
@@ -36,22 +29,10 @@ const initialState: AddGuardianState = {
   error: null,
 };
 
-export function GuardianManagement({
-  studentId,
-  guardians,
-  isArchived,
-}: GuardianManagementProps) {
-  const [addFormOpen, setAddFormOpen] =
-    useState(false);
+export function GuardianManagement({ studentId, guardians, isArchived }: GuardianManagementProps) {
+  const [addFormOpen, setAddFormOpen] = useState(false);
 
-  const [
-    state,
-    formAction,
-    isPending,
-  ] = useActionState(
-    addGuardian,
-    initialState,
-  );
+  const [state, formAction, isPending] = useActionState(addGuardian, initialState);
 
   const [values, setValues] = useState({
     guardianIdentityNumber: "",
@@ -64,10 +45,7 @@ export function GuardianManagement({
     mayReceiveFinancialMessages: true,
   });
 
-  function updateValue(
-    field: keyof typeof values,
-    value: string | boolean,
-  ) {
+  function updateValue(field: keyof typeof values, value: string | boolean) {
     setValues((current) => ({
       ...current,
       [field]: value,
@@ -75,14 +53,12 @@ export function GuardianManagement({
   }
 
   return (
-    <section className="mt-8 rounded-2xl border border-line bg-panel p-6 shadow-sm">
-      <div className="flex flex-col gap-4 border-b border-brand-50 pb-5 sm:flex-row sm:items-center sm:justify-between">
+    <section className="mt-8 rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <div className="flex flex-col gap-4 border-b border-primary-soft pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-bold">
-            Veli bağlantıları
-          </h2>
+          <h2 className="text-lg font-bold">Veli bağlantıları</h2>
 
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-sm text-text-secondary">
             Öğrenciye bağlı anne, baba, vasi ve diğer iletişim kişileri.
           </p>
         </div>
@@ -90,37 +66,26 @@ export function GuardianManagement({
         {!isArchived && (
           <button
             type="button"
-            onClick={() =>
-              setAddFormOpen((current) => !current)
-            }
-            className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white"
+            onClick={() => setAddFormOpen((current) => !current)}
+            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary"
           >
-            {addFormOpen
-              ? "Formu kapat"
-              : "+ Veli ekle"}
+            {addFormOpen ? "Formu kapat" : "+ Veli ekle"}
           </button>
         )}
       </div>
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
         {guardians.map((guardian) => (
-          <article
-            key={guardian.id}
-            className="rounded-2xl border border-line p-5"
-          >
+          <article key={guardian.id} className="rounded-2xl border border-border p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="font-bold">
-                  {guardian.fullName}
-                </h3>
+                <h3 className="font-bold">{guardian.fullName}</h3>
 
-                <p className="mt-1 text-sm text-muted">
-                  {guardian.relationship}
-                </p>
+                <p className="mt-1 text-sm text-text-secondary">{guardian.relationship}</p>
               </div>
 
               {guardian.isPrimary && (
-                <span className="rounded-full bg-honey-100 dark:bg-honey-500/15 px-3 py-1 text-xs font-semibold text-honey-700 dark:text-honey-500">
+                <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-strong">
                   Birincil veli
                 </span>
               )}
@@ -128,71 +93,45 @@ export function GuardianManagement({
 
             <dl className="mt-4 space-y-2 text-sm">
               <div className="flex gap-2">
-                <dt className="font-medium text-muted">
-                  Telefon:
-                </dt>
+                <dt className="font-medium text-text-secondary">Telefon:</dt>
 
-                <dd>
-                  {guardian.phone}
-                </dd>
+                <dd>{guardian.phone}</dd>
               </div>
 
               {guardian.secondaryPhone && (
                 <div className="flex gap-2">
-                  <dt className="font-medium text-muted">
-                    İkinci telefon:
-                  </dt>
+                  <dt className="font-medium text-text-secondary">İkinci telefon:</dt>
 
-                  <dd>
-                    {guardian.secondaryPhone}
-                  </dd>
+                  <dd>{guardian.secondaryPhone}</dd>
                 </div>
               )}
 
               {guardian.email && (
                 <div className="flex gap-2">
-                  <dt className="font-medium text-muted">
-                    E-posta:
-                  </dt>
+                  <dt className="font-medium text-text-secondary">E-posta:</dt>
 
-                  <dd className="break-all">
-                    {guardian.email}
-                  </dd>
+                  <dd className="break-all">{guardian.email}</dd>
                 </div>
               )}
 
               <div className="flex gap-2">
-                <dt className="font-medium text-muted">
-                  Finansal mesaj:
-                </dt>
+                <dt className="font-medium text-text-secondary">Finansal mesaj:</dt>
 
-                <dd>
-                  {guardian.mayReceiveFinancialMessages
-                    ? "Alabilir"
-                    : "Alamaz"}
-                </dd>
+                <dd>{guardian.mayReceiveFinancialMessages ? "Alabilir" : "Alamaz"}</dd>
               </div>
             </dl>
 
             {!isArchived && (
-              <div className="mt-5 flex flex-wrap gap-2 border-t border-brand-50 pt-4">
+              <div className="mt-5 flex flex-wrap gap-2 border-t border-primary-soft pt-4">
                 {!guardian.isPrimary && (
                   <form action={setPrimaryGuardian}>
-                    <input
-                      type="hidden"
-                      name="studentId"
-                      value={studentId}
-                    />
+                    <input type="hidden" name="studentId" value={studentId} />
 
-                    <input
-                      type="hidden"
-                      name="guardianId"
-                      value={guardian.id}
-                    />
+                    <input type="hidden" name="guardianId" value={guardian.id} />
 
                     <button
                       type="submit"
-                      className="rounded-lg border border-honey-100 bg-honey-50 dark:bg-honey-500/10 px-3 py-2 text-xs font-semibold text-honey-700 dark:text-honey-500"
+                      className="rounded-lg border border-accent/30 bg-accent-soft px-3 py-2 text-xs font-semibold text-accent-strong"
                     >
                       Birincil yap
                     </button>
@@ -202,32 +141,23 @@ export function GuardianManagement({
                 <form
                   action={removeGuardian}
                   onSubmit={(event) => {
-                    const accepted =
-                      window.confirm(
-                        `${guardian.fullName} adlı velinin öğrenci bağlantısı kaldırılsın mı?`,
-                      );
+                    const accepted = window.confirm(
+                      `${guardian.fullName} adlı velinin öğrenci bağlantısı kaldırılsın mı?`,
+                    );
 
                     if (!accepted) {
                       event.preventDefault();
                     }
                   }}
                 >
-                  <input
-                    type="hidden"
-                    name="studentId"
-                    value={studentId}
-                  />
+                  <input type="hidden" name="studentId" value={studentId} />
 
-                  <input
-                    type="hidden"
-                    name="guardianId"
-                    value={guardian.id}
-                  />
+                  <input type="hidden" name="guardianId" value={guardian.id} />
 
                   <button
                     type="submit"
                     disabled={guardians.length <= 1}
-                    className="rounded-lg border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-700 dark:text-rose-400 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-xs font-semibold text-danger disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     Bağlantıyı kaldır
                   </button>
@@ -239,7 +169,7 @@ export function GuardianManagement({
       </div>
 
       {guardians.length === 1 && !isArchived && (
-        <p className="mt-4 text-xs text-muted">
+        <p className="mt-4 text-xs text-text-secondary">
           Öğrencinin tek veli bağlantısı kaldırılamaz. Önce ikinci bir veli ekleyin.
         </p>
       )}
@@ -247,26 +177,20 @@ export function GuardianManagement({
       {addFormOpen && !isArchived && (
         <form
           action={formAction}
-          className="mt-7 rounded-2xl border border-line bg-fill p-5"
+          className="mt-7 rounded-2xl border border-border bg-surface-muted p-5"
         >
-          <input
-            type="hidden"
-            name="studentId"
-            value={studentId}
-          />
+          <input type="hidden" name="studentId" value={studentId} />
 
-          <h3 className="font-bold">
-            Yeni veli bağlantısı
-          </h3>
+          <h3 className="font-bold">Yeni veli bağlantısı</h3>
 
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-sm text-text-secondary">
             Aynı T.C. kimlik numarası daha önce kaydedilmişse mevcut veli kullanılır.
           </p>
 
           {state.error && (
             <div
               role="alert"
-              className="mt-4 rounded-xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400"
+              className="mt-4 rounded-xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger"
             >
               {state.error}
             </div>
@@ -284,12 +208,7 @@ export function GuardianManagement({
                 autoComplete="off"
                 value={values.guardianIdentityNumber}
                 onChange={(value) =>
-                  updateValue(
-                    "guardianIdentityNumber",
-                    value
-                      .replace(/\D/g, "")
-                      .slice(0, 11),
-                  )
+                  updateValue("guardianIdentityNumber", value.replace(/\D/g, "").slice(0, 11))
                 }
               />
             </div>
@@ -299,47 +218,26 @@ export function GuardianManagement({
               name="guardianFullName"
               required
               value={values.guardianFullName}
-              onChange={(value) =>
-                updateValue(
-                  "guardianFullName",
-                  value,
-                )
-              }
+              onChange={(value) => updateValue("guardianFullName", value)}
             />
 
             <label className="block text-sm font-medium">
               Yakınlık durumu
-
               <select
                 name="relationship"
                 value={values.relationship}
-                onChange={(event) =>
-                  updateValue(
-                    "relationship",
-                    event.target.value,
-                  )
-                }
-                className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm"
+                onChange={(event) => updateValue("relationship", event.target.value)}
+                className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm"
               >
-                <option value="Anne">
-                  Anne
-                </option>
+                <option value="Anne">Anne</option>
 
-                <option value="Baba">
-                  Baba
-                </option>
+                <option value="Baba">Baba</option>
 
-                <option value="Vasi">
-                  Vasi
-                </option>
+                <option value="Vasi">Vasi</option>
 
-                <option value="Aile yakını">
-                  Aile yakını
-                </option>
+                <option value="Aile yakını">Aile yakını</option>
 
-                <option value="Diğer">
-                  Diğer
-                </option>
+                <option value="Diğer">Diğer</option>
               </select>
             </label>
 
@@ -350,12 +248,7 @@ export function GuardianManagement({
               required
               inputMode="tel"
               value={values.guardianPhone}
-              onChange={(value) =>
-                updateValue(
-                  "guardianPhone",
-                  value,
-                )
-              }
+              onChange={(value) => updateValue("guardianPhone", value)}
             />
 
             <Field
@@ -364,12 +257,7 @@ export function GuardianManagement({
               type="tel"
               inputMode="tel"
               value={values.guardianSecondaryPhone}
-              onChange={(value) =>
-                updateValue(
-                  "guardianSecondaryPhone",
-                  value,
-                )
-              }
+              onChange={(value) => updateValue("guardianSecondaryPhone", value)}
             />
 
             <div className="md:col-span-2">
@@ -378,12 +266,7 @@ export function GuardianManagement({
                 name="guardianEmail"
                 type="email"
                 value={values.guardianEmail}
-                onChange={(value) =>
-                  updateValue(
-                    "guardianEmail",
-                    value,
-                  )
-                }
+                onChange={(value) => updateValue("guardianEmail", value)}
               />
             </div>
           </div>
@@ -391,15 +274,8 @@ export function GuardianManagement({
           <div className="mt-5 space-y-3">
             <CheckboxField
               name="mayReceiveFinancialMessages"
-              checked={
-                values.mayReceiveFinancialMessages
-              }
-              onChange={(checked) =>
-                updateValue(
-                  "mayReceiveFinancialMessages",
-                  checked,
-                )
-              }
+              checked={values.mayReceiveFinancialMessages}
+              onChange={(checked) => updateValue("mayReceiveFinancialMessages", checked)}
               title="Finansal mesajları alabilir"
               description="Ödeme hatırlatmaları ve borç bildirimleri bu veliye gönderilebilir."
             />
@@ -407,12 +283,7 @@ export function GuardianManagement({
             <CheckboxField
               name="isPrimary"
               checked={values.isPrimary}
-              onChange={(checked) =>
-                updateValue(
-                  "isPrimary",
-                  checked,
-                )
-              }
+              onChange={(checked) => updateValue("isPrimary", checked)}
               title="Birincil veli yap"
               description="Etkinleştirilirse mevcut birincil veli ikincil duruma geçer."
             />
@@ -422,11 +293,9 @@ export function GuardianManagement({
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white disabled:opacity-60"
+              className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary disabled:opacity-60"
             >
-              {isPending
-                ? "Veli ekleniyor..."
-                : "Veliyi kaydet"}
+              {isPending ? "Veli ekleniyor..." : "Veliyi kaydet"}
             </button>
           </div>
         </form>
@@ -443,12 +312,7 @@ type FieldProps = {
 
   type?: string;
   required?: boolean;
-  inputMode?:
-    | "text"
-    | "tel"
-    | "email"
-    | "numeric"
-    | "decimal";
+  inputMode?: "text" | "tel" | "email" | "numeric" | "decimal";
 
   maxLength?: number;
   pattern?: string;
@@ -471,11 +335,7 @@ function Field({
     <label className="block text-sm font-medium">
       {label}
 
-      {required && (
-        <span className="ml-1 text-rose-600 dark:text-rose-400">
-          *
-        </span>
-      )}
+      {required && <span className="ml-1 text-danger text-danger">*</span>}
 
       <input
         name={name}
@@ -486,10 +346,8 @@ function Field({
         maxLength={maxLength}
         pattern={pattern}
         autoComplete={autoComplete}
-        onChange={(event) =>
-          onChange(event.target.value)
-        }
-        className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm outline-none focus:border-terra-500"
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none focus:border-primary"
       />
     </label>
   );
@@ -503,33 +361,21 @@ type CheckboxFieldProps = {
   description: string;
 };
 
-function CheckboxField({
-  name,
-  checked,
-  onChange,
-  title,
-  description,
-}: CheckboxFieldProps) {
+function CheckboxField({ name, checked, onChange, title, description }: CheckboxFieldProps) {
   return (
-    <label className="flex items-start gap-3 rounded-xl border border-line bg-panel p-4">
+    <label className="flex items-start gap-3 rounded-xl border border-border bg-surface p-4">
       <input
         type="checkbox"
         name={name}
         checked={checked}
-        onChange={(event) =>
-          onChange(event.target.checked)
-        }
+        onChange={(event) => onChange(event.target.checked)}
         className="mt-1 h-4 w-4"
       />
 
       <span>
-        <span className="block text-sm font-semibold">
-          {title}
-        </span>
+        <span className="block text-sm font-semibold">{title}</span>
 
-        <span className="mt-1 block text-xs leading-5 text-muted">
-          {description}
-        </span>
+        <span className="mt-1 block text-xs leading-5 text-text-secondary">{description}</span>
       </span>
     </label>
   );

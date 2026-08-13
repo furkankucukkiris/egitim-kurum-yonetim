@@ -35,13 +35,13 @@ export function MonthlyRevenueChart({ data }: { data: MonthlyDatum[] }) {
 
   return (
     <div>
-      <div className="mb-3 flex items-center gap-4 text-xs text-muted">
+      <div className="mb-3 flex items-center gap-4 text-xs text-text-secondary">
         <LegendSwatch color={COLLECTED_COLOR} label="Tahsilat" />
         <LegendSwatch color={PENDING_COLOR} label="Bekleyen" />
       </div>
 
       {data.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted">Henüz veri yok.</p>
+        <p className="py-10 text-center text-sm text-text-secondary">Henüz veri yok.</p>
       ) : (
         <svg
           viewBox={`0 0 ${width} ${height}`}
@@ -135,11 +135,7 @@ export function MonthlyRevenueChart({ data }: { data: MonthlyDatum[] }) {
 function LegendSwatch({ color, label }: { color: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5">
-      <span
-        className="h-2.5 w-2.5 rounded-full"
-        style={{ backgroundColor: color }}
-        aria-hidden
-      />
+      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} aria-hidden />
       {label}
     </span>
   );
@@ -152,8 +148,7 @@ function niceCeiling(value: number) {
 
   const magnitude = 10 ** Math.floor(Math.log10(value));
   const normalized = value / magnitude;
-  const niceNormalized =
-    normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  const niceNormalized = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
 
   return niceNormalized * magnitude;
 }

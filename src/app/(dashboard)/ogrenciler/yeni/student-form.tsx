@@ -1,10 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  useActionState,
-  useState,
-} from "react";
+import { useActionState, useState } from "react";
 import { createStudent } from "./actions";
 import { StudentPhotoField } from "@/components/students/StudentPhotoField";
 
@@ -36,17 +33,8 @@ type FormValues = {
   guardianEmail: string;
 };
 
-export function StudentForm({
-  initialRegistrationDate,
-}: StudentFormProps) {
-  const [
-    state,
-    formAction,
-    isPending,
-  ] = useActionState(
-    createStudent,
-    initialCreateStudentState,
-  );
+export function StudentForm({ initialRegistrationDate }: StudentFormProps) {
+  const [state, formAction, isPending] = useActionState(createStudent, initialCreateStudentState);
 
   const [values, setValues] = useState<FormValues>({
     studentIdentityNumber: "",
@@ -64,10 +52,7 @@ export function StudentForm({
     guardianEmail: "",
   });
 
-  function updateValue(
-    field: keyof FormValues,
-    value: string,
-  ) {
+  function updateValue(field: keyof FormValues, value: string) {
     setValues((current) => ({
       ...current,
       [field]: value,
@@ -75,26 +60,21 @@ export function StudentForm({
   }
 
   return (
-    <form
-      action={formAction}
-      className="mx-auto max-w-4xl space-y-6"
-    >
+    <form action={formAction} className="mx-auto max-w-4xl space-y-6">
       {state.error && (
         <div
           role="alert"
-          className="rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm leading-6 text-rose-700 dark:text-rose-400"
+          className="rounded-2xl border border-danger/30 bg-danger-soft p-4 text-sm leading-6 text-danger"
         >
           {state.error}
         </div>
       )}
 
-      <section className="rounded-2xl border border-line bg-panel p-5 shadow-sm md:p-7">
-        <div className="border-b border-brand-50 pb-4">
-          <h2 className="text-lg font-bold">
-            Öğrenci bilgileri
-          </h2>
+      <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm md:p-7">
+        <div className="border-b border-primary-soft pb-4">
+          <h2 className="text-lg font-bold">Öğrenci bilgileri</h2>
 
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-sm text-text-secondary">
             Öğrencinin kimlik ve kurum kayıt bilgileri.
           </p>
         </div>
@@ -116,10 +96,7 @@ export function StudentForm({
               placeholder="11 haneli T.C. kimlik numarası"
               value={values.studentIdentityNumber}
               onChange={(value) =>
-                updateValue(
-                  "studentIdentityNumber",
-                  value.replace(/\D/g, "").slice(0, 11),
-                )
+                updateValue("studentIdentityNumber", value.replace(/\D/g, "").slice(0, 11))
               }
               helperText="Bu bilgi öğrenci listesinde gösterilmez."
             />
@@ -132,12 +109,7 @@ export function StudentForm({
             autoComplete="given-name"
             placeholder="Öğrencinin adı"
             value={values.studentFirstName}
-            onChange={(value) =>
-              updateValue(
-                "studentFirstName",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("studentFirstName", value)}
           />
 
           <FormField
@@ -147,12 +119,7 @@ export function StudentForm({
             autoComplete="family-name"
             placeholder="Öğrencinin soyadı"
             value={values.studentLastName}
-            onChange={(value) =>
-              updateValue(
-                "studentLastName",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("studentLastName", value)}
           />
 
           <FormField
@@ -160,12 +127,7 @@ export function StudentForm({
             name="birthDate"
             type="date"
             value={values.birthDate}
-            onChange={(value) =>
-              updateValue(
-                "birthDate",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("birthDate", value)}
           />
 
           <FormField
@@ -174,41 +136,28 @@ export function StudentForm({
             type="date"
             required
             value={values.registrationDate}
-            onChange={(value) =>
-              updateValue(
-                "registrationDate",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("registrationDate", value)}
           />
         </div>
 
         <label className="mt-5 block text-sm font-medium">
           Öğrenci notu
-
           <textarea
             name="studentNotes"
             rows={4}
             value={values.studentNotes}
-            onChange={(event) =>
-              updateValue(
-                "studentNotes",
-                event.target.value,
-              )
-            }
+            onChange={(event) => updateValue("studentNotes", event.target.value)}
             placeholder="Kayıt sırasında bilinmesi gereken kısa notlar..."
-            className="mt-2 w-full resize-y rounded-xl border border-line px-4 py-3 text-sm outline-none transition focus:border-terra-500"
+            className="mt-2 w-full resize-y rounded-xl border border-border px-4 py-3 text-sm outline-none transition focus:border-primary"
           />
         </label>
       </section>
 
-      <section className="rounded-2xl border border-line bg-panel p-5 shadow-sm md:p-7">
-        <div className="border-b border-brand-50 pb-4">
-          <h2 className="text-lg font-bold">
-            Birincil veli bilgileri
-          </h2>
+      <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm md:p-7">
+        <div className="border-b border-primary-soft pb-4">
+          <h2 className="text-lg font-bold">Birincil veli bilgileri</h2>
 
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-sm text-text-secondary">
             Ödeme ve kurum iletişiminde öncelikli kullanılacak veli.
           </p>
         </div>
@@ -226,10 +175,7 @@ export function StudentForm({
               placeholder="11 haneli T.C. kimlik numarası"
               value={values.guardianIdentityNumber}
               onChange={(value) =>
-                updateValue(
-                  "guardianIdentityNumber",
-                  value.replace(/\D/g, "").slice(0, 11),
-                )
+                updateValue("guardianIdentityNumber", value.replace(/\D/g, "").slice(0, 11))
               }
               helperText="Aynı veliye bağlı kardeş öğrenciler bu numara üzerinden eşleştirilir."
             />
@@ -242,47 +188,26 @@ export function StudentForm({
             autoComplete="name"
             placeholder="Velinin adı ve soyadı"
             value={values.guardianFullName}
-            onChange={(value) =>
-              updateValue(
-                "guardianFullName",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("guardianFullName", value)}
           />
 
           <label className="block text-sm font-medium">
             Yakınlık durumu
-
             <select
               name="relationship"
               value={values.relationship}
-              onChange={(event) =>
-                updateValue(
-                  "relationship",
-                  event.target.value,
-                )
-              }
-              className="mt-2 w-full rounded-xl border border-line bg-panel px-4 py-3 text-sm outline-none transition focus:border-terra-500"
+              onChange={(event) => updateValue("relationship", event.target.value)}
+              className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none transition focus:border-primary"
             >
-              <option value="Anne">
-                Anne
-              </option>
+              <option value="Anne">Anne</option>
 
-              <option value="Baba">
-                Baba
-              </option>
+              <option value="Baba">Baba</option>
 
-              <option value="Vasi">
-                Vasi
-              </option>
+              <option value="Vasi">Vasi</option>
 
-              <option value="Aile yakını">
-                Aile yakını
-              </option>
+              <option value="Aile yakını">Aile yakını</option>
 
-              <option value="Diğer">
-                Diğer
-              </option>
+              <option value="Diğer">Diğer</option>
             </select>
           </label>
 
@@ -295,12 +220,7 @@ export function StudentForm({
             autoComplete="tel"
             placeholder="05xx xxx xx xx"
             value={values.guardianPhone}
-            onChange={(value) =>
-              updateValue(
-                "guardianPhone",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("guardianPhone", value)}
           />
 
           <FormField
@@ -310,12 +230,7 @@ export function StudentForm({
             inputMode="tel"
             placeholder="İsteğe bağlı"
             value={values.guardianSecondaryPhone}
-            onChange={(value) =>
-              updateValue(
-                "guardianSecondaryPhone",
-                value,
-              )
-            }
+            onChange={(value) => updateValue("guardianSecondaryPhone", value)}
           />
 
           <div className="md:col-span-2">
@@ -326,12 +241,7 @@ export function StudentForm({
               autoComplete="email"
               placeholder="İsteğe bağlı"
               value={values.guardianEmail}
-              onChange={(value) =>
-                updateValue(
-                  "guardianEmail",
-                  value,
-                )
-              }
+              onChange={(value) => updateValue("guardianEmail", value)}
             />
           </div>
         </div>
@@ -340,7 +250,7 @@ export function StudentForm({
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Link
           href="/ogrenciler"
-          className="rounded-xl border border-line bg-panel px-5 py-3 text-center text-sm font-semibold text-brand-700 transition hover:bg-fill"
+          className="rounded-xl border border-border bg-surface px-5 py-3 text-center text-sm font-semibold text-primary transition hover:bg-surface-muted"
         >
           Vazgeç
         </Link>
@@ -348,11 +258,9 @@ export function StudentForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isPending
-            ? "Öğrenci kaydediliyor..."
-            : "Öğrenciyi kaydet"}
+          {isPending ? "Öğrenci kaydediliyor..." : "Öğrenciyi kaydet"}
         </button>
       </div>
     </form>
@@ -369,12 +277,7 @@ type FormFieldProps = {
   required?: boolean;
   placeholder?: string;
   autoComplete?: string;
-  inputMode?:
-    | "text"
-    | "tel"
-    | "email"
-    | "numeric"
-    | "decimal";
+  inputMode?: "text" | "tel" | "email" | "numeric" | "decimal";
 
   maxLength?: number;
   pattern?: string;
@@ -399,32 +302,24 @@ function FormField({
     <label className="block text-sm font-medium">
       {label}
 
-      {required && (
-        <span className="ml-1 text-rose-600 dark:text-rose-400">
-          *
-        </span>
-      )}
+      {required && <span className="ml-1 text-danger text-danger">*</span>}
 
       <input
         name={name}
         type={type}
         required={required}
         value={value}
-        onChange={(event) =>
-          onChange(event.target.value)
-        }
+        onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         autoComplete={autoComplete}
         inputMode={inputMode}
         maxLength={maxLength}
         pattern={pattern}
-        className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm outline-none transition focus:border-terra-500"
+        className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm outline-none transition focus:border-primary"
       />
 
       {helperText && (
-        <span className="mt-2 block text-xs leading-5 text-muted">
-          {helperText}
-        </span>
+        <span className="mt-2 block text-xs leading-5 text-text-secondary">{helperText}</span>
       )}
     </label>
   );

@@ -5,6 +5,7 @@
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-orbitron), ui-sans-serif, system-ui, sans-serif;
 
   /* semantic tokens — repointed per-theme in :root / :root.dark below */
   --color-background: var(--background);
@@ -252,4 +253,14 @@ textarea {
   .print-meb-roster {
     page: meb-roster;
   }
+}
+
+/* Kaydırma çalışsın ama scrollbar görünmesin (ör. sidebar navigasyonu). */
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
 }

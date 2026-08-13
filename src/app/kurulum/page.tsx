@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LogoField } from "@/components/settings/LogoField";
+import { AuthBrandHeader } from "@/components/auth/auth-brand-header";
+import { Signature } from "@/components/branding/signature";
 import { completeInitialSetup } from "./actions";
 
 type SetupPageProps = {
@@ -44,6 +46,8 @@ export default async function SetupPage({ searchParams }: SetupPageProps) {
   return (
     <div className="mx-auto max-w-xl py-10">
       <div className="rounded-3xl border border-border bg-surface p-7 shadow-sm">
+        <AuthBrandHeader />
+
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-strong">
           İlk kurulum
         </p>
@@ -94,6 +98,8 @@ export default async function SetupPage({ searchParams }: SetupPageProps) {
           </button>
         </form>
       </div>
+
+      <Signature className="mt-6" />
     </div>
   );
 }

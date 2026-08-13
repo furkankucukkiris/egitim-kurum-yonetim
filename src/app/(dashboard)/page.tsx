@@ -132,7 +132,7 @@ export default async function DashboardPage() {
         `
           starts_at, ends_at, room_name, is_makeup, is_trial, cancelled_at,
           course:courses ( name ),
-          teacher:profiles!teacher_profile_id ( full_name )
+          teacher:profiles!lesson_sessions_teacher_profile_id_fkey ( full_name )
         `,
       )
       .eq("organization_id", profile.organizationId)
@@ -142,7 +142,7 @@ export default async function DashboardPage() {
     supabase
       .from("prospects")
       .select(
-        "id, student_first_name, student_last_name, phone, next_follow_up_date, assigned:assigned_profile_id(full_name)",
+        "id, student_first_name, student_last_name, phone, next_follow_up_date, assigned:profiles!prospects_assigned_profile_id_fkey(full_name)",
       )
       .eq("organization_id", profile.organizationId)
       .eq("next_follow_up_date", today)
@@ -150,7 +150,7 @@ export default async function DashboardPage() {
     supabase
       .from("prospects")
       .select(
-        "id, student_first_name, student_last_name, phone, next_follow_up_date, assigned:assigned_profile_id(full_name)",
+        "id, student_first_name, student_last_name, phone, next_follow_up_date, assigned:profiles!prospects_assigned_profile_id_fkey(full_name)",
       )
       .eq("organization_id", profile.organizationId)
       .gt("next_follow_up_date", today)

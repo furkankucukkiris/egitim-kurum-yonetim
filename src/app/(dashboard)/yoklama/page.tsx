@@ -157,10 +157,10 @@ export default async function AttendancePage({ searchParams }: PageProps) {
         class_group:class_groups (
           name
         ),
-        teacher:profiles!teacher_profile_id (
+        teacher:profiles!lesson_sessions_teacher_profile_id_fkey (
           full_name
         ),
-        locker:profiles!attendance_locked_by (
+        locker:profiles!lesson_sessions_attendance_locked_by_fkey (
           full_name
         )
       `,
@@ -375,7 +375,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
             course_id,
             starts_at,
             class_group:class_groups ( name ),
-            teacher:profiles!teacher_profile_id ( full_name )
+            teacher:profiles!lesson_sessions_teacher_profile_id_fkey ( full_name )
           `,
         )
         .in("course_id", courseIds)

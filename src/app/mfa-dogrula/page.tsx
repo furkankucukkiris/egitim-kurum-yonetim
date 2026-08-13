@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireMfaGateBypassProfile } from "@/lib/auth";
+import { AuthBrandHeader } from "@/components/auth/auth-brand-header";
 import { verifyMfaChallenge } from "./actions";
 
 type MfaChallengePageProps = {
@@ -13,9 +14,7 @@ export default async function MfaChallengePage({ searchParams }: MfaChallengePag
   return (
     <main className="grid min-h-screen place-items-center bg-surface px-4 py-10">
       <div className="w-full max-w-md rounded-3xl border border-border bg-surface p-7 shadow-sm">
-        <div className="mb-6 grid h-12 w-12 place-items-center rounded-2xl bg-accent-soft font-black text-on-accent">
-          ŞS
-        </div>
+        <AuthBrandHeader />
 
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-strong">
           İki adımlı doğrulama

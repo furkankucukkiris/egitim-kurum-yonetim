@@ -7,6 +7,7 @@ import { logout } from "@/app/auth/actions";
 import type { AppRole } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
+import { Signature } from "@/components/branding/signature";
 
 type NavigationItem = {
   href: string;
@@ -147,6 +148,10 @@ export function AppShell({
         <Navigation items={visibleNavigation} pathname={pathname} onSelect={() => undefined} />
 
         <AccountSection userName={userName} userRole={userRole} />
+
+        <div className="border-t border-white/10 px-5 py-4">
+          <Signature variant="sidebar" />
+        </div>
       </aside>
 
       {open && (
@@ -168,6 +173,10 @@ export function AppShell({
             />
 
             <AccountSection userName={userName} userRole={userRole} />
+
+        <div className="border-t border-white/10 px-5 py-4">
+          <Signature variant="sidebar" />
+        </div>
           </aside>
         </div>
       )}
@@ -240,7 +249,7 @@ function Navigation({
   onSelect: () => void;
 }) {
   return (
-    <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto p-4">
+    <nav className="scrollbar-hidden min-h-0 flex-1 space-y-1 overflow-y-auto p-4">
       {items.map((item) => {
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
 

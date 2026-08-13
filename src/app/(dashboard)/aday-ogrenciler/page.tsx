@@ -89,7 +89,7 @@ export default async function ProspectsPage({ searchParams }: ProspectsPageProps
   let prospectsQuery = supabase
     .from("prospects")
     .select(
-      "id, student_first_name, student_last_name, guardian_name, phone, lead_source, status, next_follow_up_date, assigned:assigned_profile_id(full_name)",
+      "id, student_first_name, student_last_name, guardian_name, phone, lead_source, status, next_follow_up_date, assigned:profiles!prospects_assigned_profile_id_fkey(full_name)",
     )
     .eq("organization_id", profile.organizationId)
     .order("created_at", { ascending: false });

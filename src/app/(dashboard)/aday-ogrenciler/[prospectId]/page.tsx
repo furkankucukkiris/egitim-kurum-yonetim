@@ -137,7 +137,7 @@ export default async function ProspectDetailPage({
       ? supabase
           .from("lesson_sessions")
           .select(
-            "id, starts_at, ends_at, room_name, cancelled_at, course:courses(name), teacher:profiles!teacher_profile_id(full_name)",
+            "id, starts_at, ends_at, room_name, cancelled_at, course:courses(name), teacher:profiles!lesson_sessions_teacher_profile_id_fkey(full_name)",
           )
           .eq("id", prospect.trial_lesson_id)
           .maybeSingle()

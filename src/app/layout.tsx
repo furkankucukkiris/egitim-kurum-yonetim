@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Orbitron } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
   variable: "--font-inter",
+  display: "swap",
+});
+
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-orbitron",
   display: "swap",
 });
 
@@ -33,7 +39,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" className={inter.variable} suppressHydrationWarning>
+    <html
+      lang="tr"
+      className={`${inter.variable} ${orbitron.variable}`}
+      suppressHydrationWarning
+    >
       <body>
         <Script id="theme-init" strategy="beforeInteractive">
           {themeInitScript}

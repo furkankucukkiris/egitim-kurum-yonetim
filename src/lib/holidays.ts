@@ -113,9 +113,25 @@ export function getHolidaysForYear(year: number): Holiday[] {
     halfDay: item.name.includes("Arifesi") ? true : undefined,
   }));
 
-  return [...fixed, ...getReligiousHolidaysForYear(year)].sort((a, b) =>
-    a.date.localeCompare(b.date),
-  );
+  // Sabit ve dini bayram tarihleri bazı yıllarda çakışabilir (ör. 2027'de
+  // Kurban Bayramı 2. günü 19 Mayıs'a denk geliyor) — aynı tarihe düşen
+  // kayıtlar tek bir güne birleştirilir, aksi halde takvimde aynı anahtarla
+  // iki ayrı satır oluşur.
+  const byDate = new Map<string, Holiday>();
+
+  for (const holiday of [...fixed, ...getReligiousHolidaysForYear(year)]) {
+    const existing = byDate.get(holiday.date);
+
+    byDate.set(holiday.date, existing
+      ? {
+          date: holiday.date,
+          name: `${existing.name} / ${holiday.name}`,
+          halfDay: Boolean(existing.halfDay) && Boolean(holiday.halfDay),
+        }
+      : holiday);
+  }
+
+  return [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
 export function getHolidaysForYearRange(startYear: number, endYear: number): Holiday[] {

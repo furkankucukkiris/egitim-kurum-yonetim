@@ -35,12 +35,16 @@ export function CourseDistributionPie({
   const outerRadius = 80;
   const innerRadius = 46;
 
-  const slices = sorted.reduce<Array<DistributionSlice & {
-    fraction: number;
-    startAngle: number;
-    endAngle: number;
-    colorVar: string;
-  }>>((accumulated, item, index) => {
+  const slices = sorted.reduce<
+    Array<
+      DistributionSlice & {
+        fraction: number;
+        startAngle: number;
+        endAngle: number;
+        colorVar: string;
+      }
+    >
+  >((accumulated, item, index) => {
     const previous = accumulated[index - 1];
     const cumulativeAngle = previous ? previous.endAngle : 0;
     const fraction = total > 0 ? item.value / total : 0;
@@ -61,18 +65,18 @@ export function CourseDistributionPie({
   return (
     <div className="chart-categorical-slots flex flex-col items-center gap-5 sm:flex-row sm:items-center">
       <style>{`
-        .chart-categorical-slots {
-          --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
-          --series-5: #e87ba4; --series-6: #008300; --series-7: #4a3aa7; --series-8: #e34948;
-        }
-        :root.dark .chart-categorical-slots {
-          --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
-          --series-5: #d55181; --series-6: #008300; --series-7: #9085e9; --series-8: #e66767;
-        }
-      `}</style>
+ .chart-categorical-slots {
+ --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+ --series-5: #e87ba4; --series-6: #008300; --series-7: #4a3aa7; --series-8: #e34948;
+ }
+ :root.dark .chart-categorical-slots {
+ --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+ --series-5: #d55181; --series-6: #008300; --series-7: #9085e9; --series-8: #e66767;
+ }
+ `}</style>
 
       {sorted.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted">Henüz veri yok.</p>
+        <p className="py-10 text-center text-sm text-text-secondary">Henüz veri yok.</p>
       ) : (
         <>
           <svg
@@ -84,7 +88,14 @@ export function CourseDistributionPie({
             {slices.map((slice) => (
               <path
                 key={slice.label}
-                d={describeDonutSlice(cx, cy, innerRadius, outerRadius, slice.startAngle, slice.endAngle)}
+                d={describeDonutSlice(
+                  cx,
+                  cy,
+                  innerRadius,
+                  outerRadius,
+                  slice.startAngle,
+                  slice.endAngle,
+                )}
                 fill={slice.colorVar}
               >
                 <title>
@@ -93,13 +104,7 @@ export function CourseDistributionPie({
               </path>
             ))}
 
-            <text
-              x={cx}
-              y={cy - 4}
-              textAnchor="middle"
-              fontSize={11}
-              fill="var(--muted)"
-            >
+            <text x={cx} y={cy - 4} textAnchor="middle" fontSize={11} fill="var(--muted)">
               {centerLabel}
             </text>
             <text
@@ -117,7 +122,7 @@ export function CourseDistributionPie({
           <ul className="w-full space-y-2 text-sm">
             {slices.map((slice) => (
               <li key={slice.label} className="flex items-center justify-between gap-3">
-                <span className="flex min-w-0 items-center gap-2 text-ink">
+                <span className="flex min-w-0 items-center gap-2 text-text-primary">
                   <span
                     className="h-2.5 w-2.5 shrink-0 rounded-full"
                     style={{ backgroundColor: slice.colorVar }}
@@ -126,7 +131,7 @@ export function CourseDistributionPie({
                   <span className="truncate">{slice.label}</span>
                 </span>
 
-                <span className="shrink-0 text-muted">
+                <span className="shrink-0 text-text-secondary">
                   %{Math.round(slice.fraction * 100)}
                 </span>
               </li>

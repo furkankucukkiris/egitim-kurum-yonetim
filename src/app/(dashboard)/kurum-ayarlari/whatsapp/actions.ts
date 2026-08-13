@@ -45,7 +45,9 @@ export async function generateUpcomingPaymentReminders(formData: FormData) {
   const month = readText(formData, "month");
 
   if (!isMonthValue(month)) {
-    redirect(`/kurum-ayarlari/whatsapp?error=${encodeURIComponent("Geçerli bir ay seçmelisiniz.")}`);
+    redirect(
+      `/kurum-ayarlari/whatsapp?error=${encodeURIComponent("Geçerli bir ay seçmelisiniz.")}`,
+    );
   }
 
   const supabase = await createClient();

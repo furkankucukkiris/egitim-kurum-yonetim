@@ -7,6 +7,7 @@ const tabs = [
   { href: "/kurum-ayarlari/gorunum", label: "Görünüm" },
   { href: "/kurum-ayarlari/genel", label: "Genel" },
   { href: "/kurum-ayarlari/iletisim", label: "İletişim Bilgileri" },
+  { href: "/kurum-ayarlari/belgeler", label: "Belgeler" },
   { href: "/kurum-ayarlari/whatsapp", label: "WhatsApp Botu" },
   { href: "/kurum-ayarlari/otomasyon", label: "Otomasyon" },
   { href: "/kurum-ayarlari/kasa-banka", label: "Kasa & Banka" },
@@ -18,7 +19,7 @@ export function SettingsTabs() {
   const pathname = usePathname();
 
   return (
-    <div className="mb-6 flex gap-1 overflow-x-auto border-b border-line">
+    <div className="mb-6 flex gap-1 overflow-x-auto border-b border-border">
       {tabs.map((tab) => {
         const active = pathname === tab.href || pathname?.startsWith(`${tab.href}/`);
 
@@ -28,8 +29,8 @@ export function SettingsTabs() {
             href={tab.href}
             className={`whitespace-nowrap border-b-2 px-4 py-3 text-sm font-medium transition ${
               active
-                ? "border-terra-700 text-ink"
-                : "border-transparent text-muted hover:text-ink"
+                ? "border-primary text-text-primary"
+                : "border-transparent text-text-secondary hover:text-text-primary"
             }`}
           >
             {tab.label}

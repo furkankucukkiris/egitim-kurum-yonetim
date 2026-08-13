@@ -75,9 +75,7 @@ export async function allocateAdvance(formData: FormData) {
   }
 
   if (!accrualId) {
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent("Uygulanacak tahakkuk seçilmelidir.")}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent("Uygulanacak tahakkuk seçilmelidir.")}`);
   }
 
   if (amount === null || amount <= 0) {

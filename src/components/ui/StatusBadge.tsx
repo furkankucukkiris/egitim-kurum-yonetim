@@ -1,4 +1,4 @@
-export type BadgeTone = "neutral" | "success" | "warning" | "danger";
+export type BadgeTone = "neutral" | "success" | "warning" | "danger" | "info";
 
 interface StatusBadgeProps {
   label: string;
@@ -6,10 +6,11 @@ interface StatusBadgeProps {
 }
 
 const toneClasses: Record<BadgeTone, string> = {
-  neutral: "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-100",
-  success: "bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-400",
-  warning: "bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-500",
-  danger: "bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+  neutral: "bg-surface-muted text-text-secondary",
+  success: "bg-success-soft text-success",
+  warning: "bg-warning-soft text-warning",
+  danger: "bg-danger-soft text-danger",
+  info: "bg-info-soft text-info",
 };
 
 export function StatusBadge({ label, tone = "neutral" }: StatusBadgeProps) {

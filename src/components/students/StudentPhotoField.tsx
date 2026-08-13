@@ -37,11 +37,7 @@ export function StudentPhotoField() {
     try {
       const { removeBackground } = await import("@imgly/background-removal");
       const resultBlob = await removeBackground(resized);
-      const processedFile = new File(
-        [resultBlob],
-        "ogrenci-fotografi.png",
-        { type: "image/png" },
-      );
+      const processedFile = new File([resultBlob], "ogrenci-fotografi.png", { type: "image/png" });
 
       setPhotoFile(processedFile);
       setPreviewUrl(URL.createObjectURL(processedFile));
@@ -53,9 +49,7 @@ export function StudentPhotoField() {
       setPhotoFile(resized);
       setPreviewUrl(URL.createObjectURL(resized));
       setStatus("error");
-      setErrorMessage(
-        "Arka plan otomatik kaldırılamadı, fotoğraf olduğu gibi eklendi.",
-      );
+      setErrorMessage("Arka plan otomatik kaldırılamadı, fotoğraf olduğu gibi eklendi.");
     }
   }
 
@@ -86,20 +80,15 @@ export function StudentPhotoField() {
     <div>
       <label className="block text-sm font-medium">Öğrenci fotoğrafı</label>
 
-      <p className="mt-1 text-xs leading-5 text-muted">
+      <p className="mt-1 text-xs leading-5 text-text-secondary">
         Telefondan çekilen fotoğrafın arka planı otomatik olarak kaldırılır.
       </p>
 
-      <input
-        ref={hiddenInputRef}
-        type="file"
-        name="studentPhoto"
-        className="hidden"
-      />
+      <input ref={hiddenInputRef} type="file" name="studentPhoto" className="hidden" />
 
       <div className="mt-3 flex items-center gap-4">
         <div
-          className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-line"
+          className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border"
           style={
             previewUrl
               ? {
@@ -112,9 +101,7 @@ export function StudentPhotoField() {
           }
         >
           {status === "processing" ? (
-            <span className="px-2 text-center text-xs text-muted">
-              İşleniyor...
-            </span>
+            <span className="px-2 text-center text-xs text-text-secondary">İşleniyor...</span>
           ) : previewUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -123,7 +110,7 @@ export function StudentPhotoField() {
               className="h-full w-full object-cover"
             />
           ) : (
-            <span className="px-2 text-center text-xs text-muted">Fotoğraf yok</span>
+            <span className="px-2 text-center text-xs text-text-secondary">Fotoğraf yok</span>
           )}
         </div>
 
@@ -132,7 +119,7 @@ export function StudentPhotoField() {
             type="button"
             disabled={status === "processing"}
             onClick={() => captureInputRef.current?.click()}
-            className="rounded-lg border border-line bg-panel px-3 py-2 text-xs font-semibold text-brand-700 transition hover:bg-fill disabled:cursor-not-allowed disabled:opacity-60 dark:text-brand-100"
+            className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-primary transition hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60 text-primary"
           >
             {previewUrl ? "Fotoğrafı değiştir" : "Fotoğraf çek / seç"}
           </button>
@@ -141,7 +128,7 @@ export function StudentPhotoField() {
             <button
               type="button"
               onClick={handleRemove}
-              className="rounded-lg border border-line bg-panel px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-fill dark:text-rose-400"
+              className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-danger transition hover:bg-surface-muted text-danger"
             >
               Kaldır
             </button>
@@ -159,7 +146,7 @@ export function StudentPhotoField() {
       </div>
 
       {errorMessage && (
-        <p className="mt-2 text-xs text-honey-700 dark:text-honey-500">{errorMessage}</p>
+        <p className="mt-2 text-xs text-accent-strong">{errorMessage}</p>
       )}
     </div>
   );

@@ -180,7 +180,10 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
   const activeCountByGroup = new Map<string, number>();
   for (const row of (enrollmentRows ?? []) as { class_group_id: string | null }[]) {
     if (!row.class_group_id) continue;
-    activeCountByGroup.set(row.class_group_id, (activeCountByGroup.get(row.class_group_id) ?? 0) + 1);
+    activeCountByGroup.set(
+      row.class_group_id,
+      (activeCountByGroup.get(row.class_group_id) ?? 0) + 1,
+    );
   }
 
   return (
@@ -193,10 +196,12 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
       <SettingsAlert success={params.success} error={params.error} />
 
       {openOpportunities.length > 0 && (
-        <Card className="mb-6 border-honey-200 bg-honey-50 p-6 dark:border-honey-800/40 dark:bg-honey-500/10">
-          <h2 className="mb-1 text-base font-semibold text-ink">Kapasitesi açılan gruplar</h2>
+        <Card className="mb-6 border-accent/40 bg-accent-soft p-6 border-accent/40 bg-accent-soft">
+          <h2 className="mb-1 text-base font-semibold text-text-primary">
+            Kapasitesi açılan gruplar
+          </h2>
 
-          <p className="mb-4 text-xs leading-5 text-muted">
+          <p className="mb-4 text-xs leading-5 text-text-secondary">
             Bu gruplarda boş yer var ve bekleme listesinde sırada bekleyen aday öğrenci/öğrenci
             bulunuyor.
           </p>
@@ -206,14 +211,12 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
               <Link
                 key={item.class_group_id}
                 href={`/bekleme-listesi?classGroupId=${item.class_group_id}`}
-                className="rounded-xl border border-honey-300 bg-panel p-4 text-sm transition hover:bg-fill dark:border-honey-800/60"
+                className="rounded-xl border border-accent/40 bg-surface p-4 text-sm transition hover:bg-surface-muted border-accent/40"
               >
-                <p className="font-semibold text-ink">{item.class_group_name}</p>
-                <p className="mt-1 text-xs text-muted">{item.course_name}</p>
+                <p className="font-semibold text-text-primary">{item.class_group_name}</p>
+                <p className="mt-1 text-xs text-text-secondary">{item.course_name}</p>
                 <p className="mt-2 text-xs">
-                  <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-                    {item.available_seats} boş yer
-                  </span>{" "}
+                  <span className="font-semibold text-success">{item.available_seats} boş yer</span>{" "}
                   · {item.waiting_count} sırada bekleyen
                 </p>
               </Link>
@@ -224,17 +227,17 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
 
       <Card className="mb-6 p-6">
         <details>
-          <summary className="cursor-pointer text-sm font-semibold text-ink">
+          <summary className="cursor-pointer text-sm font-semibold text-text-primary">
             + Bekleme listesine ekle
           </summary>
 
           <form action={addWaitlistEntry} className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="text-xs font-medium text-muted sm:col-span-2">
+            <label className="text-xs font-medium text-text-secondary sm:col-span-2">
               Ders seansı
               <select
                 name="classGroupId"
                 required
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               >
                 <option value="">Seçin</option>
                 {classGroupList.map((group) => (
@@ -246,11 +249,11 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
               </select>
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Mevcut öğrenci
               <select
                 name="studentId"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               >
                 <option value="">—</option>
                 {studentList.map((student) => (
@@ -261,11 +264,11 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
               </select>
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Aday öğrenci
               <select
                 name="prospectId"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               >
                 <option value="">—</option>
                 {prospectList.map((prospect) => (
@@ -276,36 +279,41 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
               </select>
             </label>
 
-            <p className="text-xs text-muted sm:col-span-2">
+            <p className="text-xs text-text-secondary sm:col-span-2">
               Mevcut öğrenci veya aday öğrencilerden yalnızca birini seçin.
             </p>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Öncelik (küçük sayı önce çağrılır)
               <input
                 name="priority"
                 type="number"
                 defaultValue={0}
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Başvuru tarihi
               <input
                 name="applicationDate"
                 type="date"
                 defaultValue={getTodayInIstanbul()}
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
             <fieldset className="sm:col-span-2">
-              <legend className="text-xs font-medium text-muted">Tercih edilen günler</legend>
+              <legend className="text-xs font-medium text-text-secondary">
+                Tercih edilen günler
+              </legend>
 
               <div className="mt-2 flex flex-wrap gap-3">
                 {Object.entries(weekdayLabels).map(([value, label]) => (
-                  <label key={value} className="flex items-center gap-1.5 text-xs text-ink">
+                  <label
+                    key={value}
+                    className="flex items-center gap-1.5 text-xs text-text-primary"
+                  >
                     <input type="checkbox" name="preferredWeekdays" value={value} />
                     {label}
                   </label>
@@ -313,37 +321,37 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
               </div>
             </fieldset>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Tercih edilen başlangıç saati (opsiyonel)
               <input
                 name="preferredTimeStart"
                 type="time"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Tercih edilen bitiş saati (opsiyonel)
               <input
                 name="preferredTimeEnd"
                 type="time"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="text-xs font-medium text-muted sm:col-span-2">
+            <label className="text-xs font-medium text-text-secondary sm:col-span-2">
               Not
               <textarea
                 name="notes"
                 rows={2}
-                className="mt-1 block w-full resize-y rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
             <div className="sm:col-span-2">
               <button
                 type="submit"
-                className="rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
               >
                 Bekleme listesine ekle
               </button>
@@ -363,8 +371,8 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
             }
             className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
               status === filter.value
-                ? "bg-terra-700 text-white"
-                : "border border-line text-ink hover:bg-fill"
+                ? "bg-primary text-on-primary"
+                : "border border-border text-text-primary hover:bg-surface-muted"
             }`}
           >
             {filter.label}
@@ -374,7 +382,7 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
         {classGroupId && (
           <Link
             href={`/bekleme-listesi${status ? `?status=${status}` : ""}`}
-            className="rounded-full border border-line px-3 py-1.5 text-xs font-medium text-muted transition hover:bg-fill"
+            className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:bg-surface-muted"
           >
             Grup filtresini temizle ✕
           </Link>
@@ -383,7 +391,7 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
 
       <Card className="p-0">
         {entryList.length === 0 ? (
-          <p className="px-6 py-16 text-center text-sm text-muted">
+          <p className="px-6 py-16 text-center text-sm text-text-secondary">
             Bu filtrede bekleme listesi kaydı yok.
           </p>
         ) : (
@@ -398,23 +406,26 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
               const prospectConverted = Boolean(entry.prospect?.converted_student_id);
 
               return (
-                <div key={entry.id} className="rounded-xl border border-line p-4">
+                <div key={entry.id} className="rounded-xl border border-border p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-ink">
+                      <p className="text-sm font-semibold text-text-primary">
                         {personName}{" "}
                         <StatusBadge label={isProspect ? "Aday" : "Öğrenci"} tone="neutral" />
                       </p>
-                      <p className="mt-1 text-xs text-muted">
+                      <p className="mt-1 text-xs text-text-secondary">
                         {entry.class_group?.course?.name ?? "Ders bilgisi yok"} —{" "}
                         {entry.class_group?.name ?? "Seans bilgisi yok"}
                       </p>
                     </div>
 
-                    <StatusBadge label={statusLabels[entry.status]} tone={statusTones[entry.status]} />
+                    <StatusBadge
+                      label={statusLabels[entry.status]}
+                      tone={statusTones[entry.status]}
+                    />
                   </div>
 
-                  <p className="mt-2 text-xs text-muted">
+                  <p className="mt-2 text-xs text-text-secondary">
                     Öncelik: {entry.priority} · Başvuru: {formatDate(entry.application_date)}
                     {entry.preferred_weekdays.length > 0 &&
                       ` · Tercih: ${entry.preferred_weekdays.map((d) => weekdayLabels[d]).join(", ")}`}
@@ -422,10 +433,14 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
                       ` ${entry.preferred_time_start.slice(0, 5)}–${entry.preferred_time_end?.slice(0, 5) ?? ""}`}
                   </p>
 
-                  {entry.notes && <p className="mt-2 text-xs text-muted">Not: {entry.notes}</p>}
+                  {entry.notes && (
+                    <p className="mt-2 text-xs text-text-secondary">Not: {entry.notes}</p>
+                  )}
 
                   {entry.decline_reason && (
-                    <p className="mt-2 text-xs text-muted">Gerekçe: {entry.decline_reason}</p>
+                    <p className="mt-2 text-xs text-text-secondary">
+                      Gerekçe: {entry.decline_reason}
+                    </p>
                   )}
 
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -435,7 +450,7 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
                           <input type="hidden" name="entryId" value={entry.id} />
                           <button
                             type="submit"
-                            className="rounded-lg bg-terra-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-terra-700/90"
+                            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary transition hover:bg-primary-hover"
                           >
                             Teklif ver
                           </button>
@@ -446,7 +461,7 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
                           <input type="hidden" name="reason" value="Admin tarafından kaldırıldı" />
                           <button
                             type="submit"
-                            className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                           >
                             İptal et
                           </button>
@@ -461,7 +476,7 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
                           <input type="hidden" name="resolution" value="accepted" />
                           <button
                             type="submit"
-                            className="rounded-lg bg-terra-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-terra-700/90"
+                            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary transition hover:bg-primary-hover"
                           >
                             Kabul edildi
                           </button>
@@ -474,11 +489,11 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
                             name="declineReason"
                             placeholder="Reddetme nedeni"
                             required
-                            className="rounded-lg border border-line bg-panel px-2 py-1.5 text-xs outline-none focus:border-terra-500"
+                            className="rounded-lg border border-border bg-surface px-2 py-1.5 text-xs outline-none focus:border-primary"
                           />
                           <button
                             type="submit"
-                            className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                           >
                             Reddedildi
                           </button>
@@ -489,7 +504,7 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
                           <input type="hidden" name="resolution" value="expired" />
                           <button
                             type="submit"
-                            className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                           >
                             Süresi doldu
                           </button>
@@ -500,7 +515,7 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
                           <input type="hidden" name="reason" value="Admin tarafından kaldırıldı" />
                           <button
                             type="submit"
-                            className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                           >
                             İptal et
                           </button>
@@ -513,24 +528,27 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
                         {isProspect && !prospectConverted ? (
                           <Link
                             href={`/aday-ogrenciler/${entry.prospect!.id}`}
-                            className="rounded-lg bg-terra-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-terra-700/90"
+                            className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary transition hover:bg-primary-hover"
                           >
                             Önce öğrenciye dönüştür →
                           </Link>
                         ) : (
-                          <form action={enrollFromWaitlist} className="flex flex-wrap items-end gap-2">
+                          <form
+                            action={enrollFromWaitlist}
+                            className="flex flex-wrap items-end gap-2"
+                          >
                             <input type="hidden" name="entryId" value={entry.id} />
-                            <label className="text-xs font-medium text-muted">
+                            <label className="text-xs font-medium text-text-secondary">
                               Kayıt başlangıcı
                               <input
                                 name="startsOn"
                                 type="date"
                                 required
                                 defaultValue={getTodayInIstanbul()}
-                                className="mt-1 block rounded-lg border border-line bg-panel px-2 py-1.5 text-xs outline-none focus:border-terra-500"
+                                className="mt-1 block rounded-lg border border-border bg-surface px-2 py-1.5 text-xs outline-none focus:border-primary"
                               />
                             </label>
-                            <label className="text-xs font-medium text-muted">
+                            <label className="text-xs font-medium text-text-secondary">
                               Aylık ücret
                               <input
                                 name="listMonthlyFee"
@@ -542,10 +560,10 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
                                     : ""
                                 }
                                 placeholder="0.00"
-                                className="mt-1 block w-24 rounded-lg border border-line bg-panel px-2 py-1.5 text-xs outline-none focus:border-terra-500"
+                                className="mt-1 block w-24 rounded-lg border border-border bg-surface px-2 py-1.5 text-xs outline-none focus:border-primary"
                               />
                             </label>
-                            <label className="text-xs font-medium text-muted">
+                            <label className="text-xs font-medium text-text-secondary">
                               Vade günü
                               <input
                                 name="dueDay"
@@ -553,12 +571,12 @@ export default async function WaitlistPage({ searchParams }: WaitlistPageProps) 
                                 min={1}
                                 max={28}
                                 defaultValue={5}
-                                className="mt-1 block w-16 rounded-lg border border-line bg-panel px-2 py-1.5 text-xs outline-none focus:border-terra-500"
+                                className="mt-1 block w-16 rounded-lg border border-border bg-surface px-2 py-1.5 text-xs outline-none focus:border-primary"
                               />
                             </label>
                             <button
                               type="submit"
-                              className="rounded-lg bg-terra-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-terra-700/90"
+                              className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-on-primary transition hover:bg-primary-hover"
                             >
                               Derse kaydet
                             </button>

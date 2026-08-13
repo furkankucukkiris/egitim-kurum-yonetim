@@ -178,13 +178,17 @@ export async function enrollFromWaitlist(formData: FormData) {
   const dueDay = readText(formData, "dueDay");
 
   if (!startsOn) {
-    redirect(`/bekleme-listesi?error=${encodeURIComponent("Kayıt başlangıç tarihi seçilmelidir.")}`);
+    redirect(
+      `/bekleme-listesi?error=${encodeURIComponent("Kayıt başlangıç tarihi seçilmelidir.")}`,
+    );
   }
 
   const fee = parseMoney(listMonthlyFee);
 
   if (fee === null || fee < 0) {
-    redirect(`/bekleme-listesi?error=${encodeURIComponent("Geçerli bir aylık ücret girilmelidir.")}`);
+    redirect(
+      `/bekleme-listesi?error=${encodeURIComponent("Geçerli bir aylık ücret girilmelidir.")}`,
+    );
   }
 
   const supabase = await createClient();

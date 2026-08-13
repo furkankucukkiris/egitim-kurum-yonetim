@@ -8,9 +8,7 @@ type LoginPageProps = {
   }>;
 };
 
-export default async function LoginPage({
-  searchParams,
-}: LoginPageProps) {
+export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { error } = await searchParams;
 
   const supabase = await createClient();
@@ -21,60 +19,67 @@ export default async function LoginPage({
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-surface px-4 py-10">
-      <div className="w-full max-w-md rounded-3xl border border-line bg-panel p-7 shadow-sm">
-        <div className="mb-6 grid h-12 w-12 place-items-center rounded-2xl bg-honey-500 font-black text-brand-900">
+    <main className="grid min-h-screen place-items-center bg-background px-4 py-10">
+      <div className="w-full max-w-md rounded-3xl border border-border bg-surface p-7 shadow-sm">
+        <div className="mb-6 grid h-12 w-12 place-items-center rounded-2xl bg-accent font-black text-on-accent">
           ŞS
         </div>
 
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-honey-700 dark:text-honey-500">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent-strong">
           Güvenli giriş
         </p>
 
-        <h1 className="mt-3 text-2xl font-bold">
-          Kurum hesabı
-        </h1>
+        <h1 className="mt-3 text-2xl font-bold text-text-primary">Kurum hesabı</h1>
 
-        <p className="mt-2 text-sm leading-6 text-muted">
-          Kurum yönetim sistemine erişmek için e-posta ve parolanızla
-          giriş yapın.
+        <p className="mt-2 text-sm leading-6 text-text-secondary">
+          Kurum yönetim sistemine erişmek için e-posta ve parolanızla giriş yapın.
         </p>
 
         {error && (
-          <div className="mt-5 rounded-xl bg-rose-50 dark:bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-400">
-            {error}
+          <div className="mt-5 flex items-start gap-2 rounded-xl bg-danger-soft p-3 text-sm text-danger">
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="mt-0.5 h-4 w-4 shrink-0"
+              aria-hidden
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm0-11a1 1 0 0 1 1 1v4a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Zm0 8a1.1 1.1 0 1 1 0-2.2 1.1 1.1 0 0 1 0 2.2Z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>{error}</span>
           </div>
         )}
 
         <form action={login} className="mt-6 space-y-4">
-          <label className="block text-sm font-medium">
+          <label className="block text-sm font-medium text-text-primary">
             E-posta
-
             <input
               name="email"
               type="email"
               required
               autoComplete="email"
-              className="mt-2 w-full rounded-xl border border-line px-4 py-3 outline-none focus:border-terra-500"
+              className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-text-primary outline-none placeholder:text-text-disabled focus:border-primary focus-visible:ring-2 focus-visible:ring-focus-ring"
             />
           </label>
 
-          <label className="block text-sm font-medium">
+          <label className="block text-sm font-medium text-text-primary">
             Parola
-
             <input
               name="password"
               type="password"
               required
               minLength={8}
               autoComplete="current-password"
-              className="mt-2 w-full rounded-xl border border-line px-4 py-3 outline-none focus:border-terra-500"
+              className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-text-primary outline-none placeholder:text-text-disabled focus:border-primary focus-visible:ring-2 focus-visible:ring-focus-ring"
             />
           </label>
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 font-semibold text-white transition hover:bg-terra-700/90"
+            className="w-full rounded-xl border border-primary bg-primary px-4 py-3 font-semibold text-on-primary transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Giriş yap
           </button>

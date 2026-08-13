@@ -42,9 +42,7 @@ type BankDepositRow = {
   bank_accounts: { bank_name: string; account_name: string | null } | null;
 };
 
-export default async function CashBankSettingsPage({
-  searchParams,
-}: CashBankPageProps) {
+export default async function CashBankSettingsPage({ searchParams }: CashBankPageProps) {
   const profile = await requireRole(["admin"]);
   const params = await searchParams;
 
@@ -55,10 +53,7 @@ export default async function CashBankSettingsPage({
     { data: bankAccounts, error: bankAccountsError },
     { data: recentDeposits, error: depositsError },
   ] = await Promise.all([
-    supabase
-      .from("cash_accounts")
-      .select("id, name, is_active")
-      .order("name"),
+    supabase.from("cash_accounts").select("id, name, is_active").order("name"),
     supabase
       .from("bank_accounts")
       .select("id, bank_name, account_name, iban, is_active")
@@ -111,10 +106,10 @@ export default async function CashBankSettingsPage({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="p-6">
-          <h2 className="mb-4 text-base font-semibold text-ink">Kasa Hesapları</h2>
+          <h2 className="mb-4 text-base font-semibold text-text-primary">Kasa Hesapları</h2>
 
           {accounts.length === 0 ? (
-            <p className="mb-4 text-sm text-muted">Henüz kasa hesabı yok.</p>
+            <p className="mb-4 text-sm text-text-secondary">Henüz kasa hesabı yok.</p>
           ) : (
             <ul className="mb-4 divide-y divide-line">
               {accounts.map((account) => {
@@ -125,16 +120,16 @@ export default async function CashBankSettingsPage({
                     <div>
                       <Link
                         href={`/kurum-ayarlari/kasa-banka/${account.id}`}
-                        className="font-medium text-ink hover:underline"
+                        className="font-medium text-text-primary hover:underline"
                       >
                         {account.name}
                       </Link>
 
-                      <div className="mt-1 flex items-center gap-2 text-xs text-muted">
+                      <div className="mt-1 flex items-center gap-2 text-xs text-text-secondary">
                         <span>Bakiye: {formatTry(info?.balance ?? 0)}</span>
 
                         {info && info.undepositedTotal > 0 && (
-                          <span className="text-honey-700 dark:text-honey-500">
+                          <span className="text-accent-strong">
                             · Yatırılmayı bekleyen: {formatTry(info.undepositedTotal)}
                           </span>
                         )}
@@ -145,11 +140,15 @@ export default async function CashBankSettingsPage({
 
                     <form action={setCashAccountActive}>
                       <input type="hidden" name="cashAccountId" value={account.id} />
-                      <input type="hidden" name="isActive" value={(!account.is_active).toString()} />
+                      <input
+                        type="hidden"
+                        name="isActive"
+                        value={(!account.is_active).toString()}
+                      />
 
                       <button
                         type="submit"
-                        className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                        className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                       >
                         {account.is_active ? "Pasife al" : "Aktifleştir"}
                       </button>
@@ -161,7 +160,7 @@ export default async function CashBankSettingsPage({
           )}
 
           <form action={createCashAccount} className="flex items-end gap-2">
-            <label className="flex-1 text-xs font-medium text-muted">
+            <label className="flex-1 text-xs font-medium text-text-secondary">
               Yeni kasa hesabı
               <input
                 name="name"
@@ -169,13 +168,13 @@ export default async function CashBankSettingsPage({
                 required
                 minLength={2}
                 placeholder="Ör. Ana Kasa"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
             <button
               type="submit"
-              className="rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
             >
               Ekle
             </button>
@@ -183,21 +182,21 @@ export default async function CashBankSettingsPage({
         </Card>
 
         <Card className="p-6">
-          <h2 className="mb-4 text-base font-semibold text-ink">Banka Hesapları</h2>
+          <h2 className="mb-4 text-base font-semibold text-text-primary">Banka Hesapları</h2>
 
           {banks.length === 0 ? (
-            <p className="mb-4 text-sm text-muted">Henüz banka hesabı yok.</p>
+            <p className="mb-4 text-sm text-text-secondary">Henüz banka hesabı yok.</p>
           ) : (
             <ul className="mb-4 divide-y divide-line">
               {banks.map((bank) => (
                 <li key={bank.id} className="flex items-center justify-between gap-3 py-3">
                   <div>
-                    <p className="font-medium text-ink">
+                    <p className="font-medium text-text-primary">
                       {bank.bank_name}
                       {bank.account_name ? ` — ${bank.account_name}` : ""}
                     </p>
 
-                    <div className="mt-1 flex items-center gap-2 text-xs text-muted">
+                    <div className="mt-1 flex items-center gap-2 text-xs text-text-secondary">
                       {bank.iban && <span className="font-mono">{bank.iban}</span>}
                       {!bank.is_active && <StatusBadge label="Pasif" tone="neutral" />}
                     </div>
@@ -209,7 +208,7 @@ export default async function CashBankSettingsPage({
 
                     <button
                       type="submit"
-                      className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                      className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                     >
                       {bank.is_active ? "Pasife al" : "Aktifleştir"}
                     </button>
@@ -221,7 +220,7 @@ export default async function CashBankSettingsPage({
 
           <form action={createBankAccount} className="space-y-2">
             <div className="flex gap-2">
-              <label className="flex-1 text-xs font-medium text-muted">
+              <label className="flex-1 text-xs font-medium text-text-secondary">
                 Banka adı
                 <input
                   name="bankName"
@@ -229,34 +228,34 @@ export default async function CashBankSettingsPage({
                   required
                   minLength={2}
                   placeholder="Ör. Ziraat Bankası"
-                  className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                 />
               </label>
 
-              <label className="flex-1 text-xs font-medium text-muted">
+              <label className="flex-1 text-xs font-medium text-text-secondary">
                 Hesap adı
                 <input
                   name="accountName"
                   type="text"
                   placeholder="Ör. Kurum Cari"
-                  className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                 />
               </label>
             </div>
 
-            <label className="block text-xs font-medium text-muted">
+            <label className="block text-xs font-medium text-text-secondary">
               IBAN
               <input
                 name="iban"
                 type="text"
                 placeholder="TR.."
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm font-mono outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm font-mono outline-none transition focus:border-primary"
               />
             </label>
 
             <button
               type="submit"
-              className="rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
             >
               Ekle
             </button>
@@ -265,19 +264,19 @@ export default async function CashBankSettingsPage({
       </div>
 
       <Card className="mt-6 p-6">
-        <h2 className="mb-1 text-base font-semibold text-ink">Son Banka Yatırımları</h2>
+        <h2 className="mb-1 text-base font-semibold text-text-primary">Son Banka Yatırımları</h2>
 
-        <p className="mb-4 text-xs leading-5 text-muted">
+        <p className="mb-4 text-xs leading-5 text-text-secondary">
           Yeni yatırım oluşturmak için kasa hesabının detay sayfasına gidin.
         </p>
 
         {deposits.length === 0 ? (
-          <p className="text-sm text-muted">Henüz bir yatırım kaydı yok.</p>
+          <p className="text-sm text-text-secondary">Henüz bir yatırım kaydı yok.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
+                <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
                   <th className="py-2 pr-4">Tarih</th>
                   <th className="py-2 pr-4">Kasa</th>
                   <th className="py-2 pr-4">Banka</th>
@@ -288,8 +287,8 @@ export default async function CashBankSettingsPage({
 
               <tbody>
                 {deposits.map((deposit) => (
-                  <tr key={deposit.id} className="border-b border-line/60">
-                    <td className="py-3 pr-4 whitespace-nowrap text-xs text-muted">
+                  <tr key={deposit.id} className="border-b border-border/60">
+                    <td className="py-3 pr-4 whitespace-nowrap text-xs text-text-secondary">
                       {formatDate(deposit.deposited_at)}
                     </td>
 
@@ -302,7 +301,7 @@ export default async function CashBankSettingsPage({
                         : ""}
                     </td>
 
-                    <td className="py-3 pr-4 font-semibold text-ink">
+                    <td className="py-3 pr-4 font-semibold text-text-primary">
                       {formatTry(deposit.amount)}
                     </td>
 
@@ -312,12 +311,12 @@ export default async function CashBankSettingsPage({
                           href={receiptUrls[deposit.receipt_path]}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs font-medium text-brand-700 hover:underline dark:text-brand-100"
+                          className="text-xs font-medium text-primary hover:underline text-primary"
                         >
                           Görüntüle
                         </a>
                       ) : (
-                        <span className="text-xs text-muted">—</span>
+                        <span className="text-xs text-text-secondary">—</span>
                       )}
                     </td>
                   </tr>
@@ -328,9 +327,9 @@ export default async function CashBankSettingsPage({
         )}
       </Card>
 
-      <p className="mt-4 text-xs text-muted">
-        Kurum: {profile.organizationName} — kasa hareketleri ve sayım/düzeltme
-        için bir kasa hesabına tıklayın.
+      <p className="mt-4 text-xs text-text-secondary">
+        Kurum: {profile.organizationName} — kasa hareketleri ve sayım/düzeltme için bir kasa
+        hesabına tıklayın.
       </p>
     </>
   );

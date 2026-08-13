@@ -8,12 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 export type AttendanceEntry = {
   student_id: string;
   status:
-    | "present"
-    | "absent"
-    | "excused"
-    | "makeup_due"
-    | "makeup_completed"
-    | "institution_cancelled";
+    "present" | "absent" | "excused" | "makeup_due" | "makeup_completed" | "institution_cancelled";
   note?: string;
   notify_guardian?: boolean;
 };
@@ -26,9 +21,7 @@ export async function markAttendance(formData: FormData) {
   const entriesRaw = readText(formData, "entries");
 
   if (!lessonSessionId) {
-    redirect(
-      `/yoklama?date=${date}&error=${encodeURIComponent("Oturum bilgisi bulunamadı.")}`,
-    );
+    redirect(`/yoklama?date=${date}&error=${encodeURIComponent("Oturum bilgisi bulunamadı.")}`);
   }
 
   let entries: AttendanceEntry[];
@@ -57,16 +50,12 @@ export async function markAttendance(formData: FormData) {
   if (error) {
     console.error("Yoklama kaydedilemedi:", error);
 
-    redirect(
-      `/yoklama?date=${date}&error=${encodeURIComponent(error.message)}`,
-    );
+    redirect(`/yoklama?date=${date}&error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath("/yoklama");
 
-  redirect(
-    `/yoklama?date=${date}&success=${encodeURIComponent("Yoklama kaydedildi.")}`,
-  );
+  redirect(`/yoklama?date=${date}&success=${encodeURIComponent("Yoklama kaydedildi.")}`);
 }
 
 export async function lockSessionAttendance(formData: FormData) {
@@ -76,9 +65,7 @@ export async function lockSessionAttendance(formData: FormData) {
   const date = readText(formData, "date");
 
   if (!lessonSessionId) {
-    redirect(
-      `/yoklama?date=${date}&error=${encodeURIComponent("Oturum bilgisi bulunamadı.")}`,
-    );
+    redirect(`/yoklama?date=${date}&error=${encodeURIComponent("Oturum bilgisi bulunamadı.")}`);
   }
 
   const supabase = await createClient();
@@ -90,16 +77,12 @@ export async function lockSessionAttendance(formData: FormData) {
   if (error) {
     console.error("Yoklama kilitlenemedi:", error);
 
-    redirect(
-      `/yoklama?date=${date}&error=${encodeURIComponent(error.message)}`,
-    );
+    redirect(`/yoklama?date=${date}&error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath("/yoklama");
 
-  redirect(
-    `/yoklama?date=${date}&success=${encodeURIComponent("Yoklama kilitlendi.")}`,
-  );
+  redirect(`/yoklama?date=${date}&success=${encodeURIComponent("Yoklama kilitlendi.")}`);
 }
 
 export async function unlockSessionAttendance(formData: FormData) {
@@ -110,9 +93,7 @@ export async function unlockSessionAttendance(formData: FormData) {
   const reason = readText(formData, "reason");
 
   if (!lessonSessionId) {
-    redirect(
-      `/yoklama?date=${date}&error=${encodeURIComponent("Oturum bilgisi bulunamadı.")}`,
-    );
+    redirect(`/yoklama?date=${date}&error=${encodeURIComponent("Oturum bilgisi bulunamadı.")}`);
   }
 
   if (reason.length < 3) {
@@ -133,16 +114,12 @@ export async function unlockSessionAttendance(formData: FormData) {
   if (error) {
     console.error("Yoklama kilidi açılamadı:", error);
 
-    redirect(
-      `/yoklama?date=${date}&error=${encodeURIComponent(error.message)}`,
-    );
+    redirect(`/yoklama?date=${date}&error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath("/yoklama");
 
-  redirect(
-    `/yoklama?date=${date}&success=${encodeURIComponent("Yoklama kilidi açıldı.")}`,
-  );
+  redirect(`/yoklama?date=${date}&success=${encodeURIComponent("Yoklama kilidi açıldı.")}`);
 }
 
 function readText(formData: FormData, name: string) {

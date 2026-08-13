@@ -30,16 +30,16 @@ export async function createCashAccount(formData: FormData) {
 
     redirect(
       `/kurum-ayarlari/kasa-banka?error=${encodeURIComponent(
-        error.code === "23505" ? "Bu adla bir kasa hesabı zaten var." : "Kasa hesabı oluşturulamadı.",
+        error.code === "23505"
+          ? "Bu adla bir kasa hesabı zaten var."
+          : "Kasa hesabı oluşturulamadı.",
       )}`,
     );
   }
 
   revalidatePath("/kurum-ayarlari/kasa-banka");
 
-  redirect(
-    `/kurum-ayarlari/kasa-banka?success=${encodeURIComponent("Kasa hesabı oluşturuldu.")}`,
-  );
+  redirect(`/kurum-ayarlari/kasa-banka?success=${encodeURIComponent("Kasa hesabı oluşturuldu.")}`);
 }
 
 export async function setCashAccountActive(formData: FormData) {
@@ -111,9 +111,7 @@ export async function createBankAccount(formData: FormData) {
 
   revalidatePath("/kurum-ayarlari/kasa-banka");
 
-  redirect(
-    `/kurum-ayarlari/kasa-banka?success=${encodeURIComponent("Banka hesabı oluşturuldu.")}`,
-  );
+  redirect(`/kurum-ayarlari/kasa-banka?success=${encodeURIComponent("Banka hesabı oluşturuldu.")}`);
 }
 
 export async function setBankAccountActive(formData: FormData) {
@@ -160,9 +158,7 @@ export async function createBankDeposit(formData: FormData) {
   const redirectBase = `/kurum-ayarlari/kasa-banka/${cashAccountId}`;
 
   if (!cashAccountId || !bankAccountId) {
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent("Kasa ve banka hesabı seçilmelidir.")}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent("Kasa ve banka hesabı seçilmelidir.")}`);
   }
 
   if (movementIds.length === 0) {
@@ -172,9 +168,7 @@ export async function createBankDeposit(formData: FormData) {
   }
 
   if (!depositedAt) {
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent("Yatırım tarihi seçilmelidir.")}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent("Yatırım tarihi seçilmelidir.")}`);
   }
 
   const supabase = await createClient();
@@ -194,7 +188,8 @@ export async function createBankDeposit(formData: FormData) {
       );
     }
 
-    const extension = receiptFile.type === "application/pdf" ? "pdf" : receiptFile.type.split("/")[1];
+    const extension =
+      receiptFile.type === "application/pdf" ? "pdf" : receiptFile.type.split("/")[1];
     const path = `${profile.organizationId}/${Date.now()}-makbuz.${extension}`;
 
     const { error: uploadError } = await supabase.storage
@@ -228,19 +223,13 @@ export async function createBankDeposit(formData: FormData) {
       await supabase.storage.from("bank-deposit-receipts").remove([receiptPath]);
     }
 
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent(
-        getDatabaseErrorMessage(error.message),
-      )}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath(`/kurum-ayarlari/kasa-banka/${cashAccountId}`);
   revalidatePath("/kurum-ayarlari/kasa-banka");
 
-  redirect(
-    `${redirectBase}?success=${encodeURIComponent("Banka yatırımı kaydedildi.")}`,
-  );
+  redirect(`${redirectBase}?success=${encodeURIComponent("Banka yatırımı kaydedildi.")}`);
 }
 
 export async function recordCashCountAdjustment(formData: FormData) {
@@ -253,15 +242,11 @@ export async function recordCashCountAdjustment(formData: FormData) {
   const redirectBase = `/kurum-ayarlari/kasa-banka/${cashAccountId}`;
 
   if (countedAmount === null || countedAmount < 0) {
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent("Geçerli bir sayım tutarı girin.")}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent("Geçerli bir sayım tutarı girin.")}`);
   }
 
   if (reason.length < 3) {
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent("Sayım farkı için bir açıklama girin.")}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent("Sayım farkı için bir açıklama girin.")}`);
   }
 
   const supabase = await createClient();
@@ -275,9 +260,7 @@ export async function recordCashCountAdjustment(formData: FormData) {
   if (error) {
     console.error("Kasa sayımı kaydedilemedi:", error);
 
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   const result = (data ?? [])[0] as { delta: number } | undefined;
@@ -304,9 +287,7 @@ export async function reverseCashMovement(formData: FormData) {
   const redirectBase = `/kurum-ayarlari/kasa-banka/${cashAccountId}`;
 
   if (reason.length < 3) {
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent("Ters kayıt için bir açıklama girin.")}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent("Ters kayıt için bir açıklama girin.")}`);
   }
 
   const supabase = await createClient();
@@ -319,17 +300,13 @@ export async function reverseCashMovement(formData: FormData) {
   if (error) {
     console.error("Ters kayıt oluşturulamadı:", error);
 
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath(`/kurum-ayarlari/kasa-banka/${cashAccountId}`);
   revalidatePath("/kurum-ayarlari/kasa-banka");
 
-  redirect(
-    `${redirectBase}?success=${encodeURIComponent("Ters kayıt oluşturuldu.")}`,
-  );
+  redirect(`${redirectBase}?success=${encodeURIComponent("Ters kayıt oluşturuldu.")}`);
 }
 
 function readText(formData: FormData, name: string) {

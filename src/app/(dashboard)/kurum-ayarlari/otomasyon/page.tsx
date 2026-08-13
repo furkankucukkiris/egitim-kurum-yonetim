@@ -51,9 +51,7 @@ export default async function AutomationSettingsPage({
 
   const { data: organization, error: organizationError } = await supabase
     .from("organizations")
-    .select(
-      "monthly_automation_enabled, sessions_generation_day, accruals_generation_day",
-    )
+    .select("monthly_automation_enabled, sessions_generation_day, accruals_generation_day")
     .eq("id", profile.organizationId)
     .single();
 
@@ -79,15 +77,12 @@ export default async function AutomationSettingsPage({
       <SettingsAlert success={params.success} error={params.error} />
 
       <Card className="mb-6 max-w-xl p-6">
-        <h2 className="mb-1 text-base font-semibold text-ink">
-          Otomatik üretim ayarları
-        </h2>
+        <h2 className="mb-1 text-base font-semibold text-text-primary">Otomatik üretim ayarları</h2>
 
-        <p className="mb-5 text-xs leading-5 text-muted">
-          Her gün kontrol edilir; kurumun yerel tarihinde ayın bu gününe
-          gelindiğinde, gelecek ayın kayıtları otomatik oluşturulur. Elle
-          oluşturma butonları (Yoklama ve Ödemeler ekranlarında) acil
-          durum yedeği olarak çalışmaya devam eder.
+        <p className="mb-5 text-xs leading-5 text-text-secondary">
+          Her gün kontrol edilir; kurumun yerel tarihinde ayın bu gününe gelindiğinde, gelecek ayın
+          kayıtları otomatik oluşturulur. Elle oluşturma butonları (Yoklama ve Ödemeler
+          ekranlarında) acil durum yedeği olarak çalışmaya devam eder.
         </p>
 
         <form action={updateAutomationSettings} className="space-y-5">
@@ -95,17 +90,14 @@ export default async function AutomationSettingsPage({
             <input
               name="enabled"
               type="checkbox"
-              defaultChecked={
-                organization?.monthly_automation_enabled ?? true
-              }
-              className="h-4 w-4 rounded border-line text-terra-700 focus:ring-terra-500/50"
+              defaultChecked={organization?.monthly_automation_enabled ?? true}
+              className="h-4 w-4 rounded border-border text-primary focus:ring-focus-ring"
             />
             Otomatik üretim etkin
           </label>
 
           <label className="block text-sm font-medium">
             Ders oturumu üretim günü
-
             <input
               name="sessionsDay"
               type="number"
@@ -113,18 +105,15 @@ export default async function AutomationSettingsPage({
               max={28}
               required
               defaultValue={organization?.sessions_generation_day ?? 25}
-              className="mt-2 w-32 rounded-xl border border-line bg-panel px-4 py-3 text-sm outline-none transition focus:border-terra-500"
+              className="mt-2 w-32 rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none transition focus:border-primary"
             />
-
-            <span className="mt-2 block text-xs leading-5 text-muted">
-              Her ayın bu gününde, gelecek ayın ders oturumları
-              oluşturulur (1-28 arası).
+            <span className="mt-2 block text-xs leading-5 text-text-secondary">
+              Her ayın bu gününde, gelecek ayın ders oturumları oluşturulur (1-28 arası).
             </span>
           </label>
 
           <label className="block text-sm font-medium">
             Tahakkuk üretim günü
-
             <input
               name="accrualsDay"
               type="number"
@@ -132,18 +121,16 @@ export default async function AutomationSettingsPage({
               max={28}
               required
               defaultValue={organization?.accruals_generation_day ?? 25}
-              className="mt-2 w-32 rounded-xl border border-line bg-panel px-4 py-3 text-sm outline-none transition focus:border-terra-500"
+              className="mt-2 w-32 rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none transition focus:border-primary"
             />
-
-            <span className="mt-2 block text-xs leading-5 text-muted">
-              Her ayın bu gününde, gelecek ayın tahakkukları oluşturulur
-              (1-28 arası).
+            <span className="mt-2 block text-xs leading-5 text-text-secondary">
+              Her ayın bu gününde, gelecek ayın tahakkukları oluşturulur (1-28 arası).
             </span>
           </label>
 
           <button
             type="submit"
-            className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90"
+            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover"
           >
             Kaydet
           </button>
@@ -151,24 +138,19 @@ export default async function AutomationSettingsPage({
       </Card>
 
       <Card className="p-6">
-        <h2 className="mb-1 text-base font-semibold text-ink">
-          Otomasyon geçmişi
-        </h2>
+        <h2 className="mb-1 text-base font-semibold text-text-primary">Otomasyon geçmişi</h2>
 
-        <p className="mb-5 text-xs leading-5 text-muted">
-          Son 20 çalıştırma denemesi (otomatik ve manuel yeniden denemeler
-          dahil).
+        <p className="mb-5 text-xs leading-5 text-text-secondary">
+          Son 20 çalıştırma denemesi (otomatik ve manuel yeniden denemeler dahil).
         </p>
 
         {!jobRuns || jobRuns.length === 0 ? (
-          <p className="text-sm text-muted">
-            Henüz bir otomasyon çalışması yok.
-          </p>
+          <p className="text-sm text-text-secondary">Henüz bir otomasyon çalışması yok.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
+                <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
                   <th className="py-2 pr-4">Tarih</th>
                   <th className="py-2 pr-4">Tür</th>
                   <th className="py-2 pr-4">Dönem</th>
@@ -181,16 +163,14 @@ export default async function AutomationSettingsPage({
 
               <tbody>
                 {(jobRuns as JobRun[]).map((run) => (
-                  <tr key={run.id} className="border-b border-line/60">
-                    <td className="py-3 pr-4 whitespace-nowrap text-xs text-muted">
+                  <tr key={run.id} className="border-b border-border/60">
+                    <td className="py-3 pr-4 whitespace-nowrap text-xs text-text-secondary">
                       {formatDateTime(run.started_at)}
                     </td>
 
                     <td className="py-3 pr-4">{jobTypeLabels[run.job_type]}</td>
 
-                    <td className="py-3 pr-4 whitespace-nowrap">
-                      {formatMonthYear(run.period)}
-                    </td>
+                    <td className="py-3 pr-4 whitespace-nowrap">{formatMonthYear(run.period)}</td>
 
                     <td className="py-3 pr-4">
                       <StatusBadge
@@ -201,38 +181,26 @@ export default async function AutomationSettingsPage({
 
                     <td className="py-3 pr-4 text-xs">
                       {run.status === "failed" && run.error_summary ? (
-                        <span className="text-red-600 dark:text-red-400">
-                          {run.error_summary}
-                        </span>
+                        <span className="text-danger text-danger">{run.error_summary}</span>
                       ) : (
                         formatCounts(run.counts)
                       )}
                     </td>
 
-                    <td className="py-3 pr-4 text-xs text-muted">
-                      {run.triggered_by === "schedule"
-                        ? "Otomatik"
-                        : "Manuel yeniden deneme"}
+                    <td className="py-3 pr-4 text-xs text-text-secondary">
+                      {run.triggered_by === "schedule" ? "Otomatik" : "Manuel yeniden deneme"}
                     </td>
 
                     <td className="py-3">
                       {run.status === "failed" && (
                         <form action={retryAutomationJob}>
-                          <input
-                            type="hidden"
-                            name="jobType"
-                            value={run.job_type}
-                          />
+                          <input type="hidden" name="jobType" value={run.job_type} />
 
-                          <input
-                            type="hidden"
-                            name="period"
-                            value={run.period}
-                          />
+                          <input type="hidden" name="period" value={run.period} />
 
                           <button
                             type="submit"
-                            className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                           >
                             Yeniden dene
                           </button>

@@ -28,32 +28,32 @@ const STATUS_OPTIONS: {
   {
     value: "present",
     label: "Geldi",
-    badgeClass: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-400",
+    badgeClass: "bg-success-soft text-success bg-success-soft text-success",
   },
   {
     value: "absent",
     label: "Gelmedi",
-    badgeClass: "bg-rose-100 text-rose-800 dark:bg-rose-500/15 dark:text-rose-400",
+    badgeClass: "bg-danger-soft text-danger bg-danger-soft text-danger",
   },
   {
     value: "excused",
     label: "Mazeretli",
-    badgeClass: "bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-500",
+    badgeClass: "bg-accent-soft text-accent-strong bg-accent-soft",
   },
   {
     value: "makeup_due",
     label: "Telafi hakkı doğdu",
-    badgeClass: "bg-blue-100 text-blue-800 dark:bg-blue-500/15 dark:text-blue-400",
+    badgeClass: "bg-info-soft text-info bg-info-soft text-info",
   },
   {
     value: "makeup_completed",
     label: "Telafi tamamlandı",
-    badgeClass: "bg-brand-100 text-brand-800 dark:bg-brand-500/15 dark:text-brand-100",
+    badgeClass: "bg-primary-soft text-primary bg-primary-soft/15 text-primary",
   },
   {
     value: "institution_cancelled",
     label: "Kurum kaynaklı iptal",
-    badgeClass: "bg-fill text-muted",
+    badgeClass: "bg-surface-muted text-text-secondary",
   },
 ];
 
@@ -61,7 +61,8 @@ const statusLabel = (status: AttendanceStatus | null) =>
   STATUS_OPTIONS.find((option) => option.value === status)?.label ?? "İşaretlenmedi";
 
 const statusBadgeClass = (status: AttendanceStatus | null) =>
-  STATUS_OPTIONS.find((option) => option.value === status)?.badgeClass ?? "bg-fill text-muted";
+  STATUS_OPTIONS.find((option) => option.value === status)?.badgeClass ??
+  "bg-surface-muted text-text-secondary";
 
 type DraftState = Record<
   string,
@@ -92,7 +93,7 @@ export function AttendanceRoster({
 
   if (students.length === 0) {
     return (
-      <p className="mt-4 rounded-xl border border-dashed border-line bg-fill p-4 text-center text-sm text-muted">
+      <p className="mt-4 rounded-xl border border-dashed border-border bg-surface-muted p-4 text-center text-sm text-text-secondary">
         Bu oturum tarihinde programa aktif kayıtlı öğrenci bulunmuyor.
       </p>
     );
@@ -158,20 +159,20 @@ export function AttendanceRoster({
 
   if (locked) {
     return (
-      <div className="mt-4 border-t border-line pt-4">
-        <div className="mb-3 rounded-xl border border-honey-100 bg-honey-50 p-3 text-sm text-honey-700 dark:border-honey-800/40 dark:bg-honey-500/10 dark:text-honey-500">
+      <div className="mt-4 border-t border-border pt-4">
+        <div className="mb-3 rounded-xl border border-accent/30 bg-accent-soft p-3 text-sm text-accent-strong border-accent/40 bg-accent-soft">
           Bu oturumun yoklaması kilitlendi
-          {lockedByName ? ` (${lockedByName})` : ""}. Değişiklik için
-          yöneticinin kilidi gerekçeyle açması gerekir.
+          {lockedByName ? ` (${lockedByName})` : ""}. Değişiklik için yöneticinin kilidi gerekçeyle
+          açması gerekir.
         </div>
 
         <ul className="space-y-2">
           {students.map((student) => (
             <li
               key={student.studentId}
-              className="flex items-center justify-between gap-3 rounded-xl bg-fill px-3 py-2 text-sm"
+              className="flex items-center justify-between gap-3 rounded-xl bg-surface-muted px-3 py-2 text-sm"
             >
-              <span className="font-medium text-ink">
+              <span className="font-medium text-text-primary">
                 {student.firstName} {student.lastName}
                 {student.isMakeupGuest && <MakeupBadge />}
               </span>
@@ -190,27 +191,26 @@ export function AttendanceRoster({
             {unlockOpen ? (
               <form
                 action={unlockSessionAttendance}
-                className="flex flex-col gap-2 rounded-xl border border-line bg-panel p-3"
+                className="flex flex-col gap-2 rounded-xl border border-border bg-surface p-3"
               >
                 <input type="hidden" name="lessonSessionId" value={sessionId} />
                 <input type="hidden" name="date" value={date} />
 
-                <label className="text-xs font-medium text-muted">
+                <label className="text-xs font-medium text-text-secondary">
                   Kilidi açma gerekçesi
-
                   <input
                     name="reason"
                     required
                     minLength={3}
                     placeholder="ör. öğretmen hatalı işaretlemiş"
-                    className="mt-1 w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-terra-500"
+                    className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-primary"
                   />
                 </label>
 
                 <div className="flex gap-2">
                   <button
                     type="submit"
-                    className="rounded-lg bg-terra-700 px-3 py-1.5 text-xs font-semibold text-white shadow-sm shadow-terra-700/20 hover:bg-terra-700/90"
+                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary shadow-sm hover:bg-primary-hover"
                   >
                     Kilidi aç
                   </button>
@@ -218,7 +218,7 @@ export function AttendanceRoster({
                   <button
                     type="button"
                     onClick={() => setUnlockOpen(false)}
-                    className="rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-muted"
+                    className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary"
                   >
                     Vazgeç
                   </button>
@@ -228,7 +228,7 @@ export function AttendanceRoster({
               <button
                 type="button"
                 onClick={() => setUnlockOpen(true)}
-                className="text-xs font-semibold text-brand-700 underline underline-offset-4 dark:text-brand-100"
+                className="text-xs font-semibold text-primary underline underline-offset-4 text-primary"
               >
                 Kilidi gerekçeyle aç
               </button>
@@ -240,9 +240,9 @@ export function AttendanceRoster({
   }
 
   return (
-    <div className="mt-4 border-t border-line pt-4">
+    <div className="mt-4 border-t border-border pt-4">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-ink">
+        <p className="text-sm font-semibold text-text-primary">
           Yoklama — varsayılan durum “Geldi”, istisnaları işaretleyin
         </p>
 
@@ -250,7 +250,7 @@ export function AttendanceRoster({
           <button
             type="button"
             onClick={markAllPresent}
-            className="rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-brand-700 hover:bg-fill dark:text-brand-100"
+            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-primary hover:bg-surface-muted text-primary"
           >
             Tümünü geldi işaretle
           </button>
@@ -263,12 +263,9 @@ export function AttendanceRoster({
           const isOpen = Boolean(expanded[student.studentId]);
 
           return (
-            <li
-              key={student.studentId}
-              className="rounded-xl border border-line bg-panel p-3"
-            >
+            <li key={student.studentId} className="rounded-xl border border-border bg-surface p-3">
               <div className="flex items-center justify-between gap-3">
-                <span className="font-medium text-ink">
+                <span className="font-medium text-text-primary">
                   {student.firstName} {student.lastName}
                   {student.isMakeupGuest && <MakeupBadge />}
                 </span>
@@ -288,8 +285,8 @@ export function AttendanceRoster({
                       onClick={() => setStatus(student.studentId, "present")}
                       className={`rounded-lg py-3 text-sm font-semibold transition ${
                         entry.status === "present"
-                          ? "bg-emerald-600 text-white"
-                          : "bg-fill text-ink hover:bg-emerald-100 dark:hover:bg-emerald-500/15"
+                          ? "bg-success text-on-primary"
+                          : "bg-surface-muted text-text-primary hover:bg-success-soft dark:hover:bg-success-soft/15"
                       }`}
                     >
                       Geldi
@@ -300,8 +297,8 @@ export function AttendanceRoster({
                       onClick={() => setStatus(student.studentId, "absent")}
                       className={`rounded-lg py-3 text-sm font-semibold transition ${
                         entry.status === "absent"
-                          ? "bg-rose-600 text-white"
-                          : "bg-fill text-ink hover:bg-rose-100 dark:hover:bg-rose-500/15"
+                          ? "bg-danger text-on-primary"
+                          : "bg-surface-muted text-text-primary hover:bg-danger-soft dark:hover:bg-danger-soft/15"
                       }`}
                     >
                       Gelmedi
@@ -316,25 +313,21 @@ export function AttendanceRoster({
                         [student.studentId]: !prev[student.studentId],
                       }))
                     }
-                    className="mt-2 text-xs font-semibold text-brand-700 underline underline-offset-4 dark:text-brand-100"
+                    className="mt-2 text-xs font-semibold text-primary underline underline-offset-4 text-primary"
                   >
                     {isOpen ? "Diğer seçenekleri gizle" : "Diğer durum / not / veli bildirimi"}
                   </button>
 
                   {isOpen && (
-                    <div className="mt-2.5 space-y-2.5 rounded-lg bg-fill p-2.5">
-                      <label className="block text-xs font-medium text-muted">
+                    <div className="mt-2.5 space-y-2.5 rounded-lg bg-surface-muted p-2.5">
+                      <label className="block text-xs font-medium text-text-secondary">
                         Durum
-
                         <select
                           value={entry.status}
                           onChange={(event) =>
-                            setStatus(
-                              student.studentId,
-                              event.target.value as AttendanceStatus,
-                            )
+                            setStatus(student.studentId, event.target.value as AttendanceStatus)
                           }
-                          className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+                          className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
                         >
                           {STATUS_OPTIONS.map((option) => (
                             <option key={option.value} value={option.value}>
@@ -344,28 +337,23 @@ export function AttendanceRoster({
                         </select>
                       </label>
 
-                      <label className="block text-xs font-medium text-muted">
+                      <label className="block text-xs font-medium text-text-secondary">
                         Not (özel bilgi yazmayın)
-
                         <textarea
                           value={entry.note}
-                          onChange={(event) =>
-                            setNote(student.studentId, event.target.value)
-                          }
+                          onChange={(event) => setNote(student.studentId, event.target.value)}
                           rows={2}
                           maxLength={500}
-                          className="mt-1 w-full resize-y rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+                          className="mt-1 w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
                         />
                       </label>
 
-                      <label className="flex items-center gap-2 text-xs font-medium text-muted">
+                      <label className="flex items-center gap-2 text-xs font-medium text-text-secondary">
                         <input
                           type="checkbox"
                           checked={entry.notifyGuardian}
-                          onChange={(event) =>
-                            setNotify(student.studentId, event.target.checked)
-                          }
-                          className="h-4 w-4 rounded border-line"
+                          onChange={(event) => setNotify(student.studentId, event.target.checked)}
+                          className="h-4 w-4 rounded border-border"
                         />
                         Veliye haber verildi
                       </label>
@@ -384,7 +372,7 @@ export function AttendanceRoster({
             type="button"
             disabled={isPending}
             onClick={handleSave}
-            className="rounded-xl bg-terra-700 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90 disabled:opacity-60"
+            className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover disabled:opacity-60"
           >
             {isPending ? "Kaydediliyor…" : "Yoklamayı kaydet"}
           </button>
@@ -396,7 +384,7 @@ export function AttendanceRoster({
 
               <button
                 type="submit"
-                className="rounded-xl border border-line px-4 py-3 text-sm font-semibold text-muted hover:bg-fill"
+                className="rounded-xl border border-border px-4 py-3 text-sm font-semibold text-text-secondary hover:bg-surface-muted"
               >
                 Yoklamayı kilitle
               </button>
@@ -410,7 +398,7 @@ export function AttendanceRoster({
 
 function MakeupBadge() {
   return (
-    <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-800 dark:bg-blue-500/15 dark:text-blue-400">
+    <span className="ml-2 rounded-full bg-info-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-info bg-info-soft text-info">
       Telafi
     </span>
   );

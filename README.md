@@ -882,6 +882,45 @@ beklemeden test etmek için doğrudan
 8. Öğretmen hak edişi
 9. Aylık raporlar
 
+## 12. Test Stratejisi ve CI
+
+Dört katmanlı bir test yaklaşımı var; her katman farklı bir şeyi doğrular, birbirinin yerine geçmez:
+
+| Katman | Ne test eder | Nerede | Nasıl çalıştırılır |
+|---|---|---|---|
+| **Unit** | Saf TypeScript hesap/biçimlendirme fonksiyonları (para ayrıştırma, ISO tarih/ay doğrulama, CSV dışa aktarım satırları) | `src/**/*.test.ts` | `npm test` |
+| **Component** | Kritik formların render/etkileşim davranışı (KVKK anonimleştirme onay kilidi, kayıt formu hassas alanları) | `src/**/*.test.tsx` | `npm test` |
+| **Database integration (pgTAP)** | RPC'ler, RLS politikaları, transaction/rollback davranışı, kurum izolasyonu — **asıl finansal/yetki mantığının çoğu burada yaşıyor**, TS tarafında değil | `supabase/tests/database/*.test.sql` (14 dosya) | `npx supabase start` sonrası `npm run supabase:test` |
+| **E2E (Playwright)** | Admin'in ilk kurulum → zorunlu MFA kurulumu → öğretmen hesabı oluşturma akışı; öğretmenin geçici parolayla giriş → zorunlu parola değişikliği → yalnızca kendi paneli/nav öğelerini görmesi | `e2e/*.spec.ts` | `npm run test:e2e` (yerel Supabase + build gerektirir, `playwright.config.ts` ikisini de otomatik yönetir) |
+
+**Önemli netlik:** İndirim hesabı, tahakkuk üretimi, ödeme/iade/avans dağıtımı gibi asıl finansal mantık TypeScript'te değil Postgres RPC'lerinde yaşıyor (bkz. bölüm 8-10) — bunlar unit test değil, pgTAP paketiyle test ediliyor. TS tarafındaki unit testler yalnızca formatlama/doğrulama/dışa aktarım yardımcılarını (`src/lib/format.ts`, `src/lib/payments/export.ts`, `src/lib/reports/export.ts`) kapsıyor.
+
+**Zorunlu senaryoların pgTAP karşılığı** (hepsi zaten kapsanıyor, ilgili dosya adları):
+
+- Dış kullanıcı kurum oluşturamaz → `bootstrap_first_admin.test.sql`
+- Teacher başka öğretmenin öğrencisini/finans verisini göremez → `role_data_minimization.test.sql`, `role_simplification.test.sql`
+- Mükerrer tahakkuk/oturum oluşmaz, dondurulmuş kayda tahakkuk gitmez → `monthly_generation_automation.test.sql`
+- Kısmi/fazla ödeme ve iade → `payment_refunds_and_advances.test.sql`, `cash_bank_module.test.sql`
+- Yoklama yalnızca dersin öğretmeni/admin tarafından alınır → `attendance_marking.test.sql`
+- Kontenjan ve saat çakışması engellenir → `scheduling_conflict_engine.test.sql`
+- Kurumlar arası veri sızıntısı olmaz → `role_data_minimization.test.sql`, `organizations_direct_write.test.sql`
+
+**Saat/tarih bağımlılığından arındırma:** Testler `pg_sleep` veya gerçek `now()`'ın geçmesini beklemez — ya RPC'ler zaten açık bir tarih parametresi alır (ör. `get_meb_monthly_roster(p_month_start)`) ya da fixture satırlarına doğrudan geçmiş/gelecek `created_at` değerleri yazılıp sınır davranışı öyle test edilir (ör. rate-limit'in 15 dakika penceresi).
+
+### CI (`.github/workflows/ci.yml`)
+
+Beş paralel iş — hiçbiri GitHub secret'ı kullanmıyor (`db-integration` ve `e2e`, `supabase start` ile açılan geçici/yerel bir Docker Supabase'e karşı çalışıyor; anahtarlar o çalıştırmaya özgü, workflow dosyasına hiç yazılmıyor):
+
+1. **lint-and-typecheck** — `npm run lint` + `npm run typecheck`.
+2. **unit** — `npm test` (unit + component, veritabanı gerektirmez, en hızlı iş).
+3. **build** — `npm run build` (placeholder env değerleriyle — hiçbir sayfa build zamanında Supabase'e ağ çağrısı yapmıyor).
+4. **db-integration** — `supabase start` → `supabase db reset` (migration'ların temiz uygulandığının doğrulanması) → `supabase test db` (pgTAP paketinin tamamı).
+5. **e2e** — `supabase start` + `db reset` → Playwright, admin ve öğretmen temel akışları.
+
+Başarısız bir işin nedeni her zaman iş adından ve o işin kendi log'undan anlaşılır (pgTAP açıklayıcı Türkçe assertion mesajları kullanır, Vitest/Playwright varsayılan çıktısı zaten dosya+satır+beklenen/gerçek değeri gösterir).
+
+**Bilinen sınır:** Bu makinede Docker olmadığı için pgTAP paketi ve E2E testleri yazılırken gerçek şema/RPC imzalarına karşı dikkatli statik inceleme yapıldı ama lokal olarak çalıştırılıp doğrulanamadı — CI'daki ilk çalıştırma bunun ilk gerçek kanıtı olacak.
+
 ## Güvenlik notu
 
-`service_role` anahtarını hiçbir zaman `NEXT_PUBLIC_` değişkeninde veya tarayıcı kodunda kullanmayın. Gerçek çocuk/veli verisini taşımadan önce KVKK, veri barındırma bölgesi, yedekleme ve kullanıcı yetkileri ayrıca gözden geçirilmelidir.
+`service_role` anahtarını hiçbir zaman `NEXT_PUBLIC_` değişkeninde veya tarayıcı kodunda kullanmayın. Gerçek çocuk/veli verisini taşımadan önce KVKK, veri barındırma bölgesi, yedekleme ve kullanıcı yetkileri ayrıca gözden geçirilmelidir — bkz. [`docs/guvenlik-kontrol-listesi.md`](docs/guvenlik-kontrol-listesi.md), [`docs/veri-saklama-politikasi.md`](docs/veri-saklama-politikasi.md) ve [`docs/yedekleme-ve-geri-yukleme.md`](docs/yedekleme-ve-geri-yukleme.md).

@@ -48,28 +48,26 @@ export function LogoField({ currentLogoUrl }: { currentLogoUrl: string | null })
 
   return (
     <div className="flex items-center gap-4">
-      <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl border border-line bg-fill">
+      <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border bg-surface-muted">
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={previewUrl} alt="Kurum logosu" className="h-full w-full object-cover" />
         ) : (
-          <span className="text-xs text-muted">Logo yok</span>
+          <span className="text-xs text-text-secondary">Logo yok</span>
         )}
       </div>
 
       <label className="block flex-1 text-sm font-medium">
         Logo
-
         <input
           ref={inputRef}
           type="file"
           name="logo"
           accept="image/png,image/jpeg,image/webp,image/svg+xml"
           onChange={handleChange}
-          className="mt-2 block w-full text-sm text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-fill file:px-3 file:py-2 file:text-sm file:font-semibold file:text-brand-700 dark:file:text-brand-100"
+          className="mt-2 block w-full text-sm text-text-secondary file:mr-3 file:rounded-lg file:border-0 file:bg-surface-muted file:px-3 file:py-2 file:text-sm file:font-semibold file:text-primary"
         />
-
-        <span className="mt-2 block text-xs leading-5 text-muted">
+        <span className="mt-2 block text-xs leading-5 text-text-secondary">
           {processing
             ? "Görsel küçültülüyor..."
             : "PNG, JPEG, WEBP veya SVG. Boş bırakırsan mevcut logo korunur."}

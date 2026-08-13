@@ -29,8 +29,7 @@ export async function generateTeacherCompensation(formData: FormData) {
   }
 
   const result = (data ?? [])[0] as
-    | { created_count: number; existing_count: number; skipped_no_rule_count: number }
-    | undefined;
+    { created_count: number; existing_count: number; skipped_no_rule_count: number } | undefined;
 
   const messageParts = [`${result?.created_count ?? 0} yeni hakediş satırı oluşturuldu.`];
 
@@ -39,7 +38,9 @@ export async function generateTeacherCompensation(formData: FormData) {
   }
 
   if (result && result.skipped_no_rule_count > 0) {
-    messageParts.push(`${result.skipped_no_rule_count} oturum, ücret kuralı bulunamadığı için atlandı.`);
+    messageParts.push(
+      `${result.skipped_no_rule_count} oturum, ücret kuralı bulunamadığı için atlandı.`,
+    );
   }
 
   revalidatePath("/hakedis");
@@ -85,9 +86,7 @@ export async function createCompensationRule(formData: FormData) {
   if (error) {
     console.error("Hakediş kuralı oluşturulamadı:", error);
 
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath(`/hakedis/${teacherId}`);
@@ -118,9 +117,7 @@ export async function endCompensationRule(formData: FormData) {
   if (error) {
     console.error("Hakediş kuralı sonlandırılamadı:", error);
 
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath(`/hakedis/${teacherId}`);
@@ -177,7 +174,9 @@ export async function markCompensationPaid(formData: FormData) {
   revalidatePath("/hakedis");
   revalidatePath(`/hakedis/${teacherId}`);
 
-  redirect(`${redirectTo}?success=${encodeURIComponent(`${data ?? 0} hakediş satırı ödendi olarak işaretlendi.`)}`);
+  redirect(
+    `${redirectTo}?success=${encodeURIComponent(`${data ?? 0} hakediş satırı ödendi olarak işaretlendi.`)}`,
+  );
 }
 
 export async function addCompensationAdjustment(formData: FormData) {
@@ -212,9 +211,7 @@ export async function addCompensationAdjustment(formData: FormData) {
   if (error) {
     console.error("Hakediş düzeltmesi eklenemedi:", error);
 
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath("/hakedis");

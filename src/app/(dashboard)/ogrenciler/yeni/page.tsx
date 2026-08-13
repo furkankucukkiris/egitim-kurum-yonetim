@@ -14,9 +14,7 @@ export default async function NewStudentPage() {
         description="Öğrencinin temel bilgilerini ve birincil veli iletişim bilgilerini kaydedin."
       />
 
-      <StudentForm
-        initialRegistrationDate={today}
-      />
+      <StudentForm initialRegistrationDate={today} />
     </>
   );
 }

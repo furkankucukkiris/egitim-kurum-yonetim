@@ -74,26 +74,26 @@ export default async function MyCompensationPage({ searchParams }: PageProps) {
       <div className="mb-6">
         <Link
           href="/ogretmen-paneli"
-          className="text-xs font-medium text-brand-700 hover:underline dark:text-brand-100"
+          className="text-xs font-medium text-primary hover:underline text-primary"
         >
           ← Programım
         </Link>
       </div>
 
       <form method="get" className="mb-6 flex items-end gap-3">
-        <label className="text-xs font-medium text-muted">
+        <label className="text-xs font-medium text-text-secondary">
           Ay
           <input
             name="month"
             type="month"
             defaultValue={month}
-            className="mt-1 block rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+            className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
           />
         </label>
 
         <button
           type="submit"
-          className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink transition hover:bg-fill"
+          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-muted"
         >
           Görüntüle
         </button>
@@ -101,33 +101,31 @@ export default async function MyCompensationPage({ searchParams }: PageProps) {
 
       <div className="mb-6 grid grid-cols-3 gap-4">
         <Card className="p-4 text-center">
-          <p className="text-xs text-muted">Bekleyen</p>
-          <p className="mt-1 text-lg font-bold text-honey-700 dark:text-honey-500">
+          <p className="text-xs text-text-secondary">Bekleyen</p>
+          <p className="mt-1 text-lg font-bold text-accent-strong">
             {formatTry(pendingTotal)}
           </p>
         </Card>
         <Card className="p-4 text-center">
-          <p className="text-xs text-muted">Onaylı</p>
-          <p className="mt-1 text-lg font-bold text-ink">{formatTry(approvedTotal)}</p>
+          <p className="text-xs text-text-secondary">Onaylı</p>
+          <p className="mt-1 text-lg font-bold text-text-primary">{formatTry(approvedTotal)}</p>
         </Card>
         <Card className="p-4 text-center">
-          <p className="text-xs text-muted">Ödendi</p>
-          <p className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-400">
-            {formatTry(paidTotal)}
-          </p>
+          <p className="text-xs text-text-secondary">Ödendi</p>
+          <p className="mt-1 text-lg font-bold text-success">{formatTry(paidTotal)}</p>
         </Card>
       </div>
 
       <Card className="p-6">
-        <h2 className="mb-4 text-base font-semibold text-ink">{month} dökümü</h2>
+        <h2 className="mb-4 text-base font-semibold text-text-primary">{month} dökümü</h2>
 
         {logs.length === 0 ? (
-          <p className="text-sm text-muted">Bu ay için hakediş kaydı yok.</p>
+          <p className="text-sm text-text-secondary">Bu ay için hakediş kaydı yok.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
+                <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
                   <th className="py-2 pr-4">Tarih</th>
                   <th className="py-2 pr-4">Senaryo</th>
                   <th className="py-2 pr-4 text-right">Tutar</th>
@@ -137,8 +135,8 @@ export default async function MyCompensationPage({ searchParams }: PageProps) {
 
               <tbody>
                 {logs.map((log) => (
-                  <tr key={log.id} className="border-b border-line/60">
-                    <td className="py-3 pr-4 whitespace-nowrap text-xs text-muted">
+                  <tr key={log.id} className="border-b border-border/60">
+                    <td className="py-3 pr-4 whitespace-nowrap text-xs text-text-secondary">
                       {formatDate(log.work_date)}
                     </td>
 
@@ -149,9 +147,7 @@ export default async function MyCompensationPage({ searchParams }: PageProps) {
 
                     <td
                       className={`py-3 pr-4 text-right font-semibold ${
-                        log.direction === 1
-                          ? "text-emerald-700 dark:text-emerald-400"
-                          : "text-rose-700 dark:text-rose-400"
+                        log.direction === 1 ? "text-success" : "text-danger"
                       }`}
                     >
                       {log.direction === 1 ? "+" : "-"}
@@ -175,7 +171,9 @@ export default async function MyCompensationPage({ searchParams }: PageProps) {
         )}
       </Card>
 
-      <p className="mt-4 text-xs text-muted">{profile.fullName} — yalnızca kendi kayıtlarınızı görüntülüyorsunuz.</p>
+      <p className="mt-4 text-xs text-text-secondary">
+        {profile.fullName} — yalnızca kendi kayıtlarınızı görüntülüyorsunuz.
+      </p>
     </>
   );
 }

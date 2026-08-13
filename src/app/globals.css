@@ -3,50 +3,173 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-brand-50: #E7EFF8;
-  --color-brand-100: #C4D8ED;
-  --color-brand-200: #A9C6E5;
-  --color-brand-500: #21466E;
-  --color-brand-700: #15263F;
-  --color-brand-900: #0B1623;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  --color-terra-50: #F8EFEC;
-  --color-terra-100: #EFD8D2;
-  --color-terra-500: #D69C8C;
-  --color-terra-700: #783C2B;
-
-  --color-honey-50: #FEF6E6;
-  --color-honey-100: #FDE5B4;
-  --color-honey-500: #FAB933;
-  --color-honey-700: #956604;
-
-  /* semantic surface tokens — repointed per-theme below */
+  /* semantic tokens — repointed per-theme in :root / :root.dark below */
+  --color-background: var(--background);
   --color-surface: var(--surface);
-  --color-panel: var(--panel);
-  --color-fill: var(--fill);
-  --color-line: var(--line);
-  --color-ink: var(--ink);
-  --color-muted: var(--muted);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
 
-  --shadow-elevated: 0 1px 2px rgb(11 22 35 / 0.04), 0 8px 24px -12px rgb(11 22 35 / 0.16);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-disabled: var(--text-disabled);
+  --color-on-primary: var(--on-primary);
+  --color-on-accent: var(--on-accent);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-strong: var(--accent-strong);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --color-focus-ring: var(--focus-ring);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-text: var(--sidebar-text);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-on-sidebar-active: var(--on-sidebar-active);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+
+  /* legacy aliases — kept only until every page has migrated off them */
+  --color-panel: var(--surface);
+  --color-fill: var(--surface-muted);
+  --color-line: var(--border);
+  --color-ink: var(--text-primary);
+  --color-muted: var(--text-secondary);
+
+  --shadow-elevated: var(--shadow-elevated-value);
 }
 
+/* Açık tema — derin lacivert, soğuk gri, mat altın vurgu. */
 :root {
-  --surface: #F8FAFC;
-  --panel: #FFFFFF;
-  --fill: #E7EFF8;
-  --line: #C4D8ED;
-  --ink: #0B1623;
-  --muted: #64748B;
+  --background: #F4F7FA;
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --surface-muted: #EEF2F6;
+  --surface-hover: #E7EDF3;
+  --border: #D8E0E8;
+  --border-strong: #BCC8D4;
+
+  --text-primary: #172033;
+  --text-secondary: #667085;
+  --text-disabled: #98A2B3;
+  --on-primary: #FFFFFF;
+  --on-accent: #3A2708;
+
+  --primary: #183B5B;
+  --primary-hover: #102E48;
+  --primary-soft: #E8F0F6;
+
+  --accent: #C6923D;
+  --accent-soft: #F7EEDC;
+  --accent-strong: #825A16;
+
+  --success: #237A57;
+  --success-soft: #E8F5EF;
+  --warning: #9A6700;
+  --warning-soft: #FFF4D6;
+  --danger: #B42318;
+  --danger-soft: #FDECEC;
+  --info: #245EA8;
+  --info-soft: #EAF2FC;
+
+  --focus-ring: #245EA8;
+
+  --sidebar: #132A42;
+  --sidebar-hover: #1B3350;
+  --sidebar-active: #C6923D;
+  --sidebar-text: #EAF0F6;
+  --sidebar-muted: #AFC0D0;
+  --on-sidebar-active: #132A42;
+
+  --chart-1: #183B5B;
+  --chart-2: #C6923D;
+  --chart-3: #237A57;
+  --chart-4: #6B7A99;
+  --chart-5: #1E8E8E;
+  --chart-6: #B42318;
+
+  --shadow-elevated-value: 0 1px 2px rgb(23 32 51 / 0.04), 0 8px 24px -12px rgb(23 32 51 / 0.16);
+
+  color-scheme: light;
 }
 
+/* Koyu tema — açık temanın basit tersi değil, kendi yüzey hiyerarşisi. */
 :root.dark {
-  --surface: #0B1623;
-  --panel: #132540;
-  --fill: #1B2E47;
-  --line: #26405F;
-  --ink: #F1F5F9;
-  --muted: #94A3B8;
+  --background: #0C131D;
+  --surface: #121C28;
+  --surface-elevated: #182534;
+  --surface-muted: #1E2C3B;
+  --surface-hover: #253548;
+  --border: #304154;
+  --border-strong: #42566C;
+
+  --text-primary: #F4F7FA;
+  --text-secondary: #A8B3C2;
+  --text-disabled: #778596;
+  --on-primary: #0C131D;
+  --on-accent: #2A1F0C;
+
+  --primary: #7FA9CC;
+  --primary-hover: #9ABBD6;
+  --primary-soft: #1C344A;
+
+  --accent: #D6AC5A;
+  --accent-soft: #392D1A;
+  --accent-strong: #E6C77D;
+
+  --success: #52B788;
+  --success-soft: #17382D;
+  --warning: #E0B45B;
+  --warning-soft: #3A2E18;
+  --danger: #F08080;
+  --danger-soft: #432226;
+  --info: #75A7E8;
+  --info-soft: #1B304B;
+
+  --focus-ring: #7FA9CC;
+
+  --sidebar: #08101A;
+  --sidebar-hover: #101C2B;
+  --sidebar-active: #1D3246;
+  --sidebar-text: #E8EEF5;
+  --sidebar-muted: #91A2B4;
+  --on-sidebar-active: #F4F7FA;
+
+  --chart-1: #7FA9CC;
+  --chart-2: #D6AC5A;
+  --chart-3: #52B788;
+  --chart-4: #9AA7BE;
+  --chart-5: #4FC3C3;
+  --chart-6: #F08080;
+
+  --shadow-elevated-value: 0 1px 2px rgb(0 0 0 / 0.24), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+
+  color-scheme: dark;
 }
 
 * {
@@ -54,19 +177,16 @@
 }
 
 html {
-  background-color: var(--surface);
-  color-scheme: light;
-}
-
-html.dark {
-  color-scheme: dark;
+  background-color: var(--background);
 }
 
 body {
   margin: 0;
-  background-color: var(--surface);
-  color: var(--ink);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -75,4 +195,61 @@ input,
 select,
 textarea {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Focus-visible: belirgin, erişilebilir halka — tüm etkileşimli öğelerde. */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  /* Koyu tema açık olsa bile baskı her zaman beyaz zemin + koyu metin. */
+  html,
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .print-form {
+    border: none !important;
+    box-shadow: none !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .print-form * {
+    background-color: transparent !important;
+    color: #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  /* MEB aylık kontrol listesi geniş bir tablo — bu sayfa için ayrı,
+     yatay (landscape) bir @page tanımı kullanılır. Named page (`page`
+     özelliği) sayesinde diğer print çıktılarının (örn. kayıt formu)
+     varsayılan dikey @page'i bozulmaz. */
+  @page meb-roster {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  .print-meb-roster {
+    page: meb-roster;
+  }
 }

@@ -11,9 +11,7 @@ export async function generateMonthlyAccruals(formData: FormData) {
   const month = readText(formData, "month");
 
   if (!isMonthValue(month)) {
-    redirect(
-      `/odemeler?error=${encodeURIComponent("Geçerli bir ay seçmelisiniz.")}`,
-    );
+    redirect(`/odemeler?error=${encodeURIComponent("Geçerli bir ay seçmelisiniz.")}`);
   }
 
   const supabase = await createClient();
@@ -32,13 +30,9 @@ export async function generateMonthlyAccruals(formData: FormData) {
     );
   }
 
-  const result = (data ?? [])[0] as
-    | { created_count: number; existing_count: number }
-    | undefined;
+  const result = (data ?? [])[0] as { created_count: number; existing_count: number } | undefined;
 
-  const messageParts = [
-    `${result?.created_count ?? 0} yeni tahakkuk oluşturuldu.`,
-  ];
+  const messageParts = [`${result?.created_count ?? 0} yeni tahakkuk oluşturuldu.`];
 
   if (result && result.existing_count > 0) {
     messageParts.push(`${result.existing_count} kayıt zaten mevcuttu.`);
@@ -46,11 +40,7 @@ export async function generateMonthlyAccruals(formData: FormData) {
 
   revalidatePath("/odemeler");
 
-  redirect(
-    `/odemeler?month=${month}&success=${encodeURIComponent(
-      messageParts.join(" "),
-    )}`,
-  );
+  redirect(`/odemeler?month=${month}&success=${encodeURIComponent(messageParts.join(" "))}`);
 }
 
 export async function recordPayment(formData: FormData) {
@@ -65,41 +55,27 @@ export async function recordPayment(formData: FormData) {
 
   const amount = parseMoney(readText(formData, "amount"));
 
-  const redirectBase = isMonthValue(month)
-    ? `/odemeler?month=${month}`
-    : "/odemeler";
+  const redirectBase = isMonthValue(month) ? `/odemeler?month=${month}` : "/odemeler";
 
   if (!studentId || !courseId) {
     redirect(
-      `${redirectBase}&error=${encodeURIComponent(
-        "Öğrenci veya ders bilgisi bulunamadı.",
-      )}`,
+      `${redirectBase}&error=${encodeURIComponent("Öğrenci veya ders bilgisi bulunamadı.")}`,
     );
   }
 
   if (amount === null || amount <= 0) {
-    redirect(
-      `${redirectBase}&error=${encodeURIComponent(
-        "Geçerli bir tutar girin.",
-      )}`,
-    );
+    redirect(`${redirectBase}&error=${encodeURIComponent("Geçerli bir tutar girin.")}`);
   }
 
   const validMethods = ["cash", "bank_transfer", "card", "online", "other"];
 
   if (!validMethods.includes(method)) {
-    redirect(
-      `${redirectBase}&error=${encodeURIComponent(
-        "Geçerli bir ödeme yöntemi seçin.",
-      )}`,
-    );
+    redirect(`${redirectBase}&error=${encodeURIComponent("Geçerli bir ödeme yöntemi seçin.")}`);
   }
 
   if (method === "cash" && !cashAccountId) {
     redirect(
-      `${redirectBase}&error=${encodeURIComponent(
-        "Nakit ödeme için bir kasa hesabı seçin.",
-      )}`,
+      `${redirectBase}&error=${encodeURIComponent("Nakit ödeme için bir kasa hesabı seçin.")}`,
     );
   }
 
@@ -117,18 +93,12 @@ export async function recordPayment(formData: FormData) {
   if (error) {
     console.error("Ödeme kaydedilemedi:", error);
 
-    redirect(
-      `${redirectBase}&error=${encodeURIComponent(
-        getDatabaseErrorMessage(error.message),
-      )}`,
-    );
+    redirect(`${redirectBase}&error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath("/odemeler");
 
-  redirect(
-    `${redirectBase}&success=${encodeURIComponent("Ödeme kaydedildi.")}`,
-  );
+  redirect(`${redirectBase}&success=${encodeURIComponent("Ödeme kaydedildi.")}`);
 }
 
 function parseMoney(value: string) {

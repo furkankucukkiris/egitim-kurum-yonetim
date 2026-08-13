@@ -216,9 +216,7 @@ export function fieldLabel(key: string): string {
 }
 
 function humanizeKey(key: string): string {
-  return key
-    .replace(/_/g, " ")
-    .replace(/^./, (char) => char.toUpperCase());
+  return key.replace(/_/g, " ").replace(/^./, (char) => char.toUpperCase());
 }
 
 export function formatAuditValue(key: string, value: unknown): string {

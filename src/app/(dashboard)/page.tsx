@@ -109,41 +109,49 @@ export default async function DashboardPage() {
     }),
     supabase
       .from("payments")
-      .select(`
-        id, amount, received_at,
-        student:students ( first_name, last_name ),
-        payment_allocations (
-          accrual:accruals (
-            enrollment:enrollments (
-              course:courses ( name )
+      .select(
+        `
+          id, amount, received_at,
+          student:students ( first_name, last_name ),
+          payment_allocations (
+            accrual:accruals (
+              enrollment:enrollments (
+                course:courses ( name )
+              )
             )
           )
-        )
-      `)
+        `,
+      )
       .eq("organization_id", profile.organizationId)
       .eq("is_refunded", false)
       .order("received_at", { ascending: false })
       .limit(5),
     supabase
       .from("lesson_sessions")
-      .select(`
-        starts_at, ends_at, room_name, is_makeup, is_trial, cancelled_at,
-        course:courses ( name ),
-        teacher:profiles!teacher_profile_id ( full_name )
-      `)
+      .select(
+        `
+          starts_at, ends_at, room_name, is_makeup, is_trial, cancelled_at,
+          course:courses ( name ),
+          teacher:profiles!teacher_profile_id ( full_name )
+        `,
+      )
       .eq("organization_id", profile.organizationId)
       .gte("starts_at", `${today}T00:00:00+03:00`)
       .lt("starts_at", `${tomorrow}T00:00:00+03:00`)
       .order("starts_at", { ascending: true }),
     supabase
       .from("prospects")
-      .select("id, student_first_name, student_last_name, phone, next_follow_up_date, assigned:assigned_profile_id(full_name)")
+      .select(
+        "id, student_first_name, student_last_name, phone, next_follow_up_date, assigned:assigned_profile_id(full_name)",
+      )
       .eq("organization_id", profile.organizationId)
       .eq("next_follow_up_date", today)
       .order("student_last_name", { ascending: true }),
     supabase
       .from("prospects")
-      .select("id, student_first_name, student_last_name, phone, next_follow_up_date, assigned:assigned_profile_id(full_name)")
+      .select(
+        "id, student_first_name, student_last_name, phone, next_follow_up_date, assigned:assigned_profile_id(full_name)",
+      )
       .eq("organization_id", profile.organizationId)
       .gt("next_follow_up_date", today)
       .lte("next_follow_up_date", nextWeek)
@@ -250,7 +258,7 @@ export default async function DashboardPage() {
         action={
           <Link
             href="/ogrenciler/yeni"
-            className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90"
+            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover"
           >
             + Yeni öğrenci
           </Link>
@@ -258,10 +266,9 @@ export default async function DashboardPage() {
       />
 
       {summaryFailed && (
-        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
-          Finans özeti alınamadı. Aşağıdaki finans göstergeleri
-          güncel olmayabilir — sayfayı yenileyin, sorun devam
-          ederse teknik ekiple paylaşın.
+        <div className="mb-5 rounded-2xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
+          Finans özeti alınamadı. Aşağıdaki finans göstergeleri güncel olmayabilir — sayfayı
+          yenileyin, sorun devam ederse teknik ekiple paylaşın.
         </div>
       )}
 
@@ -276,11 +283,7 @@ export default async function DashboardPage() {
         <StatCard
           label="Bu Ay Tahakkuk"
           value={summary ? formatTry(summary.monthlyAccrued) : "—"}
-          detail={
-            summary
-              ? `${formatLongMonth(monthStart)} dönemi toplam borç`
-              : "Veri alınamadı"
-          }
+          detail={summary ? `${formatLongMonth(monthStart)} dönemi toplam borç` : "Veri alınamadı"}
           icon="₺"
         />
 
@@ -301,22 +304,14 @@ export default async function DashboardPage() {
         <StatCard
           label="Devreden Borç"
           value={summary ? formatTry(summary.priorPeriodCarryover) : "—"}
-          detail={
-            summary
-              ? `${summary.priorPeriodCarryoverCount} önceki dönem`
-              : "Veri alınamadı"
-          }
+          detail={summary ? `${summary.priorPeriodCarryoverCount} önceki dönem` : "Veri alınamadı"}
           icon="!"
         />
 
         <StatCard
           label="Toplam Açık Alacak"
           value={summary ? formatTry(summary.totalOpenReceivable) : "—"}
-          detail={
-            summary
-              ? `${summary.totalOpenReceivableCount} bekleyen dönem`
-              : "Veri alınamadı"
-          }
+          detail={summary ? `${summary.totalOpenReceivableCount} bekleyen dönem` : "Veri alınamadı"}
           icon="Σ"
         />
 
@@ -362,19 +357,19 @@ export default async function DashboardPage() {
 
       <section className="mt-6 grid gap-6 xl:grid-cols-[1.3fr_1fr]">
         <Card className="overflow-hidden p-0">
-          <div className="border-b border-line px-5 py-4">
-            <h3 className="font-semibold text-ink">Son ödemeler</h3>
-            <p className="mt-1 text-sm text-muted">Tahsilatların son hareketleri</p>
+          <div className="border-b border-border px-5 py-4">
+            <h3 className="font-semibold text-text-primary">Son ödemeler</h3>
+            <p className="mt-1 text-sm text-text-secondary">Tahsilatların son hareketleri</p>
           </div>
 
           {payments.length === 0 ? (
-            <p className="px-5 py-10 text-center text-sm text-muted">
+            <p className="px-5 py-10 text-center text-sm text-text-secondary">
               Henüz kayıtlı bir tahsilat yok.
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[600px] text-left text-sm">
-                <thead className="bg-fill text-xs uppercase tracking-wide text-muted">
+                <thead className="bg-surface-muted text-xs uppercase tracking-wide text-text-secondary">
                   <tr>
                     <th className="px-5 py-3">Öğrenci</th>
                     <th className="px-5 py-3">Ders</th>
@@ -393,21 +388,19 @@ export default async function DashboardPage() {
                     );
 
                     return (
-                      <tr key={payment.id} className="hover:bg-fill/50">
-                        <td className="px-5 py-4 font-medium text-ink">
+                      <tr key={payment.id} className="hover:bg-surface-muted/50">
+                        <td className="px-5 py-4 font-medium text-text-primary">
                           {payment.student
                             ? `${payment.student.first_name} ${payment.student.last_name}`
                             : "Bilinmiyor"}
                         </td>
-                        <td className="px-5 py-4 text-muted">
-                          {courseNames.length > 0
-                            ? courseNames.join(", ")
-                            : "Avans / dağıtılmamış"}
+                        <td className="px-5 py-4 text-text-secondary">
+                          {courseNames.length > 0 ? courseNames.join(", ") : "Avans / dağıtılmamış"}
                         </td>
-                        <td className="px-5 py-4 text-muted">
+                        <td className="px-5 py-4 text-text-secondary">
                           {formatDate(payment.received_at)}
                         </td>
-                        <td className="px-5 py-4 font-semibold text-ink">
+                        <td className="px-5 py-4 font-semibold text-text-primary">
                           {formatTry(payment.amount)}
                         </td>
                       </tr>
@@ -421,11 +414,11 @@ export default async function DashboardPage() {
 
         <div className="space-y-6">
           <Card>
-            <h3 className="font-semibold text-ink">Ders performansı</h3>
-            <p className="mt-1 text-sm text-muted">Bu ayın tahakkuku ve tahsilat oranı</p>
+            <h3 className="font-semibold text-text-primary">Ders performansı</h3>
+            <p className="mt-1 text-sm text-text-secondary">Bu ayın tahakkuku ve tahsilat oranı</p>
 
             {coursePerformance.length === 0 ? (
-              <p className="mt-5 text-sm text-muted">
+              <p className="mt-5 text-sm text-text-secondary">
                 Bu ay için henüz tahakkuk oluşturulmadı.
               </p>
             ) : (
@@ -434,18 +427,18 @@ export default async function DashboardPage() {
                   <div key={course.id}>
                     <div className="mb-2 flex items-center justify-between gap-4 text-sm">
                       <div>
-                        <span className="font-semibold text-ink">{course.name}</span>
-                        <span className="ml-2 text-muted">
+                        <span className="font-semibold text-text-primary">{course.name}</span>
+                        <span className="ml-2 text-text-secondary">
                           {course.studentCount} öğrenci
                         </span>
                       </div>
-                      <span className="font-semibold text-ink">
+                      <span className="font-semibold text-text-primary">
                         {formatTry(course.monthCollected)}
                       </span>
                     </div>
-                    <div className="h-2 rounded-full bg-fill">
+                    <div className="h-2 rounded-full bg-surface-muted">
                       <div
-                        className="h-2 rounded-full bg-terra-500"
+                        className="h-2 rounded-full bg-primary-soft"
                         style={{ width: `${Math.min(100, course.collectionRate)}%` }}
                       />
                     </div>
@@ -464,32 +457,35 @@ export default async function DashboardPage() {
       </section>
 
       <section className="mt-6">
-        <h3 className="mb-3 font-semibold text-ink">Bugünün ders akışı</h3>
+        <h3 className="mb-3 font-semibold text-text-primary">Bugünün ders akışı</h3>
         <TodaySessionsList sessions={todaySessions} />
       </section>
 
       <section className="mt-6">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-semibold text-ink">Bugün aranacak aday öğrenciler</h3>
-          <Link href="/aday-ogrenciler" className="text-sm text-terra-700 hover:underline dark:text-terra-500">
+          <h3 className="font-semibold text-text-primary">Bugün aranacak aday öğrenciler</h3>
+          <Link
+            href="/aday-ogrenciler"
+            className="text-sm text-primary hover:underline"
+          >
             Tümünü gör →
           </Link>
         </div>
 
         {followUpToday.length === 0 ? (
-          <Card className="p-6 text-center text-sm text-muted">
+          <Card className="p-6 text-center text-sm text-text-secondary">
             Bugün için takip edilmesi gereken aday öğrenci yok.
           </Card>
         ) : (
           <div className="space-y-2.5">
             {followUpToday.map((prospect) => (
               <Link key={prospect.id} href={`/aday-ogrenciler/${prospect.id}`}>
-                <Card className="flex items-center justify-between gap-4 p-3.5 transition hover:bg-fill">
+                <Card className="flex items-center justify-between gap-4 p-3.5 transition hover:bg-surface-muted">
                   <div>
-                    <p className="text-sm font-medium text-ink">
+                    <p className="text-sm font-medium text-text-primary">
                       {prospect.student_first_name} {prospect.student_last_name}
                     </p>
-                    <p className="mt-0.5 text-xs text-muted">
+                    <p className="mt-0.5 text-xs text-text-secondary">
                       {prospect.phone} · {prospect.assigned?.full_name ?? "Atanmamış"}
                     </p>
                   </div>

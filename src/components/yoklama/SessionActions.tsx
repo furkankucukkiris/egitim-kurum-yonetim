@@ -26,7 +26,7 @@ export function SessionActions({
 
   if (pendingRequestType) {
     return (
-      <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs font-semibold text-blue-800 dark:border-blue-800/40 dark:bg-blue-500/10 dark:text-blue-400">
+      <div className="mt-4 rounded-xl border border-info/30 bg-info-soft p-3 text-xs font-semibold text-info border-info/30 bg-info-soft text-info">
         {pendingRequestType === "cancel"
           ? "İptal talebiniz yönetici onayını bekliyor."
           : "Yeniden planlama talebiniz yönetici onayını bekliyor."}
@@ -39,7 +39,7 @@ export function SessionActions({
   }
 
   return (
-    <div className="mt-4 border-t border-line pt-4">
+    <div className="mt-4 border-t border-border pt-4">
       <div className="flex flex-wrap gap-2">
         {isAdmin ? (
           <>
@@ -66,30 +66,28 @@ export function SessionActions({
       {panel === "cancel" && (
         <form
           action={cancelSession}
-          className="mt-3 flex flex-col gap-2 rounded-xl border border-line bg-fill p-3"
+          className="mt-3 flex flex-col gap-2 rounded-xl border border-border bg-surface-muted p-3"
         >
           <input type="hidden" name="lessonSessionId" value={sessionId} />
           <input type="hidden" name="date" value={date} />
 
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             İptal gerekçesi
-
             <input
               name="reason"
               required
               minLength={3}
               placeholder="ör. öğretmen raporlu"
-              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
             />
           </label>
 
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             İptal türü
-
             <select
               name="cancellationKind"
               defaultValue="institution"
-              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
             >
               <option value="institution">Kurum kaynaklı (öğretmen hakedişini etkilemez)</option>
               <option value="teacher_absence">Öğretmen devamsızlığı (hakediş oluşmaz)</option>
@@ -98,7 +96,7 @@ export function SessionActions({
 
           <button
             type="submit"
-            className="self-end rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-600/90"
+            className="self-end rounded-lg bg-danger px-3 py-1.5 text-xs font-semibold text-on-primary hover:bg-danger/90"
           >
             Oturumu iptal et
           </button>
@@ -114,9 +112,7 @@ export function SessionActions({
         />
       )}
 
-      {panel === "request" && (
-        <RequestForm sessionId={sessionId} date={date} />
-      )}
+      {panel === "request" && <RequestForm sessionId={sessionId} date={date} />}
     </div>
   );
 }
@@ -135,61 +131,57 @@ function RescheduleForm({
   return (
     <form
       action={action}
-      className="mt-3 grid gap-2 rounded-xl border border-line bg-fill p-3 sm:grid-cols-2"
+      className="mt-3 grid gap-2 rounded-xl border border-border bg-surface-muted p-3 sm:grid-cols-2"
     >
       <input type="hidden" name="lessonSessionId" value={sessionId} />
       <input type="hidden" name="date" value={date} />
 
-      <label className="text-xs font-medium text-muted sm:col-span-2">
+      <label className="text-xs font-medium text-text-secondary sm:col-span-2">
         Gerekçe
-
         <input
           name="reason"
           required
           minLength={3}
-          className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+          className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
         />
       </label>
 
-      <label className="text-xs font-medium text-muted">
+      <label className="text-xs font-medium text-text-secondary">
         Yeni tarih
-
         <input
           type="date"
           name="newDate"
           required
           defaultValue={date}
-          className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+          className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
         />
       </label>
 
       <div className="grid grid-cols-2 gap-2">
-        <label className="text-xs font-medium text-muted">
+        <label className="text-xs font-medium text-text-secondary">
           Başlangıç
-
           <input
             type="time"
             name="newStartTime"
             required
-            className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+            className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
           />
         </label>
 
-        <label className="text-xs font-medium text-muted">
+        <label className="text-xs font-medium text-text-secondary">
           Bitiş
-
           <input
             type="time"
             name="newEndTime"
             required
-            className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+            className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
           />
         </label>
       </div>
 
       <button
         type="submit"
-        className="self-end rounded-lg bg-terra-700 px-3 py-1.5 text-xs font-semibold text-white shadow-sm shadow-terra-700/20 hover:bg-terra-700/90 sm:col-span-2 sm:w-fit sm:justify-self-end"
+        className="self-end rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary shadow-sm hover:bg-primary-hover sm:col-span-2 sm:w-fit sm:justify-self-end"
       >
         {submitLabel}
       </button>
@@ -203,69 +195,64 @@ function RequestForm({ sessionId, date }: { sessionId: string; date: string }) {
   return (
     <form
       action={requestSessionChange}
-      className="mt-3 flex flex-col gap-2 rounded-xl border border-line bg-fill p-3"
+      className="mt-3 flex flex-col gap-2 rounded-xl border border-border bg-surface-muted p-3"
     >
       <input type="hidden" name="lessonSessionId" value={sessionId} />
       <input type="hidden" name="date" value={date} />
 
-      <label className="text-xs font-medium text-muted">
+      <label className="text-xs font-medium text-text-secondary">
         Talep türü
-
         <select
           name="requestType"
           value={requestType}
           onChange={(event) => setRequestType(event.target.value as "cancel" | "reschedule")}
-          className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+          className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
         >
           <option value="cancel">İptal talebi</option>
           <option value="reschedule">Yeniden planlama talebi</option>
         </select>
       </label>
 
-      <label className="text-xs font-medium text-muted">
+      <label className="text-xs font-medium text-text-secondary">
         Gerekçe
-
         <input
           name="reason"
           required
           minLength={3}
-          className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+          className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
         />
       </label>
 
       {requestType === "reschedule" && (
         <div className="grid gap-2 sm:grid-cols-3">
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             Önerilen tarih
-
             <input
               type="date"
               name="proposedDate"
               required
               defaultValue={date}
-              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
             />
           </label>
 
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             Başlangıç
-
             <input
               type="time"
               name="proposedStartTime"
               required
-              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
             />
           </label>
 
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             Bitiş
-
             <input
               type="time"
               name="proposedEndTime"
               required
-              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
             />
           </label>
         </div>
@@ -273,7 +260,7 @@ function RequestForm({ sessionId, date }: { sessionId: string; date: string }) {
 
       <button
         type="submit"
-        className="self-end rounded-lg bg-terra-700 px-3 py-1.5 text-xs font-semibold text-white shadow-sm shadow-terra-700/20 hover:bg-terra-700/90"
+        className="self-end rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary shadow-sm hover:bg-primary-hover"
       >
         Talebi gönder
       </button>
@@ -296,8 +283,8 @@ function ToggleButton({
       onClick={onClick}
       className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
         active
-          ? "border-terra-500 bg-terra-50 text-terra-700 dark:bg-terra-500/10"
-          : "border-line text-muted hover:bg-fill"
+          ? "border-primary-soft bg-primary-soft text-primary dark:bg-primary/10"
+          : "border-border text-text-secondary hover:bg-surface-muted"
       }`}
     >
       {label}

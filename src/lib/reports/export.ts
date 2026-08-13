@@ -240,15 +240,7 @@ export function cashFlowReportToCsv(data: {
   const lines: string[] = [];
 
   lines.push(toCsvLine(["NAKİT AKIŞI — AYLIK KIRILIM"]));
-  lines.push(
-    toCsvLine([
-      "Ay",
-      "Nakit Girişi (TL)",
-      "İade (TL)",
-      "Gider (TL)",
-      "Net Nakit (TL)",
-    ]),
-  );
+  lines.push(toCsvLine(["Ay", "Nakit Girişi (TL)", "İade (TL)", "Gider (TL)", "Net Nakit (TL)"]));
 
   for (const row of data.monthly) {
     lines.push(
@@ -264,15 +256,7 @@ export function cashFlowReportToCsv(data: {
 
   lines.push("");
   lines.push(toCsvLine(["ÖDEME YÖNTEMİ DAĞILIMI"]));
-  lines.push(
-    toCsvLine([
-      "Yöntem",
-      "Nakit Girişi (TL)",
-      "İade (TL)",
-      "Net (TL)",
-      "İşlem Sayısı",
-    ]),
-  );
+  lines.push(toCsvLine(["Yöntem", "Nakit Girişi (TL)", "İade (TL)", "Net (TL)", "İşlem Sayısı"]));
 
   for (const row of data.byMethod) {
     lines.push(

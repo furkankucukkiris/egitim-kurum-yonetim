@@ -1,14 +1,9 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
-import {
-  PendingPaymentsByCourse,
-} from "@/components/payments/PendingPaymentsByCourse";
+import { PendingPaymentsByCourse } from "@/components/payments/PendingPaymentsByCourse";
 import { StudentBalanceTable } from "@/components/payments/StudentBalanceTable";
-import type {
-  StudentBalanceRow,
-  CourseOption,
-} from "@/components/payments/StudentBalanceTable";
+import type { StudentBalanceRow, CourseOption } from "@/components/payments/StudentBalanceTable";
 import type {
   CoursePaymentGroup,
   StudentPaymentStatus,
@@ -134,31 +129,35 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
     }),
     supabase
       .from("accruals")
-      .select(`
-        id,
-        net_amount,
-        allocated_amount,
-        status,
-        description,
-        due_date,
-        period_start,
-        enrollment:enrollments!inner (
-          student_id,
-          course_id,
-          student:students!inner ( first_name, last_name ),
-          course:courses!inner ( id, name )
-        )
-      `)
+      .select(
+        `
+          id,
+          net_amount,
+          allocated_amount,
+          status,
+          description,
+          due_date,
+          period_start,
+          enrollment:enrollments!inner (
+            student_id,
+            course_id,
+            student:students!inner ( first_name, last_name ),
+            course:courses!inner ( id, name )
+          )
+        `,
+      )
       .eq("organization_id", profile.organizationId)
       .eq("period_start", monthStart)
       .not("status", "in", "(cancelled,refunded)"),
     supabase
       .from("accruals")
-      .select(`
-        id, net_amount, allocated_amount, due_date, period_start,
-        student_id,
-        enrollment:enrollments!inner ( course_id )
-      `)
+      .select(
+        `
+          id, net_amount, allocated_amount, due_date, period_start,
+          student_id,
+          enrollment:enrollments!inner ( course_id )
+        `,
+      )
       .eq("organization_id", profile.organizationId)
       .in("status", ["open", "partial", "overdue"])
       .order("period_start", { ascending: true }),
@@ -169,10 +168,12 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
       .eq("status", "active"),
     supabase
       .from("payments")
-      .select(`
-        id, amount, method, received_at, note,
-        student:students ( first_name, last_name )
-      `)
+      .select(
+        `
+          id, amount, method, received_at, note,
+          student:students ( first_name, last_name )
+        `,
+      )
       .eq("organization_id", profile.organizationId)
       .eq("is_refunded", false)
       .gte("received_at", `${monthStart}T00:00:00+03:00`)
@@ -298,10 +299,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
     courseId: string;
     courseName: string;
     totals: { pending: number; received: number; total: number };
-    studentAccruals: Map<
-      string,
-      { studentName: string; netSum: number; allocatedSum: number }
-    >;
+    studentAccruals: Map<string, { studentName: string; netSum: number; allocatedSum: number }>;
   };
 
   const courseMap = new Map<string, CourseAccumulator>();
@@ -359,17 +357,14 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
           const status: StudentPaymentStatus =
             pending <= 0.01 ? "paid" : entry.allocatedSum > 0 ? "partial" : "pending";
 
-          const otherCourses = Array.from(
-            otherCoursesByStudent.get(studentId) ?? [],
-          ).filter((name) => name !== course.courseName);
+          const otherCourses = Array.from(otherCoursesByStudent.get(studentId) ?? []).filter(
+            (name) => name !== course.courseName,
+          );
 
           const openForCourse =
             openAccrualsByStudentCourse.get(`${studentId}:${course.courseId}`) ?? [];
 
-          const totalOpenAcrossPeriods = openForCourse.reduce(
-            (sum, item) => sum + item.pending,
-            0,
-          );
+          const totalOpenAcrossPeriods = openForCourse.reduce((sum, item) => sum + item.pending, 0);
 
           return {
             studentId,
@@ -435,7 +430,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
         action={
           <a
             href={`/odemeler/export?month=${selectedMonth}`}
-            className="rounded-xl border border-line bg-panel px-4 py-3 text-sm font-semibold text-brand-700 shadow-sm transition hover:bg-fill dark:text-brand-100"
+            className="rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-primary shadow-sm transition hover:bg-surface-muted text-primary"
           >
             CSV olarak dışa aktar
           </a>
@@ -443,40 +438,42 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
       />
 
       {params.success && (
-        <div className="mb-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
+        <div className="mb-5 rounded-2xl border border-success/30 bg-success-soft p-4 text-sm text-success">
           {params.success}
         </div>
       )}
 
       {params.error && (
-        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
+        <div className="mb-5 rounded-2xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
           {params.error}
         </div>
       )}
 
       {summaryFailed && (
-        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
+        <div className="mb-5 rounded-2xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
           Finans özeti alınamadı. Aşağıdaki rakamlar güncel olmayabilir.
         </div>
       )}
 
-      <section className="mb-6 rounded-2xl border border-line bg-panel p-4 shadow-sm">
+      <section className="mb-6 rounded-2xl border border-border bg-surface p-4 shadow-sm">
         <div className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-center">
           <Link
             href={`/odemeler?month=${previousMonth}`}
-            className="rounded-xl border border-line bg-panel px-4 py-3 text-center text-sm font-semibold text-ink transition hover:bg-fill"
+            className="rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-semibold text-text-primary transition hover:bg-surface-muted"
           >
             ← Önceki ay
           </Link>
 
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wide text-muted">Görüntülenen ay</p>
-            <h2 className="text-lg font-bold text-ink">{formatMonthYearFromKey(selectedMonth)}</h2>
+            <p className="text-xs uppercase tracking-wide text-text-secondary">Görüntülenen ay</p>
+            <h2 className="text-lg font-bold text-text-primary">
+              {formatMonthYearFromKey(selectedMonth)}
+            </h2>
           </div>
 
           <Link
             href={`/odemeler?month=${nextMonth}`}
-            className="rounded-xl border border-line bg-panel px-4 py-3 text-center text-sm font-semibold text-ink transition hover:bg-fill"
+            className="rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-semibold text-text-primary transition hover:bg-surface-muted"
           >
             Sonraki ay →
           </Link>
@@ -485,7 +482,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
         {selectedMonth !== currentMonth && (
           <Link
             href={`/odemeler?month=${currentMonth}`}
-            className="mt-3 block rounded-xl border border-honey-100 bg-honey-50 dark:bg-honey-500/10 px-4 py-2.5 text-center text-sm font-semibold text-honey-700 dark:text-honey-500"
+            className="mt-3 block rounded-xl border border-accent/30 bg-accent-soft px-4 py-2.5 text-center text-sm font-semibold text-accent-strong"
           >
             Bu aya dön
           </Link>
@@ -493,16 +490,16 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
 
         <form
           action={generateMonthlyAccruals}
-          className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-4"
+          className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4"
         >
           <input type="hidden" name="month" value={selectedMonth} />
-          <p className="flex-1 text-sm text-muted">
+          <p className="flex-1 text-sm text-text-secondary">
             Aktif kayıtlı öğrenciler için {formatMonthYearFromKey(selectedMonth)} tahakkuklarını
             oluşturun. Zaten oluşturulmuş olanlar tekrar oluşturulmaz.
           </p>
           <button
             type="submit"
-            className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90"
+            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover"
           >
             Bu ayın tahakkuklarını oluştur
           </button>
@@ -535,9 +532,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
         <StatCard
           label="Önceki Dönem Borcu"
           value={summary ? formatTry(summary.priorPeriodCarryover) : "—"}
-          detail={
-            summary ? `${summary.priorPeriodCarryoverCount} bekleyen dönem` : "Veri yok"
-          }
+          detail={summary ? `${summary.priorPeriodCarryoverCount} bekleyen dönem` : "Veri yok"}
         />
 
         <StatCard
@@ -557,21 +552,22 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
         />
       </div>
 
-      <h3 className="mb-3 mt-6 font-semibold text-ink">
+      <h3 className="mb-3 mt-6 font-semibold text-text-primary">
         Ders bazlı gelir ve tahsilat oranı — {formatMonthYearFromKey(selectedMonth)}
       </h3>
 
       <PendingPaymentsByCourse groups={groups} month={selectedMonth} cashAccounts={cashAccounts} />
 
       {groups.length > 0 && (
-        <p className="mt-2 text-xs text-muted">
+        <p className="mt-2 text-xs text-text-secondary">
           Ders kartları toplamı: {formatTry(groupsTotal.total)} tahakkuk,{" "}
-          {formatTry(groupsTotal.received)} tahsil edildi — üstteki &ldquo;Seçili Ay Tahakkuku&rdquo;/
-          &ldquo;Seçili Ay Tahsil Edilen&rdquo; ile aynı kaynaktan (bu ayın tahakkukları), birebir eşleşir.
+          {formatTry(groupsTotal.received)} tahsil edildi — üstteki &ldquo;Seçili Ay
+          Tahakkuku&rdquo;/ &ldquo;Seçili Ay Tahsil Edilen&rdquo; ile aynı kaynaktan (bu ayın
+          tahakkukları), birebir eşleşir.
         </p>
       )}
 
-      <h3 className="mb-3 mt-8 font-semibold text-ink">Öğrenci bazlı bakiye</h3>
+      <h3 className="mb-3 mt-8 font-semibold text-text-primary">Öğrenci bazlı bakiye</h3>
 
       <StudentBalanceTable
         rows={balanceRows}
@@ -587,19 +583,17 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
         buildQuery={balanceFilterQuery}
       />
 
-      <h3 className="mb-3 mt-8 font-semibold text-ink">
-        Bu ayki tahsilat hareketleri
-      </h3>
+      <h3 className="mb-3 mt-8 font-semibold text-text-primary">Bu ayki tahsilat hareketleri</h3>
 
-      <div className="overflow-hidden rounded-2xl border border-line bg-panel shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
         {payments.length === 0 ? (
-          <p className="px-5 py-10 text-center text-sm text-muted">
+          <p className="px-5 py-10 text-center text-sm text-text-secondary">
             {formatMonthYearFromKey(selectedMonth)} içinde kayıtlı bir tahsilat yok.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[680px] text-left text-sm">
-              <thead className="bg-fill text-xs uppercase text-muted">
+              <thead className="bg-surface-muted text-xs uppercase text-text-secondary">
                 <tr>
                   <th className="px-5 py-3">Öğrenci</th>
                   <th className="px-5 py-3">Tarih</th>
@@ -610,24 +604,21 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
 
               <tbody className="divide-y divide-line">
                 {payments.map((payment) => (
-                  <tr key={payment.id} className="hover:bg-fill">
-                    <td className="px-5 py-4 font-semibold text-ink">
-                      <Link
-                        href={`/odemeler/${payment.id}`}
-                        className="hover:underline"
-                      >
+                  <tr key={payment.id} className="hover:bg-surface-muted">
+                    <td className="px-5 py-4 font-semibold text-text-primary">
+                      <Link href={`/odemeler/${payment.id}`} className="hover:underline">
                         {payment.student
                           ? `${payment.student.first_name} ${payment.student.last_name}`
                           : "Bilinmiyor"}
                       </Link>
                     </td>
-                    <td className="px-5 py-4 text-muted">
+                    <td className="px-5 py-4 text-text-secondary">
                       {formatDate(payment.received_at)}
                     </td>
-                    <td className="px-5 py-4 text-muted">
+                    <td className="px-5 py-4 text-text-secondary">
                       {methodLabels[payment.method] ?? payment.method}
                     </td>
-                    <td className="px-5 py-4 font-semibold text-ink">
+                    <td className="px-5 py-4 font-semibold text-text-primary">
                       {formatTry(payment.amount)}
                     </td>
                   </tr>

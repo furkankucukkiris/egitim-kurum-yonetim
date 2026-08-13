@@ -113,10 +113,12 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
   if (unallocatedTotal > 0.01) {
     const openResult = await supabase
       .from("accruals")
-      .select(`
-        id, period_start, description, net_amount, allocated_amount,
-        course:courses ( name )
-      `)
+      .select(
+        `
+          id, period_start, description, net_amount, allocated_amount,
+          course:courses ( name )
+        `,
+      )
       .eq("student_id", payment.student_id)
       .in("status", ["open", "partial", "overdue"])
       .order("period_start", { ascending: true });
@@ -136,7 +138,7 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
         action={
           <Link
             href="/odemeler"
-            className="rounded-xl border border-line bg-panel px-4 py-3 text-sm font-semibold text-ink transition hover:bg-fill"
+            className="rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-text-primary transition hover:bg-surface-muted"
           >
             ← Ödemelere dön
           </Link>
@@ -144,13 +146,13 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
       />
 
       {query.success && (
-        <div className="mb-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
+        <div className="mb-5 rounded-2xl border border-success/30 bg-success-soft p-4 text-sm text-success">
           {query.success}
         </div>
       )}
 
       {query.error && (
-        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
+        <div className="mb-5 rounded-2xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
           {query.error}
         </div>
       )}
@@ -158,7 +160,7 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
       <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
         <div className="space-y-6">
           <Card>
-            <h3 className="font-semibold text-ink">Ödeme bilgisi</h3>
+            <h3 className="font-semibold text-text-primary">Ödeme bilgisi</h3>
 
             <dl className="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
               <Field label="Öğrenci" value={payment.student_name} />
@@ -168,14 +170,8 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
               <Field label="Tarih" value={formatDateTime(payment.received_at)} />
               <Field label="Kaydeden" value={payment.recorded_by_name ?? "—"} />
               <Field label="Makbuz No" value={payment.receipt_number ?? "—"} />
-              <Field
-                label="Tahsis edilen"
-                value={formatTry(Number(payment.allocated_total))}
-              />
-              <Field
-                label="İade edilen"
-                value={formatTry(Number(payment.refunded_total))}
-              />
+              <Field label="Tahsis edilen" value={formatTry(Number(payment.allocated_total))} />
+              <Field label="İade edilen" value={formatTry(Number(payment.refunded_total))} />
               <Field
                 label="Dağıtılmamış (avans)"
                 value={formatTry(unallocatedTotal)}
@@ -184,27 +180,29 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
             </dl>
 
             {payment.note && (
-              <p className="mt-4 rounded-xl bg-fill p-3 text-sm text-muted">{payment.note}</p>
+              <p className="mt-4 rounded-xl bg-surface-muted p-3 text-sm text-text-secondary">
+                {payment.note}
+              </p>
             )}
 
             {payment.is_refunded && (
-              <p className="mt-4 rounded-xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-400">
+              <p className="mt-4 rounded-xl border border-danger/30 bg-danger-soft p-3 text-sm text-danger">
                 Bu ödeme tamamen iade edilmiştir.
               </p>
             )}
           </Card>
 
           <Card>
-            <h3 className="font-semibold text-ink">Tahsis edildiği dönemler</h3>
+            <h3 className="font-semibold text-text-primary">Tahsis edildiği dönemler</h3>
 
             {allocations.length === 0 ? (
-              <p className="mt-3 text-sm text-muted">
+              <p className="mt-3 text-sm text-text-secondary">
                 Bu ödeme henüz hiçbir tahakkuka tahsis edilmedi.
               </p>
             ) : (
               <div className="mt-3 overflow-x-auto">
                 <table className="w-full min-w-[560px] text-left text-sm">
-                  <thead className="bg-fill text-xs uppercase tracking-wide text-muted">
+                  <thead className="bg-surface-muted text-xs uppercase tracking-wide text-text-secondary">
                     <tr>
                       <th className="px-4 py-2.5">Dönem</th>
                       <th className="px-4 py-2.5">Açıklama</th>
@@ -215,14 +213,14 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
                   <tbody className="divide-y divide-line">
                     {allocations.map((allocation) => (
                       <tr key={allocation.allocation_id}>
-                        <td className="px-4 py-3 font-medium text-ink">
+                        <td className="px-4 py-3 font-medium text-text-primary">
                           {formatMonthYear(allocation.period_start)}
                         </td>
-                        <td className="px-4 py-3 text-muted">{allocation.description}</td>
-                        <td className="px-4 py-3 font-semibold text-ink">
+                        <td className="px-4 py-3 text-text-secondary">{allocation.description}</td>
+                        <td className="px-4 py-3 font-semibold text-text-primary">
                           {formatTry(Number(allocation.amount))}
                         </td>
-                        <td className="px-4 py-3 text-rose-700 dark:text-rose-400">
+                        <td className="px-4 py-3 text-danger">
                           {Number(allocation.reversed_amount) > 0
                             ? formatTry(Number(allocation.reversed_amount))
                             : "—"}
@@ -236,26 +234,26 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
           </Card>
 
           <Card>
-            <h3 className="font-semibold text-ink">İade / ters işlem geçmişi</h3>
+            <h3 className="font-semibold text-text-primary">İade / ters işlem geçmişi</h3>
 
             {refunds.length === 0 ? (
-              <p className="mt-3 text-sm text-muted">
+              <p className="mt-3 text-sm text-text-secondary">
                 Bu ödeme için henüz iade/ters işlem kaydı yok.
               </p>
             ) : (
               <ul className="mt-3 space-y-3">
                 {refunds.map((refund) => (
-                  <li key={refund.refund_id} className="rounded-xl bg-fill p-3 text-sm">
+                  <li key={refund.refund_id} className="rounded-xl bg-surface-muted p-3 text-sm">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-semibold text-ink">
+                      <span className="font-semibold text-text-primary">
                         {refundTypeLabels[refund.refund_type] ?? refund.refund_type} —{" "}
                         {formatTry(Number(refund.amount))}
                       </span>
-                      <span className="text-xs text-muted">
+                      <span className="text-xs text-text-secondary">
                         {formatDateTime(refund.created_at)} · {refund.created_by_name ?? "—"}
                       </span>
                     </div>
-                    <p className="mt-1.5 text-muted">{refund.reason}</p>
+                    <p className="mt-1.5 text-text-secondary">{refund.reason}</p>
                   </li>
                 ))}
               </ul>
@@ -266,12 +264,12 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
         <div className="space-y-6">
           {refundableTotal > 0.01 && (
             <Card>
-              <h3 className="font-semibold text-ink">İade / ters işlem kaydet</h3>
+              <h3 className="font-semibold text-text-primary">İade / ters işlem kaydet</h3>
 
-              <p className="mt-1 text-xs text-muted">
-                En fazla {formatTry(refundableTotal)} iade edilebilir. Önce ödemenin
-                dağıtılmamış kısmından düşülür; kalan varsa en yeni dönemden başlayarak
-                tahsisler geri alınır ve ilgili tahakkuk yeniden açık/kısmi duruma döner.
+              <p className="mt-1 text-xs text-text-secondary">
+                En fazla {formatTry(refundableTotal)} iade edilebilir. Önce ödemenin dağıtılmamış
+                kısmından düşülür; kalan varsa en yeni dönemden başlayarak tahsisler geri alınır ve
+                ilgili tahakkuk yeniden açık/kısmi duruma döner.
               </p>
 
               <form action={refundPayment} className="mt-4 space-y-3">
@@ -279,11 +277,10 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
 
                 <label className="block text-sm font-medium">
                   Tür
-
                   <select
                     name="refundType"
                     defaultValue="refund"
-                    className="mt-1 w-full rounded-xl border border-line px-3 py-2.5 text-sm outline-none focus:border-terra-500"
+                    className="mt-1 w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none focus:border-primary"
                   >
                     <option value="refund">İade (paranın gerçekten geri ödenmesi)</option>
                     <option value="reversal">Ters işlem (hatalı kayıt düzeltmesi)</option>
@@ -292,32 +289,30 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
 
                 <label className="block text-sm font-medium">
                   Tutar
-
                   <input
                     type="text"
                     name="amount"
                     required
                     defaultValue={refundableTotal.toFixed(2)}
-                    className="mt-1 w-full rounded-xl border border-line px-3 py-2.5 text-sm outline-none focus:border-terra-500"
+                    className="mt-1 w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none focus:border-primary"
                   />
                 </label>
 
                 <label className="block text-sm font-medium">
                   Gerekçe
-
                   <input
                     type="text"
                     name="reason"
                     required
                     minLength={3}
                     placeholder="ör. yanlış öğrenciye kaydedilmiş"
-                    className="mt-1 w-full rounded-xl border border-line px-3 py-2.5 text-sm outline-none focus:border-terra-500"
+                    className="mt-1 w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none focus:border-primary"
                   />
                 </label>
 
                 <button
                   type="submit"
-                  className="w-full rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-600/90"
+                  className="w-full rounded-xl bg-danger px-4 py-2.5 text-sm font-semibold text-on-primary transition hover:bg-danger/90"
                 >
                   İade/ters işlemi kaydet
                 </button>
@@ -327,16 +322,16 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
 
           {unallocatedTotal > 0.01 && (
             <Card>
-              <h3 className="font-semibold text-ink">Avansı bir tahakkuka uygula</h3>
+              <h3 className="font-semibold text-text-primary">Avansı bir tahakkuka uygula</h3>
 
-              <p className="mt-1 text-xs text-muted">
-                Bu ödemenin {formatTry(unallocatedTotal)} tutarındaki dağıtılmamış kısmı,
-                öğrencinin başka bir açık tahakkukuna uygulanabilir. Otomatik dağıtım yoktur
-                — yalnızca burada seçtiğiniz tahakkuk için, sizin onayınızla uygulanır.
+              <p className="mt-1 text-xs text-text-secondary">
+                Bu ödemenin {formatTry(unallocatedTotal)} tutarındaki dağıtılmamış kısmı, öğrencinin
+                başka bir açık tahakkukuna uygulanabilir. Otomatik dağıtım yoktur — yalnızca burada
+                seçtiğiniz tahakkuk için, sizin onayınızla uygulanır.
               </p>
 
               {openAccruals.length === 0 ? (
-                <p className="mt-3 text-sm text-muted">
+                <p className="mt-3 text-sm text-text-secondary">
                   Öğrencinin başka açık tahakkuku bulunmuyor.
                 </p>
               ) : (
@@ -345,11 +340,10 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
 
                   <label className="block text-sm font-medium">
                     Hedef tahakkuk
-
                     <select
                       name="accrualId"
                       required
-                      className="mt-1 w-full rounded-xl border border-line px-3 py-2.5 text-sm outline-none focus:border-terra-500"
+                      className="mt-1 w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none focus:border-primary"
                     >
                       {openAccruals.map((accrual) => (
                         <option key={accrual.id} value={accrual.id}>
@@ -368,19 +362,18 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
 
                   <label className="block text-sm font-medium">
                     Tutar
-
                     <input
                       type="text"
                       name="amount"
                       required
                       defaultValue={unallocatedTotal.toFixed(2)}
-                      className="mt-1 w-full rounded-xl border border-line px-3 py-2.5 text-sm outline-none focus:border-terra-500"
+                      className="mt-1 w-full rounded-xl border border-border px-3 py-2.5 text-sm outline-none focus:border-primary"
                     />
                   </label>
 
                   <button
                     type="submit"
-                    className="w-full rounded-xl bg-terra-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+                    className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
                   >
                     Avansı uygula
                   </button>
@@ -405,9 +398,9 @@ function Field({
 }) {
   return (
     <div>
-      <dt className="text-xs text-muted">{label}</dt>
+      <dt className="text-xs text-text-secondary">{label}</dt>
       <dd
-        className={`mt-1 font-semibold ${emphasis ? "text-blue-700 dark:text-blue-400" : "text-ink"}`}
+        className={`mt-1 font-semibold ${emphasis ? "text-info text-info" : "text-text-primary"}`}
       >
         {value}
       </dd>

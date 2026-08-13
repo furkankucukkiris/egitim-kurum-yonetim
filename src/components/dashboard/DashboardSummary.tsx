@@ -11,16 +11,16 @@ interface DashboardSummaryProps {
 
 // Kullanım:
 // <DashboardSummary items={[
-//   { label: "Bugünkü oturum", value: "12" },
-//   { label: "Bu ay tahsilat", value: "48.200 ₺" },
+// { label: "Bugünkü oturum", value: "12" },
+// { label: "Bu ay tahsilat", value: "48.200 ₺" },
 // ]} />
 export function DashboardSummary({ items }: DashboardSummaryProps) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
       {items.map((item) => (
         <Card key={item.label} className="p-3.5">
-          <p className="text-xs text-muted mb-1">{item.label}</p>
-          <p className="text-xl font-medium text-ink">{item.value}</p>
+          <p className="text-xs text-text-secondary mb-1">{item.label}</p>
+          <p className="text-xl font-medium text-text-primary">{item.value}</p>
         </Card>
       ))}
     </div>

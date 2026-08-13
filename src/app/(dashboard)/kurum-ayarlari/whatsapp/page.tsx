@@ -145,11 +145,11 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
       <SettingsAlert success={params.success} error={params.error} />
 
       <Card className="mb-6 max-w-xl p-6">
-        <h2 className="mb-1 text-base font-semibold text-ink">Hatırlatma günü</h2>
+        <h2 className="mb-1 text-base font-semibold text-text-primary">Hatırlatma günü</h2>
 
-        <p className="mb-5 text-xs leading-5 text-muted">
-          Aşağıdaki &quot;Taslak oluştur&quot; butonu şimdilik elle çalıştırılıyor; bu gün
-          bilgisi ileride otomatik çalıştırma eklendiğinde kullanılacak.
+        <p className="mb-5 text-xs leading-5 text-text-secondary">
+          Aşağıdaki &quot;Taslak oluştur&quot; butonu şimdilik elle çalıştırılıyor; bu gün bilgisi
+          ileride otomatik çalıştırma eklendiğinde kullanılacak.
         </p>
 
         <form action={updateWhatsappSettings} className="flex items-end gap-3">
@@ -162,14 +162,14 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
               max={28}
               required
               defaultValue={organization?.whatsapp_reminder_day ?? 15}
-              className="mx-2 w-20 rounded-xl border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+              className="mx-2 w-20 rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
             />
             günü
           </label>
 
           <button
             type="submit"
-            className="rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
           >
             Kaydet
           </button>
@@ -177,18 +177,18 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
       </Card>
 
       <Card className="mb-6 p-6">
-        <h2 className="mb-1 text-base font-semibold text-ink">Mesaj şablonları</h2>
+        <h2 className="mb-1 text-base font-semibold text-text-primary">Mesaj şablonları</h2>
 
-        <p className="mb-5 text-xs leading-5 text-muted">
-          Her olay türü için gönderilecek mesaj metnini düzenleyin. Kullanılabilecek yer
-          tutucular şablona göre değişir — örn. {"{veli_adi}"}, {"{ogrenci_adi}"}, {"{ay_yili}"},{" "}
-          {"{tutar}"}, {"{kurum_adi}"}, {"{tarih}"}, {"{saat}"}.
+        <p className="mb-5 text-xs leading-5 text-text-secondary">
+          Her olay türü için gönderilecek mesaj metnini düzenleyin. Kullanılabilecek yer tutucular
+          şablona göre değişir — örn. {"{veli_adi}"}, {"{ogrenci_adi}"}, {"{ay_yili}"}, {"{tutar}"},{" "}
+          {"{kurum_adi}"}, {"{tarih}"}, {"{saat}"}.
         </p>
 
         <div className="space-y-4">
           {templateList.map((template) => (
-            <details key={template.id} className="rounded-xl border border-line p-4">
-              <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-medium text-ink">
+            <details key={template.id} className="rounded-xl border border-border p-4">
+              <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-medium text-text-primary">
                 <span className="flex items-center gap-2">
                   {template.name}
                   <StatusBadge
@@ -208,23 +208,23 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
                   required
                   minLength={10}
                   defaultValue={template.body_template}
-                  className="w-full resize-y rounded-xl border border-line bg-panel px-4 py-3 text-sm outline-none transition focus:border-terra-500"
+                  className="w-full resize-y rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none transition focus:border-primary"
                 />
 
                 <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 text-xs text-muted">
+                  <label className="flex items-center gap-2 text-xs text-text-secondary">
                     <input
                       type="checkbox"
                       name="isActive"
                       defaultChecked={template.is_active}
-                      className="h-4 w-4 rounded border-line text-terra-700 focus:ring-terra-500/50"
+                      className="h-4 w-4 rounded border-border text-primary focus:ring-focus-ring"
                     />
                     Aktif
                   </label>
 
                   <button
                     type="submit"
-                    className="rounded-lg border border-line px-4 py-2 text-xs font-medium text-ink transition hover:bg-fill"
+                    className="rounded-lg border border-border px-4 py-2 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                   >
                     Kaydet
                   </button>
@@ -236,28 +236,30 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
       </Card>
 
       <Card className="mb-6 p-6">
-        <h2 className="mb-1 text-base font-semibold text-ink">Yaklaşan ödeme hatırlatmaları</h2>
+        <h2 className="mb-1 text-base font-semibold text-text-primary">
+          Yaklaşan ödeme hatırlatmaları
+        </h2>
 
-        <p className="mb-4 text-xs leading-5 text-muted">
-          Seçilen ay için bekleyen aidat tahakkuku olan, finansal mesaj almayı kabul etmiş
-          velilere taslak hatırlatma oluşturur. Hiçbir mesaj otomatik gönderilmez — önce
-          burada onaylamanız, sonra göndermeniz gerekir.
+        <p className="mb-4 text-xs leading-5 text-text-secondary">
+          Seçilen ay için bekleyen aidat tahakkuku olan, finansal mesaj almayı kabul etmiş velilere
+          taslak hatırlatma oluşturur. Hiçbir mesaj otomatik gönderilmez — önce burada onaylamanız,
+          sonra göndermeniz gerekir.
         </p>
 
         <form action={generateUpcomingPaymentReminders} className="flex items-end gap-2">
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             Ay
             <input
               name="month"
               type="month"
               defaultValue={currentMonth}
-              className="mt-1 block rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+              className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
             />
           </label>
 
           <button
             type="submit"
-            className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink transition hover:bg-fill"
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-muted"
           >
             Taslak oluştur
           </button>
@@ -266,7 +268,7 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
 
       <Card className="p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-base font-semibold text-ink">Mesaj kuyruğu</h2>
+          <h2 className="text-base font-semibold text-text-primary">Mesaj kuyruğu</h2>
 
           <div className="flex flex-wrap gap-2">
             {statusFilters.map((filter) => (
@@ -279,8 +281,8 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
                 }
                 className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
                   status === filter.value
-                    ? "bg-terra-700 text-white"
-                    : "border border-line text-ink hover:bg-fill"
+                    ? "bg-primary text-on-primary"
+                    : "border border-border text-text-primary hover:bg-surface-muted"
                 }`}
               >
                 {filter.label}
@@ -290,35 +292,42 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
         </div>
 
         {messageList.length === 0 ? (
-          <p className="text-sm text-muted">Bu filtrede mesaj yok.</p>
+          <p className="text-sm text-text-secondary">Bu filtrede mesaj yok.</p>
         ) : (
           <div className="space-y-3">
             {messageList.map((message) => (
-              <details key={message.id} className="rounded-xl border border-line p-4">
+              <details key={message.id} className="rounded-xl border border-border p-4">
                 <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-3 text-sm">
                   <span>
-                    <span className="font-medium text-ink">{message.guardians?.full_name ?? "—"}</span>{" "}
-                    <span className="text-muted">
+                    <span className="font-medium text-text-primary">
+                      {message.guardians?.full_name ?? "—"}
+                    </span>{" "}
+                    <span className="text-text-secondary">
                       (
                       {message.students
                         ? `${message.students.first_name} ${message.students.last_name}`
                         : "—"}
                       )
                     </span>{" "}
-                    <span className="text-xs text-muted">
+                    <span className="text-xs text-text-secondary">
                       · {eventTypeLabels[message.event_type]} · {formatDateTime(message.created_at)}
                     </span>
                   </span>
 
-                  <StatusBadge label={statusLabels[message.status]} tone={statusTones[message.status]} />
+                  <StatusBadge
+                    label={statusLabels[message.status]}
+                    tone={statusTones[message.status]}
+                  />
                 </summary>
 
-                <p className="mt-3 whitespace-pre-wrap rounded-lg bg-fill p-3 text-xs text-ink">
+                <p className="mt-3 whitespace-pre-wrap rounded-lg bg-surface-muted p-3 text-xs text-text-primary">
                   {message.rendered_body}
                 </p>
 
                 {message.status === "cancelled" && message.cancellation_reason && (
-                  <p className="mt-2 text-xs text-muted">Gerekçe: {message.cancellation_reason}</p>
+                  <p className="mt-2 text-xs text-text-secondary">
+                    Gerekçe: {message.cancellation_reason}
+                  </p>
                 )}
 
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -329,7 +338,7 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
                         <input type="hidden" name="status" value={status} />
                         <button
                           type="submit"
-                          className="rounded-lg bg-terra-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-terra-700/90"
+                          className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary transition hover:bg-primary-hover"
                         >
                           Onayla
                         </button>
@@ -340,7 +349,7 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
                         <input type="hidden" name="status" value={status} />
                         <button
                           type="submit"
-                          className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                         >
                           İptal et
                         </button>
@@ -355,7 +364,7 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
                         <input type="hidden" name="status" value={status} />
                         <button
                           type="submit"
-                          className="rounded-lg bg-terra-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-terra-700/90"
+                          className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary transition hover:bg-primary-hover"
                         >
                           Gönder
                         </button>
@@ -366,7 +375,7 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
                         <input type="hidden" name="status" value={status} />
                         <button
                           type="submit"
-                          className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                         >
                           İptal et
                         </button>
@@ -381,7 +390,7 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
                         <input type="hidden" name="status" value={status} />
                         <button
                           type="submit"
-                          className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                         >
                           Tekrar dene
                         </button>
@@ -392,7 +401,7 @@ export default async function WhatsappSettingsPage({ searchParams }: WhatsappSet
                         <input type="hidden" name="status" value={status} />
                         <button
                           type="submit"
-                          className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                         >
                           İptal et
                         </button>

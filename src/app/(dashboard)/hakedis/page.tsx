@@ -102,27 +102,24 @@ export default async function CompensationPage({ searchParams }: CompensationPag
 
   return (
     <>
-      <PageHeader
-        title="Hakediş"
-        description="Öğretmen hakedişleri, onay ve ödeme takibi."
-      />
+      <PageHeader title="Hakediş" description="Öğretmen hakedişleri, onay ve ödeme takibi." />
 
       <SettingsAlert success={params.success} error={params.error} />
 
       <form method="get" className="mb-6 flex items-end gap-3">
-        <label className="text-xs font-medium text-muted">
+        <label className="text-xs font-medium text-text-secondary">
           Ay
           <input
             name="month"
             type="month"
             defaultValue={month}
-            className="mt-1 block rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+            className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
           />
         </label>
 
         <button
           type="submit"
-          className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink transition hover:bg-fill"
+          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-muted"
         >
           Görüntüle
         </button>
@@ -131,11 +128,10 @@ export default async function CompensationPage({ searchParams }: CompensationPag
       <Card className="mb-6 p-6">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 className="text-base font-semibold text-ink">{month} hakediş üretimi</h2>
-            <p className="mt-1 text-xs leading-5 text-muted">
-              Tamamlanmış (yoklaması kilitli) ve iptal edilmiş oturumlardan hakediş
-              satırları oluşturur. Aynı oturum için tekrar çalıştırılırsa mükerrer
-              satır eklenmez.
+            <h2 className="text-base font-semibold text-text-primary">{month} hakediş üretimi</h2>
+            <p className="mt-1 text-xs leading-5 text-text-secondary">
+              Tamamlanmış (yoklaması kilitli) ve iptal edilmiş oturumlardan hakediş satırları
+              oluşturur. Aynı oturum için tekrar çalıştırılırsa mükerrer satır eklenmez.
             </p>
           </div>
 
@@ -144,7 +140,7 @@ export default async function CompensationPage({ searchParams }: CompensationPag
 
             <button
               type="submit"
-              className="rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
             >
               Bu ayın hakedişini oluştur
             </button>
@@ -153,15 +149,15 @@ export default async function CompensationPage({ searchParams }: CompensationPag
       </Card>
 
       <Card className="p-6">
-        <h2 className="mb-4 text-base font-semibold text-ink">{month} öğretmen özeti</h2>
+        <h2 className="mb-4 text-base font-semibold text-text-primary">{month} öğretmen özeti</h2>
 
         {summaries.length === 0 ? (
-          <p className="text-sm text-muted">Henüz aktif öğretmen yok.</p>
+          <p className="text-sm text-text-secondary">Henüz aktif öğretmen yok.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
+                <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
                   <th className="py-2 pr-4">Öğretmen</th>
                   <th className="py-2 pr-4 text-right">Kayıt</th>
                   <th className="py-2 pr-4 text-right">Bekleyen</th>
@@ -174,23 +170,25 @@ export default async function CompensationPage({ searchParams }: CompensationPag
 
               <tbody>
                 {summaries.map((summary) => (
-                  <tr key={summary.teacherId} className="border-b border-line/60">
+                  <tr key={summary.teacherId} className="border-b border-border/60">
                     <td className="py-3 pr-4">
                       <Link
                         href={`/hakedis/${summary.teacherId}?month=${month}`}
-                        className="font-medium text-ink hover:underline"
+                        className="font-medium text-text-primary hover:underline"
                       >
                         {summary.teacherName}
                       </Link>
                     </td>
 
-                    <td className="py-3 pr-4 text-right text-muted">{summary.entryCount}</td>
+                    <td className="py-3 pr-4 text-right text-text-secondary">
+                      {summary.entryCount}
+                    </td>
 
                     <td className="py-3 pr-4 text-right">
                       {summary.pending !== 0 ? (
                         <StatusBadge label={formatTry(summary.pending)} tone="warning" />
                       ) : (
-                        <span className="text-muted">—</span>
+                        <span className="text-text-secondary">—</span>
                       )}
                     </td>
 
@@ -198,7 +196,7 @@ export default async function CompensationPage({ searchParams }: CompensationPag
                       {summary.approved !== 0 ? (
                         <StatusBadge label={formatTry(summary.approved)} tone="neutral" />
                       ) : (
-                        <span className="text-muted">—</span>
+                        <span className="text-text-secondary">—</span>
                       )}
                     </td>
 
@@ -206,11 +204,11 @@ export default async function CompensationPage({ searchParams }: CompensationPag
                       {summary.paid !== 0 ? (
                         <StatusBadge label={formatTry(summary.paid)} tone="success" />
                       ) : (
-                        <span className="text-muted">—</span>
+                        <span className="text-text-secondary">—</span>
                       )}
                     </td>
 
-                    <td className="py-3 pr-4 text-right font-semibold text-ink">
+                    <td className="py-3 pr-4 text-right font-semibold text-text-primary">
                       {formatTry(summary.total)}
                     </td>
 
@@ -220,11 +218,15 @@ export default async function CompensationPage({ searchParams }: CompensationPag
                           <form action={approveCompensation}>
                             <input type="hidden" name="teacherId" value={summary.teacherId} />
                             <input type="hidden" name="periodStart" value={monthStart} />
-                            <input type="hidden" name="redirectTo" value={`/hakedis?month=${month}`} />
+                            <input
+                              type="hidden"
+                              name="redirectTo"
+                              value={`/hakedis?month=${month}`}
+                            />
 
                             <button
                               type="submit"
-                              className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                              className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                             >
                               Onayla
                             </button>
@@ -235,11 +237,15 @@ export default async function CompensationPage({ searchParams }: CompensationPag
                           <form action={markCompensationPaid}>
                             <input type="hidden" name="teacherId" value={summary.teacherId} />
                             <input type="hidden" name="periodStart" value={monthStart} />
-                            <input type="hidden" name="redirectTo" value={`/hakedis?month=${month}`} />
+                            <input
+                              type="hidden"
+                              name="redirectTo"
+                              value={`/hakedis?month=${month}`}
+                            />
 
                             <button
                               type="submit"
-                              className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                              className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                             >
                               Ödendi işaretle
                             </button>

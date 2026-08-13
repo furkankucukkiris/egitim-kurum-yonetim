@@ -23,7 +23,7 @@ const statusTone: Record<string, BadgeTone> = {
 export function TodaySessionsList({ sessions }: TodaySessionsListProps) {
   if (sessions.length === 0) {
     return (
-      <Card className="p-6 text-center text-sm text-muted">
+      <Card className="p-6 text-center text-sm text-text-secondary">
         Bugün için planlanmış bir ders oturumu yok.
       </Card>
     );
@@ -32,15 +32,18 @@ export function TodaySessionsList({ sessions }: TodaySessionsListProps) {
   return (
     <div className="space-y-2.5">
       {sessions.map((session, index) => (
-        <Card key={`${session.time}-${session.course}-${index}`} className="flex items-center justify-between gap-4 p-3.5">
+        <Card
+          key={`${session.time}-${session.course}-${index}`}
+          className="flex items-center justify-between gap-4 p-3.5"
+        >
           <div className="flex items-center gap-4">
-            <div className="w-14 shrink-0 text-sm font-semibold text-brand-700 dark:text-brand-100">
+            <div className="w-14 shrink-0 text-sm font-semibold text-primary text-primary">
               {session.time}
             </div>
 
             <div>
-              <p className="text-sm font-medium text-ink">{session.course}</p>
-              <p className="mt-0.5 text-xs text-muted">
+              <p className="text-sm font-medium text-text-primary">{session.course}</p>
+              <p className="mt-0.5 text-xs text-text-secondary">
                 {session.teacher} · {session.room}
               </p>
             </div>

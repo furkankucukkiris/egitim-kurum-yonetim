@@ -15,9 +15,7 @@ export async function createExpenseCategory(formData: FormData) {
   const isDirectCourseCost = formData.get("isDirectCourseCost") === "on";
 
   if (name.length < 2) {
-    redirect(
-      `/giderler?error=${encodeURIComponent("Kategori adı en az 2 karakter olmalıdır.")}`,
-    );
+    redirect(`/giderler?error=${encodeURIComponent("Kategori adı en az 2 karakter olmalıdır.")}`);
   }
 
   const supabase = await createClient();
@@ -81,9 +79,7 @@ export async function createExpense(formData: FormData) {
   if (error) {
     console.error("Masraf oluşturulamadı:", error);
 
-    redirect(
-      `/giderler/yeni?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`,
-    );
+    redirect(`/giderler/yeni?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath("/giderler");
@@ -129,9 +125,7 @@ export async function updateExpenseDetails(formData: FormData) {
   if (error) {
     console.error("Masraf güncellenemedi:", error);
 
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath(`/giderler/${expenseId}`);
@@ -178,9 +172,7 @@ export async function recordExpensePayment(formData: FormData) {
   if (error) {
     console.error("Masraf ödemesi kaydedilemedi:", error);
 
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath(`/giderler/${expenseId}`);
@@ -211,9 +203,7 @@ export async function cancelExpense(formData: FormData) {
   if (error) {
     console.error("Masraf iptal edilemedi:", error);
 
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath(`/giderler/${expenseId}`);
@@ -246,7 +236,8 @@ export async function uploadExpenseDocument(formData: FormData) {
 
   const supabase = await createClient();
 
-  const extension = documentFile.type === "application/pdf" ? "pdf" : documentFile.type.split("/")[1];
+  const extension =
+    documentFile.type === "application/pdf" ? "pdf" : documentFile.type.split("/")[1];
   const path = `${profile.organizationId}/${expenseId}-${Date.now()}.${extension}`;
 
   const { error: uploadError } = await supabase.storage
@@ -256,7 +247,9 @@ export async function uploadExpenseDocument(formData: FormData) {
   if (uploadError) {
     console.error("Belge yüklenemedi:", uploadError);
 
-    redirect(`${redirectBase}?error=${encodeURIComponent("Belge yüklenemedi. Lütfen tekrar deneyin.")}`);
+    redirect(
+      `${redirectBase}?error=${encodeURIComponent("Belge yüklenemedi. Lütfen tekrar deneyin.")}`,
+    );
   }
 
   const { error } = await supabase.rpc("set_expense_document", {
@@ -269,9 +262,7 @@ export async function uploadExpenseDocument(formData: FormData) {
 
     await supabase.storage.from("expense-documents").remove([path]);
 
-    redirect(
-      `${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`,
-    );
+    redirect(`${redirectBase}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath(`/giderler/${expenseId}`);
@@ -317,9 +308,7 @@ export async function createRecurringExpenseTemplate(formData: FormData) {
   if (error) {
     console.error("Tekrarlayan masraf şablonu oluşturulamadı:", error);
 
-    redirect(
-      `/giderler?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`,
-    );
+    redirect(`/giderler?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath("/giderler");
@@ -343,9 +332,7 @@ export async function setRecurringExpenseTemplateActive(formData: FormData) {
   if (error) {
     console.error("Şablon durumu değiştirilemedi:", error);
 
-    redirect(
-      `/giderler?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`,
-    );
+    redirect(`/giderler?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
   revalidatePath("/giderler");

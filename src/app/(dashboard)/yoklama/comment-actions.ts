@@ -13,9 +13,7 @@ export async function addSessionComment(formData: FormData) {
   const body = String(formData.get("body") ?? "").trim();
 
   if (!lessonSessionId) {
-    redirect(
-      `/yoklama?date=${date}&error=${encodeURIComponent("Oturum bilgisi bulunamadı.")}`,
-    );
+    redirect(`/yoklama?date=${date}&error=${encodeURIComponent("Oturum bilgisi bulunamadı.")}`);
   }
 
   if (body.length < 1 || body.length > 2000) {
@@ -38,16 +36,12 @@ export async function addSessionComment(formData: FormData) {
   if (error) {
     console.error("Yorum eklenemedi:", error);
 
-    redirect(
-      `/yoklama?date=${date}&error=${encodeURIComponent("Yorum eklenemedi.")}`,
-    );
+    redirect(`/yoklama?date=${date}&error=${encodeURIComponent("Yorum eklenemedi.")}`);
   }
 
   revalidatePath("/yoklama");
 
-  redirect(
-    `/yoklama?date=${date}&success=${encodeURIComponent("Yorum eklendi.")}`,
-  );
+  redirect(`/yoklama?date=${date}&success=${encodeURIComponent("Yorum eklendi.")}`);
 }
 
 export async function deleteSessionComment(formData: FormData) {
@@ -57,29 +51,20 @@ export async function deleteSessionComment(formData: FormData) {
   const date = String(formData.get("date") ?? "").trim();
 
   if (!commentId) {
-    redirect(
-      `/yoklama?date=${date}&error=${encodeURIComponent("Yorum bulunamadı.")}`,
-    );
+    redirect(`/yoklama?date=${date}&error=${encodeURIComponent("Yorum bulunamadı.")}`);
   }
 
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("lesson_session_comments")
-    .delete()
-    .eq("id", commentId);
+  const { error } = await supabase.from("lesson_session_comments").delete().eq("id", commentId);
 
   if (error) {
     console.error("Yorum silinemedi:", error);
 
-    redirect(
-      `/yoklama?date=${date}&error=${encodeURIComponent("Yorum silinemedi.")}`,
-    );
+    redirect(`/yoklama?date=${date}&error=${encodeURIComponent("Yorum silinemedi.")}`);
   }
 
   revalidatePath("/yoklama");
 
-  redirect(
-    `/yoklama?date=${date}&success=${encodeURIComponent("Yorum silindi.")}`,
-  );
+  redirect(`/yoklama?date=${date}&success=${encodeURIComponent("Yorum silindi.")}`);
 }

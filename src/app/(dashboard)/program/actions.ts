@@ -23,37 +23,23 @@ export async function createClassGroup(
 
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc(
-    "create_class_group",
-    {
-      p_name: values.name,
-      p_course_id: values.courseId,
-      p_teacher_profile_id:
-        values.teacherProfileId || null,
-      p_room_name: values.roomName || null,
-      p_capacity: values.capacity,
-      p_weekday: values.weekday,
-      p_start_time: values.startTime,
-      p_duration_minutes:
-        values.durationMinutes,
-      p_starts_on: values.startsOn,
-      p_ends_on: values.endsOn || null,
-    },
-  );
+  const { error } = await supabase.rpc("create_class_group", {
+    p_name: values.name,
+    p_course_id: values.courseId,
+    p_teacher_profile_id: values.teacherProfileId || null,
+    p_room_name: values.roomName || null,
+    p_capacity: values.capacity,
+    p_weekday: values.weekday,
+    p_start_time: values.startTime,
+    p_duration_minutes: values.durationMinutes,
+    p_starts_on: values.startsOn,
+    p_ends_on: values.endsOn || null,
+  });
 
   if (error) {
-    console.error(
-      "Ders seansı oluşturulamadı:",
-      error,
-    );
+    console.error("Ders seansı oluşturulamadı:", error);
 
-    await logRejectedSchedulingAttempt(
-      supabase,
-      "class_groups",
-      "create_rejected",
-      error,
-      values,
-    );
+    await logRejectedSchedulingAttempt(supabase, "class_groups", "create_rejected", error, values);
 
     return {
       error: getDatabaseErrorMessage(error),
@@ -63,11 +49,7 @@ export async function createClassGroup(
   revalidatePath("/program");
 
   const warning = values.teacherProfileId
-    ? await checkMebPermitWarning(
-        supabase,
-        values.teacherProfileId,
-        values.courseId,
-      )
+    ? await checkMebPermitWarning(supabase, values.teacherProfileId, values.courseId)
     : null;
 
   redirect(
@@ -83,10 +65,7 @@ export async function updateClassGroup(
 ): Promise<ClassGroupActionState> {
   await requireRole(["admin"]);
 
-  const groupId = readText(
-    formData,
-    "groupId",
-  );
+  const groupId = readText(formData, "groupId");
 
   if (!groupId) {
     return {
@@ -94,10 +73,7 @@ export async function updateClassGroup(
     };
   }
 
-  const values = readAndValidateGroup(
-    formData,
-    false,
-  );
+  const values = readAndValidateGroup(formData, false);
 
   if ("error" in values) {
     return values;
@@ -105,37 +81,26 @@ export async function updateClassGroup(
 
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc(
-    "update_class_group",
-    {
-      p_group_id: groupId,
-      p_name: values.name,
-      p_teacher_profile_id:
-        values.teacherProfileId || null,
-      p_room_name: values.roomName || null,
-      p_capacity: values.capacity,
-      p_weekday: values.weekday,
-      p_start_time: values.startTime,
-      p_duration_minutes:
-        values.durationMinutes,
-      p_starts_on: values.startsOn,
-      p_ends_on: values.endsOn || null,
-    },
-  );
+  const { error } = await supabase.rpc("update_class_group", {
+    p_group_id: groupId,
+    p_name: values.name,
+    p_teacher_profile_id: values.teacherProfileId || null,
+    p_room_name: values.roomName || null,
+    p_capacity: values.capacity,
+    p_weekday: values.weekday,
+    p_start_time: values.startTime,
+    p_duration_minutes: values.durationMinutes,
+    p_starts_on: values.startsOn,
+    p_ends_on: values.endsOn || null,
+  });
 
   if (error) {
-    console.error(
-      "Ders seansı güncellenemedi:",
-      error,
-    );
+    console.error("Ders seansı güncellenemedi:", error);
 
-    await logRejectedSchedulingAttempt(
-      supabase,
-      "class_groups",
-      "update_rejected",
-      error,
-      { groupId, ...values },
-    );
+    await logRejectedSchedulingAttempt(supabase, "class_groups", "update_rejected", error, {
+      groupId,
+      ...values,
+    });
 
     return {
       error: getDatabaseErrorMessage(error),
@@ -149,11 +114,7 @@ export async function updateClassGroup(
 
   const warning =
     values.teacherProfileId && courseId
-      ? await checkMebPermitWarning(
-          supabase,
-          values.teacherProfileId,
-          courseId,
-        )
+      ? await checkMebPermitWarning(supabase, values.teacherProfileId, courseId)
       : null;
 
   redirect(
@@ -163,18 +124,12 @@ export async function updateClassGroup(
   );
 }
 
-export async function setClassGroupActive(
-  formData: FormData,
-) {
+export async function setClassGroupActive(formData: FormData) {
   await requireRole(["admin"]);
 
-  const groupId = readText(
-    formData,
-    "groupId",
-  );
+  const groupId = readText(formData, "groupId");
 
-  const isActive =
-    readText(formData, "isActive") === "true";
+  const isActive = readText(formData, "isActive") === "true";
 
   if (!groupId) {
     redirect("/program");
@@ -182,34 +137,22 @@ export async function setClassGroupActive(
 
   const supabase = await createClient();
 
-  const { error } = await supabase.rpc(
-    "set_class_group_active",
-    {
-      p_group_id: groupId,
-      p_is_active: isActive,
-    },
-  );
+  const { error } = await supabase.rpc("set_class_group_active", {
+    p_group_id: groupId,
+    p_is_active: isActive,
+  });
 
   if (error) {
-    console.error(
-      "Seans durumu değiştirilemedi:",
-      error,
-    );
+    console.error("Seans durumu değiştirilemedi:", error);
 
-    redirect(
-      `/program?error=${encodeURIComponent(
-        getDatabaseErrorMessage(error),
-      )}`,
-    );
+    redirect(`/program?error=${encodeURIComponent(getDatabaseErrorMessage(error))}`);
   }
 
   revalidatePath("/program");
 
   redirect(
     `/program?success=${encodeURIComponent(
-      isActive
-        ? "Ders seansı aktifleştirildi."
-        : "Ders seansı pasife alındı.",
+      isActive ? "Ders seansı aktifleştirildi." : "Ders seansı pasife alındı.",
     )}`,
   );
 }
@@ -233,52 +176,27 @@ function readAndValidateGroup(
   | ClassGroupActionState {
   const name = readText(formData, "name");
 
-  const courseId = readText(
-    formData,
-    "courseId",
-  );
+  const courseId = readText(formData, "courseId");
 
-  const teacherProfileId = readText(
-    formData,
-    "teacherProfileId",
-  );
+  const teacherProfileId = readText(formData, "teacherProfileId");
 
-  const roomName = readText(
-    formData,
-    "roomName",
-  );
+  const roomName = readText(formData, "roomName");
 
-  const capacity = Number(
-    readText(formData, "capacity"),
-  );
+  const capacity = Number(readText(formData, "capacity"));
 
-  const weekday = Number(
-    readText(formData, "weekday"),
-  );
+  const weekday = Number(readText(formData, "weekday"));
 
-  const startTime = readText(
-    formData,
-    "startTime",
-  );
+  const startTime = readText(formData, "startTime");
 
-  const durationMinutes = Number(
-    readText(formData, "durationMinutes"),
-  );
+  const durationMinutes = Number(readText(formData, "durationMinutes"));
 
-  const startsOn = readText(
-    formData,
-    "startsOn",
-  );
+  const startsOn = readText(formData, "startsOn");
 
-  const endsOn = readText(
-    formData,
-    "endsOn",
-  );
+  const endsOn = readText(formData, "endsOn");
 
   if (name.length < 2) {
     return {
-      error:
-        "Seans adı en az 2 karakter olmalıdır.",
+      error: "Seans adı en az 2 karakter olmalıdır.",
     };
   }
 
@@ -288,74 +206,45 @@ function readAndValidateGroup(
     };
   }
 
-  if (
-    !Number.isInteger(capacity) ||
-    capacity < 1 ||
-    capacity > 100
-  ) {
+  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 100) {
     return {
-      error:
-        "Kapasite 1 ile 100 arasında olmalıdır.",
+      error: "Kapasite 1 ile 100 arasında olmalıdır.",
     };
   }
 
-  if (
-    !Number.isInteger(weekday) ||
-    weekday < 1 ||
-    weekday > 7
-  ) {
+  if (!Number.isInteger(weekday) || weekday < 1 || weekday > 7) {
     return {
-      error:
-        "Geçerli bir ders günü seçin.",
+      error: "Geçerli bir ders günü seçin.",
     };
   }
 
-  if (
-    !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(
-      startTime,
-    )
-  ) {
+  if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(startTime)) {
     return {
-      error:
-        "Geçerli bir başlangıç saati girin.",
+      error: "Geçerli bir başlangıç saati girin.",
     };
   }
 
-  if (
-    !Number.isInteger(durationMinutes) ||
-    durationMinutes < 15 ||
-    durationMinutes > 480
-  ) {
+  if (!Number.isInteger(durationMinutes) || durationMinutes < 15 || durationMinutes > 480) {
     return {
-      error:
-        "Ders süresi 15 ile 480 dakika arasında olmalıdır.",
+      error: "Ders süresi 15 ile 480 dakika arasında olmalıdır.",
     };
   }
 
   if (!isIsoDate(startsOn)) {
     return {
-      error:
-        "Program başlangıç tarihi geçerli değil.",
+      error: "Program başlangıç tarihi geçerli değil.",
     };
   }
 
-  if (
-    endsOn &&
-    !isIsoDate(endsOn)
-  ) {
+  if (endsOn && !isIsoDate(endsOn)) {
     return {
-      error:
-        "Program bitiş tarihi geçerli değil.",
+      error: "Program bitiş tarihi geçerli değil.",
     };
   }
 
-  if (
-    endsOn &&
-    endsOn < startsOn
-  ) {
+  if (endsOn && endsOn < startsOn) {
     return {
-      error:
-        "Program bitiş tarihi başlangıç tarihinden önce olamaz.",
+      error: "Program bitiş tarihi başlangıç tarihinden önce olamaz.",
     };
   }
 
@@ -378,23 +267,13 @@ function isIsoDate(value: string) {
     return false;
   }
 
-  const date = new Date(
-    `${value}T00:00:00.000Z`,
-  );
+  const date = new Date(`${value}T00:00:00.000Z`);
 
-  return (
-    !Number.isNaN(date.getTime()) &&
-    date.toISOString().slice(0, 10) === value
-  );
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
-function readText(
-  formData: FormData,
-  name: string,
-) {
-  return String(
-    formData.get(name) ?? "",
-  ).trim();
+function readText(formData: FormData, name: string) {
+  return String(formData.get(name) ?? "").trim();
 }
 
 type RpcError = {
@@ -422,17 +301,13 @@ function getDatabaseErrorMessage(error: RpcError) {
     "Kapasite mevcut öğrenci sayısından daha düşük olamaz.",
   ];
 
-  const matchedMessage = safeMessages.find(
-    (item) => error.message.includes(item),
-  );
+  const matchedMessage = safeMessages.find((item) => error.message.includes(item));
 
   if (matchedMessage) {
     return matchedMessage;
   }
 
-  if (
-    process.env.NODE_ENV === "development"
-  ) {
+  if (process.env.NODE_ENV === "development") {
     return `Veritabanı hatası: ${error.message}`;
   }
 
@@ -458,15 +333,12 @@ async function logRejectedSchedulingAttempt(
     return;
   }
 
-  const { error: logError } = await supabase.rpc(
-    "log_rejected_scheduling_attempt",
-    {
-      p_table_name: tableName,
-      p_action: action,
-      p_reason: error.message,
-      p_payload: payload as Record<string, unknown>,
-    },
-  );
+  const { error: logError } = await supabase.rpc("log_rejected_scheduling_attempt", {
+    p_table_name: tableName,
+    p_action: action,
+    p_reason: error.message,
+    p_payload: payload as Record<string, unknown>,
+  });
 
   if (logError) {
     console.error("Reddedilen işlem kaydedilemedi:", logError);
@@ -483,13 +355,10 @@ async function checkMebPermitWarning(
   teacherProfileId: string,
   courseId: string,
 ) {
-  const { data, error } = await supabase.rpc(
-    "check_teacher_meb_permit",
-    {
-      p_teacher_profile_id: teacherProfileId,
-      p_course_id: courseId,
-    },
-  );
+  const { data, error } = await supabase.rpc("check_teacher_meb_permit", {
+    p_teacher_profile_id: teacherProfileId,
+    p_course_id: courseId,
+  });
 
   if (error) {
     console.error("MEB izni kontrol edilemedi:", error);
@@ -499,10 +368,7 @@ async function checkMebPermitWarning(
   return (data as string | null) ?? null;
 }
 
-async function getClassGroupCourseId(
-  supabase: SupabaseServerClient,
-  groupId: string,
-) {
+async function getClassGroupCourseId(supabase: SupabaseServerClient, groupId: string) {
   const { data, error } = await supabase
     .from("class_groups")
     .select("course_id")

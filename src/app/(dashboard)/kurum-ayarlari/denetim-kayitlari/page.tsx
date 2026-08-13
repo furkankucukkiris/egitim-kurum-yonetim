@@ -112,12 +112,12 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
     <>
       <Card className="mb-6 p-4">
         <form method="get" className="grid gap-3 sm:grid-cols-5">
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             Modül / tablo
             <select
               name="table"
               defaultValue={tableFilter}
-              className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
             >
               <option value="">Tümü</option>
               {tableOptions.map((name) => (
@@ -128,12 +128,12 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
             </select>
           </label>
 
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             Kullanıcı
             <select
               name="actor"
               defaultValue={actorFilter}
-              className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
             >
               <option value="">Tümü</option>
               {actorList.map((actor) => (
@@ -144,41 +144,41 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
             </select>
           </label>
 
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             Başlangıç
             <input
               name="start"
               type="date"
               defaultValue={startFilter}
-              className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
             />
           </label>
 
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             Bitiş
             <input
               name="end"
               type="date"
               defaultValue={endFilter}
-              className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
             />
           </label>
 
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             Ara (işlem / kayıt no)
             <input
               name="search"
               type="text"
               defaultValue={search}
               placeholder="ör. cancel_session"
-              className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
             />
           </label>
 
           <div className="sm:col-span-5">
             <button
               type="submit"
-              className="rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
             >
               Filtrele
             </button>
@@ -187,14 +187,15 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
       </Card>
 
       <Card className="p-4">
-        <p className="mb-4 text-xs text-muted">
+        <p className="mb-4 text-xs text-text-secondary">
           {totalCount} kayıttan {auditRows.length === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–
           {Math.min(page * PAGE_SIZE, totalCount)} arası gösteriliyor.
-          {distinctTables.length > 0 && ` Bu sayfadaki tablolar: ${distinctTables.map((t) => tableLabels[t] ?? t).join(", ")}.`}
+          {distinctTables.length > 0 &&
+            ` Bu sayfadaki tablolar: ${distinctTables.map((t) => tableLabels[t] ?? t).join(", ")}.`}
         </p>
 
         {auditRows.length === 0 ? (
-          <p className="text-sm text-muted">Filtreyle eşleşen kayıt yok.</p>
+          <p className="text-sm text-text-secondary">Filtreyle eşleşen kayıt yok.</p>
         ) : (
           <ul className="divide-y divide-line">
             {auditRows.map((row) => (
@@ -204,7 +205,7 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
         )}
 
         {totalPages > 1 && (
-          <div className="mt-4 flex items-center justify-between text-xs text-muted">
+          <div className="mt-4 flex items-center justify-between text-xs text-text-secondary">
             <span>
               Sayfa {page} / {totalPages}
             </span>
@@ -213,7 +214,7 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
               {page > 1 && (
                 <a
                   href={buildQuery({ page: String(page - 1) })}
-                  className="rounded-lg border border-line px-3 py-1.5 font-medium text-ink transition hover:bg-fill"
+                  className="rounded-lg border border-border px-3 py-1.5 font-medium text-text-primary transition hover:bg-surface-muted"
                 >
                   Önceki
                 </a>
@@ -222,7 +223,7 @@ export default async function AuditLogPage({ searchParams }: PageProps) {
               {page < totalPages && (
                 <a
                   href={buildQuery({ page: String(page + 1) })}
-                  className="rounded-lg border border-line px-3 py-1.5 font-medium text-ink transition hover:bg-fill"
+                  className="rounded-lg border border-border px-3 py-1.5 font-medium text-text-primary transition hover:bg-surface-muted"
                 >
                   Sonraki
                 </a>
@@ -242,24 +243,30 @@ function AuditRowItem({ row }: { row: AuditRow }) {
     <li className="py-3">
       <details>
         <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          <span className="whitespace-nowrap text-xs text-muted">{formatDateTime(row.created_at)}</span>
-          <span className="font-medium text-ink">{row.profiles?.full_name ?? "Sistem"}</span>
-          <span className="rounded-full bg-fill px-2 py-0.5 text-xs font-medium text-muted">
+          <span className="whitespace-nowrap text-xs text-text-secondary">
+            {formatDateTime(row.created_at)}
+          </span>
+          <span className="font-medium text-text-primary">
+            {row.profiles?.full_name ?? "Sistem"}
+          </span>
+          <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs font-medium text-text-secondary">
             {tableLabels[row.table_name] ?? row.table_name}
           </span>
-          <span className="text-xs text-muted">{actionLabel(row.action)}</span>
+          <span className="text-xs text-text-secondary">{actionLabel(row.action)}</span>
           {row.record_id && (
-            <span className="font-mono text-xs text-muted">#{row.record_id.slice(0, 8)}</span>
+            <span className="font-mono text-xs text-text-secondary">
+              #{row.record_id.slice(0, 8)}
+            </span>
           )}
         </summary>
 
         <div className="mt-2 pl-1">
           {diffRows.length === 0 ? (
-            <p className="text-xs text-muted">Karşılaştırılacak alan yok.</p>
+            <p className="text-xs text-text-secondary">Karşılaştırılacak alan yok.</p>
           ) : (
             <table className="w-full max-w-2xl text-left text-xs">
               <thead>
-                <tr className="border-b border-line text-muted">
+                <tr className="border-b border-border text-text-secondary">
                   <th className="py-1.5 pr-3">Alan</th>
                   <th className="py-1.5 pr-3">Önceki</th>
                   <th className="py-1.5">Sonraki</th>
@@ -267,15 +274,15 @@ function AuditRowItem({ row }: { row: AuditRow }) {
               </thead>
               <tbody>
                 {diffRows.map((diff) => (
-                  <tr key={diff.key} className="border-b border-line/60">
-                    <td className="py-1.5 pr-3 font-medium text-ink">
+                  <tr key={diff.key} className="border-b border-border/60">
+                    <td className="py-1.5 pr-3 font-medium text-text-primary">
                       {fieldLabel(diff.key)}
                       {isSensitiveAuditKey(diff.key) && (
-                        <span className="ml-1 text-rose-600 dark:text-rose-400">🔒</span>
+                        <span className="ml-1 text-danger text-danger">🔒</span>
                       )}
                     </td>
-                    <td className="py-1.5 pr-3 text-muted">{diff.oldValue}</td>
-                    <td className="py-1.5 text-ink">{diff.newValue}</td>
+                    <td className="py-1.5 pr-3 text-text-secondary">{diff.oldValue}</td>
+                    <td className="py-1.5 text-text-primary">{diff.newValue}</td>
                   </tr>
                 ))}
               </tbody>

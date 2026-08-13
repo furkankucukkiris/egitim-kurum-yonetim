@@ -11,9 +11,7 @@ import {
 } from "@/components/yoklama/MakeupCreditItem";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import {
-  generateMonthlySessions,
-} from "./actions";
+import { generateMonthlySessions } from "./actions";
 import { reviewSessionChangeRequest } from "./session-actions";
 
 type PageProps = {
@@ -38,9 +36,7 @@ type SessionRow = {
   attendance_locked_at: string | null;
   course: {
     name: string;
-    course_type:
-      | "individual"
-      | "group";
+    course_type: "individual" | "group";
   } | null;
   class_group: {
     name: string;
@@ -124,109 +120,73 @@ type CommentRow = {
   author: { full_name: string; role: string } | null;
 };
 
-export default async function AttendancePage({
-  searchParams,
-}: PageProps) {
-  const profile = await requireRole([
-    "admin",
-    "teacher",
-  ]);
+export default async function AttendancePage({ searchParams }: PageProps) {
+  const profile = await requireRole(["admin", "teacher"]);
 
   const params = await searchParams;
 
   const today = getTodayInIstanbul();
 
-  const selectedDate = isIsoDate(
-    params.date,
-  )
-    ? params.date
-    : today;
+  const selectedDate = isIsoDate(params.date) ? params.date : today;
 
-  const previousDate = addDays(
-    selectedDate,
-    -1,
-  );
+  const previousDate = addDays(selectedDate, -1);
 
-  const nextDate = addDays(
-    selectedDate,
-    1,
-  );
+  const nextDate = addDays(selectedDate, 1);
 
   const supabase = await createClient();
 
   let sessionsQuery = supabase
     .from("lesson_sessions")
-    .select(`
-      id,
-      class_group_id,
-      teacher_profile_id,
-      starts_at,
-      ends_at,
-      room_name,
-      is_makeup,
-      cancelled_at,
-      cancellation_reason,
-      teacher_confirmed_at,
-      attendance_locked_at,
-      course:courses (
-        name,
-        course_type
-      ),
-      class_group:class_groups (
-        name
-      ),
-      teacher:profiles!teacher_profile_id (
-        full_name
-      ),
-      locker:profiles!attendance_locked_by (
-        full_name
-      )
-    `)
+    .select(
+      `
+        id,
+        class_group_id,
+        teacher_profile_id,
+        starts_at,
+        ends_at,
+        room_name,
+        is_makeup,
+        cancelled_at,
+        cancellation_reason,
+        teacher_confirmed_at,
+        attendance_locked_at,
+        course:courses (
+          name,
+          course_type
+        ),
+        class_group:class_groups (
+          name
+        ),
+        teacher:profiles!teacher_profile_id (
+          full_name
+        ),
+        locker:profiles!attendance_locked_by (
+          full_name
+        )
+      `,
+    )
     .eq("is_trial", false)
-    .gte(
-      "starts_at",
-      `${selectedDate}T00:00:00+03:00`,
-    )
-    .lt(
-      "starts_at",
-      `${nextDate}T00:00:00+03:00`,
-    )
+    .gte("starts_at", `${selectedDate}T00:00:00+03:00`)
+    .lt("starts_at", `${nextDate}T00:00:00+03:00`)
     .order("starts_at");
 
   if (profile.role === "teacher") {
-    sessionsQuery = sessionsQuery.eq(
-      "teacher_profile_id",
-      profile.id,
-    );
+    sessionsQuery = sessionsQuery.eq("teacher_profile_id", profile.id);
   }
 
-  const sessionsResult =
-    await sessionsQuery;
+  const sessionsResult = await sessionsQuery;
 
   if (sessionsResult.error) {
-    console.error(
-      "Ders oturumları alınamadı:",
-      sessionsResult.error,
-    );
+    console.error("Ders oturumları alınamadı:", sessionsResult.error);
   }
 
-  const sessions =
-    (sessionsResult.data ??
-      []) as unknown as SessionRow[];
+  const sessions = (sessionsResult.data ?? []) as unknown as SessionRow[];
 
   const classGroupIds = Array.from(
     new Set(
       sessions
-        .map(
-          (session) =>
-            session.class_group_id,
-        )
-        .filter(
-          (
-            groupId,
-          ): groupId is string =>
-            Boolean(groupId),
-        ),
+        .map((session) => session.class_group_id)
+        .filter((groupId): groupId is string => Boolean(groupId)),
     ),
   );
 
@@ -243,37 +203,27 @@ export default async function AttendancePage({
         ? await supabase
             .rpc("get_teacher_enrollments")
             .eq("status", "active")
-            .in(
-              "class_group_id",
-              classGroupIds,
-            )
+            .in("class_group_id", classGroupIds)
         : await supabase
             .from("enrollments")
-            .select(`
-              student_id,
-              class_group_id,
-              starts_on,
-              ends_on
-            `)
+            .select(
+              `
+                student_id,
+                class_group_id,
+                starts_on,
+                ends_on
+              `,
+            )
             .eq("status", "active")
-            .in(
-              "class_group_id",
-              classGroupIds,
-            );
+            .in("class_group_id", classGroupIds);
 
     if (result.error) {
-      console.error(
-        "Oturum öğrenci sayıları alınamadı:",
-        result.error,
-      );
+      console.error("Oturum öğrenci sayıları alınamadı:", result.error);
 
       enrollmentsError = true;
     }
 
-    enrollments = (
-      (result.data ??
-        []) as unknown as EnrollmentRow[]
-    ).map((row) => ({
+    enrollments = ((result.data ?? []) as unknown as EnrollmentRow[]).map((row) => ({
       student_id: row.student_id,
       class_group_id: row.class_group_id,
       starts_on: row.starts_on,
@@ -287,13 +237,15 @@ export default async function AttendancePage({
   if (sessionIds.length > 0) {
     const commentsResult = await supabase
       .from("lesson_session_comments")
-      .select(`
-        id,
-        lesson_session_id,
-        body,
-        created_at,
-        author:profiles ( full_name, role )
-      `)
+      .select(
+        `
+          id,
+          lesson_session_id,
+          body,
+          created_at,
+          author:profiles ( full_name, role )
+        `,
+      )
       .in("lesson_session_id", sessionIds)
       .order("created_at", { ascending: true });
 
@@ -380,14 +332,10 @@ export default async function AttendancePage({
     });
 
     if (unmarkedResult.error) {
-      console.error(
-        "Yoklaması alınmamış geçmiş oturumlar alınamadı:",
-        unmarkedResult.error,
-      );
+      console.error("Yoklaması alınmamış geçmiş oturumlar alınamadı:", unmarkedResult.error);
     }
 
-    unmarkedSessions =
-      (unmarkedResult.data ?? []) as unknown as UnmarkedSessionRow[];
+    unmarkedSessions = (unmarkedResult.data ?? []) as unknown as UnmarkedSessionRow[];
 
     const [creditsResult, requestsResult] = await Promise.all([
       supabase.rpc("get_pending_makeup_credits", { p_limit: 20 }),
@@ -421,13 +369,15 @@ export default async function AttendancePage({
     if (courseIds.length > 0) {
       const upcomingResult = await supabase
         .from("lesson_sessions")
-        .select(`
-          id,
-          course_id,
-          starts_at,
-          class_group:class_groups ( name ),
-          teacher:profiles!teacher_profile_id ( full_name )
-        `)
+        .select(
+          `
+            id,
+            course_id,
+            starts_at,
+            class_group:class_groups ( name ),
+            teacher:profiles!teacher_profile_id ( full_name )
+          `,
+        )
         .in("course_id", courseIds)
         .eq("is_trial", false)
         .is("cancelled_at", null)
@@ -469,48 +419,29 @@ export default async function AttendancePage({
     teachers = (teachersResult.data ?? []) as unknown as TeacherOption[];
   }
 
-  const enrollmentCountByGroup =
-    new Map<string, number>();
+  const enrollmentCountByGroup = new Map<string, number>();
 
   for (const enrollment of enrollments) {
     if (
       !enrollment.class_group_id ||
-      enrollment.starts_on >
-        selectedDate ||
-      (
-        enrollment.ends_on &&
-        enrollment.ends_on <
-          selectedDate
-      )
+      enrollment.starts_on > selectedDate ||
+      (enrollment.ends_on && enrollment.ends_on < selectedDate)
     ) {
       continue;
     }
 
     enrollmentCountByGroup.set(
       enrollment.class_group_id,
-      (
-        enrollmentCountByGroup.get(
-          enrollment.class_group_id,
-        ) ?? 0
-      ) + 1,
+      (enrollmentCountByGroup.get(enrollment.class_group_id) ?? 0) + 1,
     );
   }
 
-  const cancelledCount = sessions.filter(
-    (session) =>
-      Boolean(session.cancelled_at),
-  ).length;
+  const cancelledCount = sessions.filter((session) => Boolean(session.cancelled_at)).length;
 
   const totalStudentCount = sessions.reduce(
     (total, session) =>
       total +
-      (
-        session.class_group_id
-          ? enrollmentCountByGroup.get(
-              session.class_group_id,
-            ) ?? 0
-          : 0
-      ),
+      (session.class_group_id ? (enrollmentCountByGroup.get(session.class_group_id) ?? 0) : 0),
     0,
   );
 
@@ -526,24 +457,24 @@ export default async function AttendancePage({
       />
 
       {params.success && (
-        <div className="mb-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 bg-emerald-50 dark:bg-emerald-500/10 p-4 text-sm text-emerald-700 dark:text-emerald-400">
+        <div className="mb-5 rounded-2xl border border-success/30 bg-success-soft p-4 text-sm text-success">
           {params.success}
         </div>
       )}
 
       {params.error && (
-        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
+        <div className="mb-5 rounded-2xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
           {params.error}
         </div>
       )}
 
       {profile.role === "admin" && unmarkedSessions.length > 0 && (
-        <section className="mb-6 rounded-2xl border border-honey-100 bg-honey-50 p-5 shadow-sm dark:border-honey-800/40 dark:bg-honey-500/10">
-          <h2 className="font-bold text-honey-700 dark:text-honey-500">
+        <section className="mb-6 rounded-2xl border border-accent/30 bg-accent-soft p-5 shadow-sm border-accent/40 bg-accent-soft">
+          <h2 className="font-bold text-accent-strong">
             Yoklaması alınmamış geçmiş dersler
           </h2>
 
-          <p className="mt-1 text-sm text-honey-700/80 dark:text-honey-500/80">
+          <p className="mt-1 text-sm text-accent-strong text-accent-strong">
             Bu oturumlar için henüz hiç yoklama girilmemiş.
           </p>
 
@@ -552,14 +483,14 @@ export default async function AttendancePage({
               <li key={session.lesson_session_id}>
                 <Link
                   href={`/yoklama?date=${session.starts_at.slice(0, 10)}`}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-panel px-4 py-2.5 text-sm shadow-sm hover:bg-fill"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface px-4 py-2.5 text-sm shadow-sm hover:bg-surface-muted"
                 >
-                  <span className="font-semibold text-ink">
+                  <span className="font-semibold text-text-primary">
                     {session.course_name}
                     {session.class_group_name ? ` — ${session.class_group_name}` : ""}
                   </span>
 
-                  <span className="text-muted">
+                  <span className="text-text-secondary">
                     {formatLongDate(session.starts_at.slice(0, 10))} ·{" "}
                     {session.teacher_full_name ?? "Atanmamış"}
                   </span>
@@ -571,32 +502,27 @@ export default async function AttendancePage({
       )}
 
       {profile.role === "admin" && pendingRequests.length > 0 && (
-        <section className="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm dark:border-blue-800/40 dark:bg-blue-500/10">
-          <h2 className="font-bold text-blue-800 dark:text-blue-400">
-            Bekleyen iptal/değişiklik talepleri
-          </h2>
+        <section className="mb-6 rounded-2xl border border-info/30 bg-info-soft p-5 shadow-sm border-info/30 bg-info-soft">
+          <h2 className="font-bold text-info text-info">Bekleyen iptal/değişiklik talepleri</h2>
 
           <ul className="mt-3 space-y-3">
             {pendingRequests.map((request) => (
-              <li
-                key={request.request_id}
-                className="rounded-xl bg-panel p-3 shadow-sm"
-              >
-                <p className="text-sm font-semibold text-ink">
+              <li key={request.request_id} className="rounded-xl bg-surface p-3 shadow-sm">
+                <p className="text-sm font-semibold text-text-primary">
                   {request.requested_by_name} —{" "}
                   {request.request_type === "cancel" ? "İptal talebi" : "Yeniden planlama talebi"}
                 </p>
 
-                <p className="mt-1 text-xs text-muted">
+                <p className="mt-1 text-xs text-text-secondary">
                   {request.course_name}
                   {request.class_group_name ? ` — ${request.class_group_name}` : ""} ·{" "}
                   {formatDateTime(request.session_starts_at)}
                 </p>
 
-                <p className="mt-1.5 text-sm text-ink">{request.reason}</p>
+                <p className="mt-1.5 text-sm text-text-primary">{request.reason}</p>
 
                 {request.request_type === "reschedule" && request.proposed_starts_at && (
-                  <p className="mt-1 text-xs text-muted">
+                  <p className="mt-1 text-xs text-text-secondary">
                     Önerilen: {formatDateTime(request.proposed_starts_at)} –{" "}
                     {request.proposed_ends_at ? formatDateTime(request.proposed_ends_at) : ""}
                   </p>
@@ -610,7 +536,7 @@ export default async function AttendancePage({
 
                     <button
                       type="submit"
-                      className="rounded-lg bg-terra-700 px-3 py-1.5 text-xs font-semibold text-white shadow-sm shadow-terra-700/20 hover:bg-terra-700/90"
+                      className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary shadow-sm hover:bg-primary-hover"
                     >
                       Onayla
                     </button>
@@ -623,7 +549,7 @@ export default async function AttendancePage({
 
                     <button
                       type="submit"
-                      className="rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-muted hover:bg-fill"
+                      className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-muted"
                     >
                       Reddet
                     </button>
@@ -636,12 +562,12 @@ export default async function AttendancePage({
       )}
 
       {profile.role === "admin" && pendingCredits.length > 0 && (
-        <section className="mb-6 rounded-2xl border border-line bg-panel p-5 shadow-sm">
-          <h2 className="font-bold text-ink">Bekleyen telafi hakları</h2>
+        <section className="mb-6 rounded-2xl border border-border bg-surface p-5 shadow-sm">
+          <h2 className="font-bold text-text-primary">Bekleyen telafi hakları</h2>
 
-          <p className="mt-1 text-sm text-muted">
-            Kurum kaynaklı iptal veya öğrenci devamsızlığından doğan, henüz
-            planlanmamış telafi hakları.
+          <p className="mt-1 text-sm text-text-secondary">
+            Kurum kaynaklı iptal veya öğrenci devamsızlığından doğan, henüz planlanmamış telafi
+            hakları.
           </p>
 
           <ul className="mt-3 space-y-3">
@@ -659,19 +585,14 @@ export default async function AttendancePage({
       )}
 
       {profile.role === "admin" && (
-        <section className="mb-6 rounded-2xl border border-line bg-panel p-5 shadow-sm">
+        <section className="mb-6 rounded-2xl border border-border bg-surface p-5 shadow-sm">
           <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
-              <h2 className="font-bold">
-                Aylık oturumları oluştur
-              </h2>
+              <h2 className="font-bold">Aylık oturumları oluştur</h2>
 
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-muted">
-                Aktif programların haftalık gün ve
-                saatlerinden seçilen ayın gerçek
-                oturumları oluşturulur. Aynı işlem
-                tekrar çalıştırılırsa mevcut
-                oturumlar çoğaltılmaz.
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-text-secondary">
+                Aktif programların haftalık gün ve saatlerinden seçilen ayın gerçek oturumları
+                oluşturulur. Aynı işlem tekrar çalıştırılırsa mevcut oturumlar çoğaltılmaz.
               </p>
             </div>
 
@@ -681,22 +602,18 @@ export default async function AttendancePage({
             >
               <label className="block text-sm font-medium">
                 Oluşturulacak ay
-
                 <input
                   type="month"
                   name="month"
                   required
-                  defaultValue={selectedDate.slice(
-                    0,
-                    7,
-                  )}
-                  className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm"
+                  defaultValue={selectedDate.slice(0, 7)}
+                  className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm"
                 />
               </label>
 
               <button
                 type="submit"
-                className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white"
+                className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary"
               >
                 Ayın oturumlarını oluştur
               </button>
@@ -706,40 +623,35 @@ export default async function AttendancePage({
       )}
 
       {profile.role === "teacher" && (
-        <div className="mb-6 rounded-2xl border border-blue-200 dark:border-blue-800/40 bg-blue-50 dark:bg-blue-500/10 p-4 text-sm leading-6 text-blue-800 dark:text-blue-400">
-          Aylık oturumları yönetici oluşturur. Size
-          atanmış oturumlar oluşturulduğu anda bu
-          ekranda görünür.
+        <div className="mb-6 rounded-2xl border border-info/30 border-info/30 bg-info-soft p-4 text-sm leading-6 text-info text-info">
+          Aylık oturumları yönetici oluşturur. Size atanmış oturumlar oluşturulduğu anda bu ekranda
+          görünür.
         </div>
       )}
 
-      <section className="mb-6 rounded-2xl border border-line bg-panel p-4 shadow-sm">
-        <form
-          method="get"
-          className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-end"
-        >
+      <section className="mb-6 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+        <form method="get" className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-end">
           <Link
             href={`/yoklama?date=${previousDate}`}
-            className="rounded-xl border border-line bg-panel px-4 py-3 text-center text-sm font-semibold text-brand-700"
+            className="rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-semibold text-primary"
           >
             ← Önceki gün
           </Link>
 
           <label className="block text-sm font-medium">
             Görüntülenecek tarih
-
             <input
               type="date"
               name="date"
               required
               defaultValue={selectedDate}
-              className="mt-2 w-full rounded-xl border border-line px-4 py-3 text-sm"
+              className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm"
             />
           </label>
 
           <button
             type="submit"
-            className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white"
+            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary"
           >
             Tarihe git
           </button>
@@ -748,14 +660,14 @@ export default async function AttendancePage({
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <Link
             href={`/yoklama?date=${today}`}
-            className="rounded-xl border border-honey-100 bg-honey-50 dark:bg-honey-500/10 px-4 py-2.5 text-center text-sm font-semibold text-honey-700 dark:text-honey-500"
+            className="rounded-xl border border-accent/30 bg-accent-soft px-4 py-2.5 text-center text-sm font-semibold text-accent-strong"
           >
             Bugüne dön
           </Link>
 
           <Link
             href={`/yoklama?date=${nextDate}`}
-            className="rounded-xl border border-line bg-panel px-4 py-2.5 text-center text-sm font-semibold text-brand-700"
+            className="rounded-xl border border-border bg-surface px-4 py-2.5 text-center text-sm font-semibold text-primary"
           >
             Sonraki gün →
           </Link>
@@ -763,53 +675,38 @@ export default async function AttendancePage({
       </section>
 
       <section className="mb-6 grid gap-4 sm:grid-cols-3">
-        <SummaryCard
-          label="Ders oturumu"
-          value={sessions.length}
-        />
+        <SummaryCard label="Ders oturumu" value={sessions.length} />
 
-        <SummaryCard
-          label="Kalıcı öğrenci"
-          value={totalStudentCount}
-        />
+        <SummaryCard label="Kalıcı öğrenci" value={totalStudentCount} />
 
-        <SummaryCard
-          label="İptal edilen"
-          value={cancelledCount}
-        />
+        <SummaryCard label="İptal edilen" value={cancelledCount} />
       </section>
 
       <div className="mb-4">
-        <h2 className="text-xl font-bold">
-          {formatLongDate(selectedDate)}
-        </h2>
+        <h2 className="text-xl font-bold">{formatLongDate(selectedDate)}</h2>
 
-        <p className="mt-1 text-sm text-muted">
+        <p className="mt-1 text-sm text-text-secondary">
           {selectedDate === today
             ? "Bugünün gerçek ders akışı"
             : "Seçilen tarihin gerçek ders akışı"}
         </p>
       </div>
 
-      {(sessionsResult.error ||
-        enrollmentsError) && (
-        <div className="mb-5 rounded-2xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-4 text-sm text-rose-700 dark:text-rose-400">
-          Oturum verilerinin bir kısmı
-          alınamadı.
+      {(sessionsResult.error || enrollmentsError) && (
+        <div className="mb-5 rounded-2xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
+          Oturum verilerinin bir kısmı alınamadı.
         </div>
       )}
 
       {sessions.length === 0 ? (
-        <div className="rounded-2xl border border-line bg-panel px-6 py-16 text-center shadow-sm">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-fill text-2xl">
+        <div className="rounded-2xl border border-border bg-surface px-6 py-16 text-center shadow-sm">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-surface-muted text-2xl">
             ◫
           </div>
 
-          <h3 className="mt-5 text-lg font-bold">
-            Bu tarihte ders oturumu yok
-          </h3>
+          <h3 className="mt-5 text-lg font-bold">Bu tarihte ders oturumu yok</h3>
 
-          <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted">
+          <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-text-secondary">
             {profile.role === "admin"
               ? "Seçilen ayın oturumları henüz oluşturulmadıysa yukarıdaki bölümden oluşturun. Programda o güne ait ders yoksa farklı bir tarih seçin."
               : "Yöneticinin oluşturduğu ve size atanmış bir oturum bulunmuyor. Farklı bir tarih seçebilirsiniz."}
@@ -818,102 +715,66 @@ export default async function AttendancePage({
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">
           {sessions.map((session) => {
-            const studentCount =
-              session.class_group_id
-                ? enrollmentCountByGroup.get(
-                    session.class_group_id,
-                  ) ?? 0
-                : 0;
+            const studentCount = session.class_group_id
+              ? (enrollmentCountByGroup.get(session.class_group_id) ?? 0)
+              : 0;
 
             return (
               <article
                 key={session.id}
-                className={`rounded-2xl border bg-panel p-5 shadow-sm ${
-                  session.cancelled_at
-                    ? "border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10/30"
-                    : "border-line"
+                className={`rounded-2xl border bg-surface p-5 shadow-sm ${
+                  session.cancelled_at ? "border-danger/30 bg-danger-soft/30" : "border-border"
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-bold text-honey-700 dark:text-honey-500">
-                      {formatTime(
-                        session.starts_at,
-                      )}{" "}
-                      –{" "}
-                      {formatTime(
-                        session.ends_at,
-                      )}
+                    <p className="text-sm font-bold text-accent-strong">
+                      {formatTime(session.starts_at)} – {formatTime(session.ends_at)}
                     </p>
 
                     <h3 className="mt-1 text-lg font-bold">
-                      {session.course?.name ??
-                        "Ders bilgisi yok"}
+                      {session.course?.name ?? "Ders bilgisi yok"}
                     </h3>
 
-                    <p className="mt-1 text-sm text-muted">
-                      {session.class_group?.name ??
-                        "Program bilgisi yok"}
+                    <p className="mt-1 text-sm text-text-secondary">
+                      {session.class_group?.name ?? "Program bilgisi yok"}
                     </p>
                   </div>
 
-                  <SessionBadge
-                    session={session}
-                  />
+                  <SessionBadge session={session} />
                 </div>
 
                 <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-xl bg-fill p-3">
-                    <dt className="text-muted">
-                      Öğretmen
-                    </dt>
+                  <div className="rounded-xl bg-surface-muted p-3">
+                    <dt className="text-text-secondary">Öğretmen</dt>
                     <dd className="mt-1 font-semibold">
-                      {session.teacher
-                        ?.full_name ??
-                        "Atanmamış"}
+                      {session.teacher?.full_name ?? "Atanmamış"}
                     </dd>
                   </div>
 
-                  <div className="rounded-xl bg-fill p-3">
-                    <dt className="text-muted">
-                      Derslik
-                    </dt>
-                    <dd className="mt-1 font-semibold">
-                      {session.room_name ??
-                        "Belirtilmedi"}
-                    </dd>
+                  <div className="rounded-xl bg-surface-muted p-3">
+                    <dt className="text-text-secondary">Derslik</dt>
+                    <dd className="mt-1 font-semibold">{session.room_name ?? "Belirtilmedi"}</dd>
                   </div>
 
-                  <div className="rounded-xl bg-fill p-3">
-                    <dt className="text-muted">
-                      Kalıcı öğrenci
-                    </dt>
-                    <dd className="mt-1 font-semibold">
-                      {studentCount}
-                    </dd>
+                  <div className="rounded-xl bg-surface-muted p-3">
+                    <dt className="text-text-secondary">Kalıcı öğrenci</dt>
+                    <dd className="mt-1 font-semibold">{studentCount}</dd>
                   </div>
 
-                  <div className="rounded-xl bg-fill p-3">
-                    <dt className="text-muted">
-                      Öğretmen onayı
-                    </dt>
+                  <div className="rounded-xl bg-surface-muted p-3">
+                    <dt className="text-text-secondary">Öğretmen onayı</dt>
                     <dd className="mt-1 font-semibold">
-                      {session.teacher_confirmed_at
-                        ? "Onaylandı"
-                        : "Bekliyor"}
+                      {session.teacher_confirmed_at ? "Onaylandı" : "Bekliyor"}
                     </dd>
                   </div>
                 </dl>
 
-                {session.cancelled_at &&
-                  session.cancellation_reason && (
-                    <div className="mt-4 rounded-xl border border-rose-200 dark:border-rose-800/40 bg-rose-50 dark:bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-400">
-                      İptal nedeni:{" "}
-                      {
-                        session.cancellation_reason
-                      }
-                    </div>
-                  )}
+                {session.cancelled_at && session.cancellation_reason && (
+                  <div className="mt-4 rounded-xl border border-danger/30 bg-danger-soft p-3 text-sm text-danger">
+                    İptal nedeni: {session.cancellation_reason}
+                  </div>
+                )}
 
                 <AttendanceRoster
                   sessionId={session.id}
@@ -923,8 +784,7 @@ export default async function AttendancePage({
                   lockedByName={session.locker?.full_name ?? null}
                   canMark={
                     !session.cancelled_at &&
-                    (profile.role === "admin" ||
-                      session.teacher_profile_id === profile.id)
+                    (profile.role === "admin" || session.teacher_profile_id === profile.id)
                   }
                   isAdmin={profile.role === "admin"}
                 />
@@ -935,8 +795,7 @@ export default async function AttendancePage({
                     date={selectedDate}
                     isAdmin={profile.role === "admin"}
                     canRequest={
-                      profile.role === "teacher" &&
-                      session.teacher_profile_id === profile.id
+                      profile.role === "teacher" && session.teacher_profile_id === profile.id
                     }
                     pendingRequestType={pendingRequestBySession.get(session.id) ?? null}
                   />
@@ -946,10 +805,7 @@ export default async function AttendancePage({
                   sessionId={session.id}
                   date={selectedDate}
                   comments={commentsBySession.get(session.id) ?? []}
-                  canComment={
-                    profile.role === "admin" ||
-                    session.teacher_profile_id === profile.id
-                  }
+                  canComment={profile.role === "admin" || session.teacher_profile_id === profile.id}
                   canDelete={profile.role === "admin"}
                 />
               </article>
@@ -961,34 +817,20 @@ export default async function AttendancePage({
   );
 }
 
-function SummaryCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
+function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-line bg-panel p-4 shadow-sm">
-      <p className="text-sm text-muted">
-        {label}
-      </p>
+    <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <p className="text-sm text-text-secondary">{label}</p>
 
-      <p className="mt-2 text-2xl font-bold">
-        {value}
-      </p>
+      <p className="mt-2 text-2xl font-bold">{value}</p>
     </div>
   );
 }
 
-function SessionBadge({
-  session,
-}: {
-  session: SessionRow;
-}) {
+function SessionBadge({ session }: { session: SessionRow }) {
   if (session.cancelled_at) {
     return (
-      <span className="rounded-full bg-rose-100 dark:bg-rose-500/15 px-3 py-1 text-xs font-bold text-rose-800 dark:text-rose-400">
+      <span className="rounded-full bg-danger-soft px-3 py-1 text-xs font-bold text-danger text-danger">
         İptal
       </span>
     );
@@ -996,63 +838,42 @@ function SessionBadge({
 
   if (session.is_makeup) {
     return (
-      <span className="rounded-full bg-blue-100 dark:bg-blue-500/15 px-3 py-1 text-xs font-bold text-blue-800 dark:text-blue-400">
+      <span className="rounded-full bg-info-soft px-3 py-1 text-xs font-bold text-info text-info">
         TELAFİ
       </span>
     );
   }
 
   return (
-    <span className="rounded-full bg-emerald-100 dark:bg-emerald-500/15 px-3 py-1 text-xs font-bold text-emerald-800 dark:text-emerald-400">
+    <span className="rounded-full bg-success-soft px-3 py-1 text-xs font-bold text-success text-success">
       Planlandı
     </span>
   );
 }
 
 function getTodayInIstanbul() {
-  return new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone: "Europe/Istanbul",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    },
-  ).format(new Date());
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }
 
-function isIsoDate(
-  value: string | undefined,
-): value is string {
-  if (
-    !value ||
-    !/^\d{4}-\d{2}-\d{2}$/.test(value)
-  ) {
+function isIsoDate(value: string | undefined): value is string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return false;
   }
 
-  const date = new Date(
-    `${value}T00:00:00.000Z`,
-  );
+  const date = new Date(`${value}T00:00:00.000Z`);
 
-  return (
-    !Number.isNaN(date.getTime()) &&
-    date.toISOString().slice(0, 10) ===
-      value
-  );
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
-function addDays(
-  value: string,
-  amount: number,
-) {
-  const date = new Date(
-    `${value}T12:00:00.000Z`,
-  );
+function addDays(value: string, amount: number) {
+  const date = new Date(`${value}T12:00:00.000Z`);
 
-  date.setUTCDate(
-    date.getUTCDate() + amount,
-  );
+  date.setUTCDate(date.getUTCDate() + amount);
 
   return date.toISOString().slice(0, 10);
 }
@@ -1064,9 +885,7 @@ function formatLongDate(value: string) {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(
-    new Date(`${value}T12:00:00+03:00`),
-  );
+  }).format(new Date(`${value}T12:00:00+03:00`));
 }
 
 function formatTime(value: string) {

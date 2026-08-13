@@ -18,7 +18,7 @@
 
 begin;
 
-select plan(25);
+select plan(26);
 
 -- ---------------------------------------------------------------
 -- Fixture kurulumu (superuser olarak).
@@ -79,6 +79,21 @@ values (
   'e5000000-0000-0000-0000-0000000f0001', 'e5000000-0000-0000-0000-000000000001',
   'e5000000-0000-0000-0000-0000000d0001', 'e5000000-0000-0000-0000-0000000c0001',
   'e5000000-0000-0000-0000-0000000g0001', '2027-01-01', null, 'active', 1000, 1000, 5
+);
+
+-- Dondurulmuş bir kayıt: tahakkuk otomasyonunun bunu ATLAMASI gerekir
+-- (WHERE koşulu yalnızca status = 'active' alır).
+insert into public.students (id, organization_id, first_name, last_name, status)
+values ('e5000000-0000-0000-0000-0000000d0002', 'e5000000-0000-0000-0000-000000000001', 'Öğrenci', 'Iki', 'active');
+
+insert into public.enrollments (
+  id, organization_id, student_id, course_id, class_group_id,
+  starts_on, ends_on, status, list_monthly_fee, net_monthly_fee, due_day
+)
+values (
+  'e5000000-0000-0000-0000-0000000f0002', 'e5000000-0000-0000-0000-000000000001',
+  'e5000000-0000-0000-0000-0000000d0002', 'e5000000-0000-0000-0000-0000000c0001',
+  'e5000000-0000-0000-0000-0000000g0001', '2027-01-01', null, 'frozen', 1000, 1000, 5
 );
 
 -- ---------------------------------------------------------------
@@ -220,6 +235,15 @@ select is(
   ),
   1,
   'mükerrer tahakkuk satırı oluşmaz — hâlâ tek satır'
+);
+
+select is(
+  (
+    select count(*)::int from public.accruals
+    where enrollment_id = 'e5000000-0000-0000-0000-0000000f0002' and period_start = '2027-03-01'
+  ),
+  0,
+  'dondurulmuş (frozen) kayıt için hiç tahakkuk oluşmaz'
 );
 
 -- ---------------------------------------------------------------

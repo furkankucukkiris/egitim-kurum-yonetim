@@ -4,7 +4,10 @@ import { Card } from "@/components/ui/Card";
 import { StatCard } from "@/components/stat-card";
 import { MonthlyRevenueChart, type MonthlyDatum } from "@/components/reports/MonthlyRevenueChart";
 import { CashFlowTrendChart, type CashFlowDatum } from "@/components/reports/CashFlowTrendChart";
-import { CourseDistributionPie, type DistributionSlice } from "@/components/reports/CourseDistributionPie";
+import {
+  CourseDistributionPie,
+  type DistributionSlice,
+} from "@/components/reports/CourseDistributionPie";
 import { StatusRatioBar, type StatusRatioDatum } from "@/components/reports/StatusRatioBar";
 import { ReportFilters, type ReportCourseOption } from "@/components/reports/ReportFilters";
 import { requireRole } from "@/lib/auth";
@@ -13,12 +16,12 @@ import { formatTry } from "@/lib/utils";
 
 // Raporlar ekranı iki bağımsız, muhasebesel olarak ayrı rapora
 // bölünmüştür:
-//   Tahakkuk performansı — get_accrual_report_monthly/_by_course,
-//   period_start esaslı ("hangi ay ne kadar tahakkuk etti, ne kadarı
-//   tahsil edildi").
-//   Nakit akışı — get_cash_flow_report_monthly/_by_method,
-//   received_at / iade tarihi / gider ödeme tarihi esaslı ("bu ay
-//   kasaya gerçekten ne kadar para girdi/çıktı").
+// Tahakkuk performansı — get_accrual_report_monthly/_by_course,
+// period_start esaslı ("hangi ay ne kadar tahakkuk etti, ne kadarı
+// tahsil edildi").
+// Nakit akışı — get_cash_flow_report_monthly/_by_method,
+// received_at / iade tarihi / gider ödeme tarihi esaslı ("bu ay
+// kasaya gerçekten ne kadar para girdi/çıktı").
 // Her iki rapor da aynı RPC'leri /raporlar/export route'unun
 // kullandığı kaynaktan çağırır (src/lib/reports/export.ts) — ekranda
 // görülen toplamlarla dışa aktarılan toplamlar hiçbir zaman
@@ -199,20 +202,37 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         description="Tahakkuk performansı ve nakit akışı, birbirinden bağımsız iki rapor olarak."
       />
 
-      <div className="mb-6 flex gap-2 border-b border-line">
+      <div className="mb-6 flex gap-2 border-b border-border">
         <TabLink
-          href={buildViewHref("tahakkuk", { range, startMonth, endMonth, courseId, studentStatus, method })}
+          href={buildViewHref("tahakkuk", {
+            range,
+            startMonth,
+            endMonth,
+            courseId,
+            studentStatus,
+            method,
+          })}
           active={view === "tahakkuk"}
         >
           Tahakkuk Performansı
         </TabLink>
         <TabLink
-          href={buildViewHref("nakit", { range, startMonth, endMonth, courseId, studentStatus, method })}
+          href={buildViewHref("nakit", {
+            range,
+            startMonth,
+            endMonth,
+            courseId,
+            studentStatus,
+            method,
+          })}
           active={view === "nakit"}
         >
           Nakit Akışı
         </TabLink>
-        <TabLink href={`/raporlar?view=karlilik&month=${profitabilityMonth}`} active={view === "karlilik"}>
+        <TabLink
+          href={`/raporlar?view=karlilik&month=${profitabilityMonth}`}
+          active={view === "karlilik"}
+        >
           Kârlılık
         </TabLink>
         <TabLink
@@ -307,19 +327,19 @@ async function ProfitabilityReportView({ month }: { month: string }) {
       <form method="get" className="mb-6 flex items-end gap-3">
         <input type="hidden" name="view" value="karlilik" />
 
-        <label className="text-xs font-medium text-muted">
+        <label className="text-xs font-medium text-text-secondary">
           Ay
           <input
             name="month"
             type="month"
             defaultValue={month}
-            className="mt-1 block rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+            className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
           />
         </label>
 
         <button
           type="submit"
-          className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink transition hover:bg-fill"
+          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-muted"
         >
           Görüntüle
         </button>
@@ -328,66 +348,64 @@ async function ProfitabilityReportView({ month }: { month: string }) {
       {summary && (
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="p-5">
-            <p className="text-sm font-medium text-muted">Gelir (tahakkuk)</p>
-            <p className="mt-3 text-2xl font-bold tracking-tight text-ink">
+            <p className="text-sm font-medium text-text-secondary">Gelir (tahakkuk)</p>
+            <p className="mt-3 text-2xl font-bold tracking-tight text-text-primary">
               {formatTry(Number(summary.revenue_accrued))}
             </p>
           </Card>
 
           <Card className="p-5">
-            <p className="text-sm font-medium text-muted">Toplam gider</p>
-            <p className="mt-3 text-2xl font-bold tracking-tight text-ink">
+            <p className="text-sm font-medium text-text-secondary">Toplam gider</p>
+            <p className="mt-3 text-2xl font-bold tracking-tight text-text-primary">
               {formatTry(Number(summary.total_expenses))}
             </p>
-            <p className="mt-1 text-xs text-muted">
+            <p className="mt-1 text-xs text-text-secondary">
               Doğrudan {formatTry(Number(summary.direct_expenses))} · Dolaylı{" "}
               {formatTry(Number(summary.indirect_expenses))}
             </p>
           </Card>
 
           <Card className="p-5">
-            <p className="text-sm font-medium text-muted">Brüt sonuç</p>
+            <p className="text-sm font-medium text-text-secondary">Brüt sonuç</p>
             <p
               className={`mt-3 text-2xl font-bold tracking-tight ${
-                Number(summary.gross_result) >= 0
-                  ? "text-emerald-700 dark:text-emerald-400"
-                  : "text-rose-700 dark:text-rose-400"
+                Number(summary.gross_result) >= 0 ? "text-success" : "text-danger"
               }`}
             >
               {formatTry(Number(summary.gross_result))}
             </p>
-            <p className="mt-1 text-xs text-muted">Gelir − doğrudan ders gideri</p>
+            <p className="mt-1 text-xs text-text-secondary">Gelir − doğrudan ders gideri</p>
           </Card>
 
           <Card className="p-5">
-            <p className="text-sm font-medium text-muted">Net sonuç</p>
+            <p className="text-sm font-medium text-text-secondary">Net sonuç</p>
             <p
               className={`mt-3 text-2xl font-bold tracking-tight ${
-                Number(summary.net_result) >= 0
-                  ? "text-emerald-700 dark:text-emerald-400"
-                  : "text-rose-700 dark:text-rose-400"
+                Number(summary.net_result) >= 0 ? "text-success" : "text-danger"
               }`}
             >
               {formatTry(Number(summary.net_result))}
             </p>
-            <p className="mt-1 text-xs text-muted">Gelir − tüm giderler</p>
+            <p className="mt-1 text-xs text-text-secondary">Gelir − tüm giderler</p>
           </Card>
         </div>
       )}
 
       <Card className="p-6">
-        <h2 className="mb-1 text-base font-semibold text-ink">Ders bazlı katkı payı</h2>
+        <h2 className="mb-1 text-base font-semibold text-text-primary">Ders bazlı katkı payı</h2>
 
-        <p className="mb-4 text-xs leading-5 text-muted">
+        <p className="mb-4 text-xs leading-5 text-text-secondary">
           Her dersin bu ayki geliri eksi yalnızca o derse doğrudan bağlanmış giderler.
         </p>
 
         {margins.length === 0 ? (
-          <p className="text-sm text-muted">Bu ay için gelir veya doğrudan gider kaydı yok.</p>
+          <p className="text-sm text-text-secondary">
+            Bu ay için gelir veya doğrudan gider kaydı yok.
+          </p>
         ) : (
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
+              <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
                 <th className="py-2 pr-4">Ders</th>
                 <th className="py-2 pr-4 text-right">Gelir</th>
                 <th className="py-2 pr-4 text-right">Doğrudan gider</th>
@@ -397,15 +415,13 @@ async function ProfitabilityReportView({ month }: { month: string }) {
 
             <tbody>
               {margins.map((row) => (
-                <tr key={row.course_id} className="border-b border-line/60">
+                <tr key={row.course_id} className="border-b border-border/60">
                   <td className="py-2 pr-4">{row.course_name}</td>
                   <td className="py-2 pr-4 text-right">{formatTry(Number(row.revenue))}</td>
                   <td className="py-2 pr-4 text-right">{formatTry(Number(row.direct_expenses))}</td>
                   <td
                     className={`py-2 text-right font-semibold ${
-                      Number(row.contribution_margin) >= 0
-                        ? "text-emerald-700 dark:text-emerald-400"
-                        : "text-rose-700 dark:text-rose-400"
+                      Number(row.contribution_margin) >= 0 ? "text-success" : "text-danger"
                     }`}
                   >
                     {formatTry(Number(row.contribution_margin))}
@@ -420,13 +436,7 @@ async function ProfitabilityReportView({ month }: { month: string }) {
   );
 }
 
-async function ProspectReportView({
-  startDate,
-  endDate,
-}: {
-  startDate: string;
-  endDate: string;
-}) {
+async function ProspectReportView({ startDate, endDate }: { startDate: string; endDate: string }) {
   const supabase = await createClient();
 
   const [conversionResult, leadSourceResult, courseDemandResult] = await Promise.all([
@@ -465,29 +475,29 @@ async function ProspectReportView({
       <form method="get" className="mb-6 flex flex-wrap items-end gap-3">
         <input type="hidden" name="view" value="adaylar" />
 
-        <label className="text-xs font-medium text-muted">
+        <label className="text-xs font-medium text-text-secondary">
           Başlangıç
           <input
             name="pstart"
             type="date"
             defaultValue={startDate}
-            className="mt-1 block rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+            className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
           />
         </label>
 
-        <label className="text-xs font-medium text-muted">
+        <label className="text-xs font-medium text-text-secondary">
           Bitiş
           <input
             name="pend"
             type="date"
             defaultValue={endDate}
-            className="mt-1 block rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+            className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
           />
         </label>
 
         <button
           type="submit"
-          className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink transition hover:bg-fill"
+          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-muted"
         >
           Görüntüle
         </button>
@@ -496,29 +506,29 @@ async function ProspectReportView({
       {conversion && (
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="p-5">
-            <p className="text-sm font-medium text-muted">Toplam aday</p>
-            <p className="mt-3 text-2xl font-bold tracking-tight text-ink">
+            <p className="text-sm font-medium text-text-secondary">Toplam aday</p>
+            <p className="mt-3 text-2xl font-bold tracking-tight text-text-primary">
               {conversion.total_prospects}
             </p>
           </Card>
 
           <Card className="p-5">
-            <p className="text-sm font-medium text-muted">Kayıt olan</p>
-            <p className="mt-3 text-2xl font-bold tracking-tight text-emerald-700 dark:text-emerald-400">
+            <p className="text-sm font-medium text-text-secondary">Kayıt olan</p>
+            <p className="mt-3 text-2xl font-bold tracking-tight text-success">
               {conversion.enrolled_count}
             </p>
           </Card>
 
           <Card className="p-5">
-            <p className="text-sm font-medium text-muted">Dönüşüm oranı</p>
-            <p className="mt-3 text-2xl font-bold tracking-tight text-ink">
+            <p className="text-sm font-medium text-text-secondary">Dönüşüm oranı</p>
+            <p className="mt-3 text-2xl font-bold tracking-tight text-text-primary">
               %{Number(conversion.conversion_rate)}
             </p>
           </Card>
 
           <Card className="p-5">
-            <p className="text-sm font-medium text-muted">Reddedilen</p>
-            <p className="mt-3 text-2xl font-bold tracking-tight text-rose-700 dark:text-rose-400">
+            <p className="text-sm font-medium text-text-secondary">Reddedilen</p>
+            <p className="mt-3 text-2xl font-bold tracking-tight text-danger">
               {conversion.declined_count}
             </p>
           </Card>
@@ -526,7 +536,7 @@ async function ProspectReportView({
       )}
 
       {conversion && (
-        <p className="mb-6 text-xs text-muted">
+        <p className="mb-6 text-xs text-text-secondary">
           Yeni: {conversion.new_count} · Takip gerekli: {conversion.follow_up_count} · Randevu
           planlandı: {conversion.appointment_count} · Deneme dersine katıldı:{" "}
           {conversion.trial_attended_count}
@@ -535,18 +545,18 @@ async function ProspectReportView({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="p-6">
-          <h2 className="mb-1 text-base font-semibold text-ink">Kaynak performansı</h2>
+          <h2 className="mb-1 text-base font-semibold text-text-primary">Kaynak performansı</h2>
 
-          <p className="mb-4 text-xs leading-5 text-muted">
+          <p className="mb-4 text-xs leading-5 text-text-secondary">
             Aday öğrencinin geldiği kaynağa göre dönüşüm oranı.
           </p>
 
           {leadSources.length === 0 ? (
-            <p className="text-sm text-muted">Bu aralıkta aday öğrenci kaydı yok.</p>
+            <p className="text-sm text-text-secondary">Bu aralıkta aday öğrenci kaydı yok.</p>
           ) : (
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
+                <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
                   <th className="py-2 pr-4">Kaynak</th>
                   <th className="py-2 pr-4 text-right">Aday sayısı</th>
                   <th className="py-2 pr-4 text-right">Kayıt olan</th>
@@ -556,11 +566,15 @@ async function ProspectReportView({
 
               <tbody>
                 {leadSources.map((row) => (
-                  <tr key={row.lead_source} className="border-b border-line/60">
-                    <td className="py-2 pr-4">{leadSourceLabels[row.lead_source] ?? row.lead_source}</td>
+                  <tr key={row.lead_source} className="border-b border-border/60">
+                    <td className="py-2 pr-4">
+                      {leadSourceLabels[row.lead_source] ?? row.lead_source}
+                    </td>
                     <td className="py-2 pr-4 text-right">{row.prospect_count}</td>
                     <td className="py-2 pr-4 text-right">{row.enrolled_count}</td>
-                    <td className="py-2 text-right font-semibold">%{Number(row.conversion_rate)}</td>
+                    <td className="py-2 text-right font-semibold">
+                      %{Number(row.conversion_rate)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -569,18 +583,18 @@ async function ProspectReportView({
         </Card>
 
         <Card className="p-6">
-          <h2 className="mb-1 text-base font-semibold text-ink">Ders bazlı talep</h2>
+          <h2 className="mb-1 text-base font-semibold text-text-primary">Ders bazlı talep</h2>
 
-          <p className="mb-4 text-xs leading-5 text-muted">
+          <p className="mb-4 text-xs leading-5 text-text-secondary">
             Aday öğrencilerin ilgi gösterdiği dersler ve bunlardan kayda dönüşenler.
           </p>
 
           {courseDemand.length === 0 ? (
-            <p className="text-sm text-muted">Bu aralıkta ders ilgisi kaydı yok.</p>
+            <p className="text-sm text-text-secondary">Bu aralıkta ders ilgisi kaydı yok.</p>
           ) : (
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
+                <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
                   <th className="py-2 pr-4">Ders</th>
                   <th className="py-2 pr-4 text-right">İlgilenen</th>
                   <th className="py-2 text-right">Kayıt olan</th>
@@ -589,7 +603,7 @@ async function ProspectReportView({
 
               <tbody>
                 {courseDemand.map((row) => (
-                  <tr key={row.course_id} className="border-b border-line/60">
+                  <tr key={row.course_id} className="border-b border-border/60">
                     <td className="py-2 pr-4">{row.course_name}</td>
                     <td className="py-2 pr-4 text-right">{row.interested_count}</td>
                     <td className="py-2 text-right font-semibold">{row.enrolled_count}</td>
@@ -711,8 +725,8 @@ async function AccrualReportView({
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <Card>
-          <h3 className="font-semibold text-ink">Aylık tahakkuk / tahsilat</h3>
-          <p className="mt-1 text-sm text-muted">
+          <h3 className="font-semibold text-text-primary">Aylık tahakkuk / tahsilat</h3>
+          <p className="mt-1 text-sm text-text-secondary">
             {formatMonthYearFromKey(startMonth)} – {formatMonthYearFromKey(endMonth)}
           </p>
           <div className="mt-5">
@@ -721,8 +735,10 @@ async function AccrualReportView({
         </Card>
 
         <Card>
-          <h3 className="font-semibold text-ink">Açık / kısmi / gecikmiş / ödenen dağılımı</h3>
-          <p className="mt-1 text-sm text-muted">Seçili aralığın toplamı</p>
+          <h3 className="font-semibold text-text-primary">
+            Açık / kısmi / gecikmiş / ödenen dağılımı
+          </h3>
+          <p className="mt-1 text-sm text-text-secondary">Seçili aralığın toplamı</p>
           <div className="mt-5">
             <StatusRatioBar segments={ratioSegments} />
           </div>
@@ -730,24 +746,26 @@ async function AccrualReportView({
       </div>
 
       <div className="mb-3 mt-6 flex items-center justify-between">
-        <h3 className="font-semibold text-ink">Ders bazlı tahakkuk ve tahsilat başarısı</h3>
+        <h3 className="font-semibold text-text-primary">
+          Ders bazlı tahakkuk ve tahsilat başarısı
+        </h3>
         <a
           href={`/raporlar/export?type=accrual&${exportQuery.toString()}`}
-          className="rounded-xl border border-line bg-panel px-4 py-2.5 text-sm font-semibold text-brand-700 shadow-sm transition hover:bg-fill dark:text-brand-100"
+          className="rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-surface-muted text-primary"
         >
           CSV olarak dışa aktar
         </a>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-line bg-panel shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
         {byCourse.length === 0 ? (
-          <p className="px-5 py-10 text-center text-sm text-muted">
+          <p className="px-5 py-10 text-center text-sm text-text-secondary">
             Seçili aralık ve filtrelerde tahakkuk kaydı yok.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[700px] text-left text-sm">
-              <thead className="bg-fill text-xs uppercase text-muted">
+              <thead className="bg-surface-muted text-xs uppercase text-text-secondary">
                 <tr>
                   <th className="px-5 py-3">Ders</th>
                   <th className="px-5 py-3">Tahakkuk</th>
@@ -764,18 +782,20 @@ async function AccrualReportView({
 
                   return (
                     <tr key={course.course_id}>
-                      <td className="px-5 py-4 font-semibold text-ink">{course.course_name}</td>
-                      <td className="px-5 py-4 text-ink">{formatTry(accrued)}</td>
-                      <td className="px-5 py-4 text-ink">{formatTry(collected)}</td>
+                      <td className="px-5 py-4 font-semibold text-text-primary">
+                        {course.course_name}
+                      </td>
+                      <td className="px-5 py-4 text-text-primary">{formatTry(accrued)}</td>
+                      <td className="px-5 py-4 text-text-primary">{formatTry(collected)}</td>
                       <td className="px-5 py-4">
-                        <div className="h-2 w-32 rounded-full bg-fill">
+                        <div className="h-2 w-32 rounded-full bg-surface-muted">
                           <div
-                            className="h-2 rounded-full bg-terra-500"
+                            className="h-2 rounded-full bg-primary-soft"
                             style={{ width: `${Math.min(100, rate)}%` }}
                           />
                         </div>
                       </td>
-                      <td className="px-5 py-4 text-muted">
+                      <td className="px-5 py-4 text-text-secondary">
                         {course.open_count} / {course.partial_count} / {course.overdue_count} /{" "}
                         {course.paid_count}
                       </td>
@@ -789,10 +809,10 @@ async function AccrualReportView({
       </div>
 
       {byCourse.length > 0 && (
-        <p className="mt-2 text-xs text-muted">
-          Ders kırılımı toplamı: {formatTry(byCourse.reduce((sum, c) => sum + Number(c.accrued), 0))}{" "}
-          tahakkuk — üstteki &ldquo;Toplam Tahakkuk&rdquo; ile aynı kaynaktan (aynı ay/filtre kümesi),
-          birebir eşleşir.
+        <p className="mt-2 text-xs text-text-secondary">
+          Ders kırılımı toplamı:{" "}
+          {formatTry(byCourse.reduce((sum, c) => sum + Number(c.accrued), 0))} tahakkuk — üstteki
+          &ldquo;Toplam Tahakkuk&rdquo; ile aynı kaynaktan (aynı ay/filtre kümesi), birebir eşleşir.
         </p>
       )}
     </>
@@ -875,7 +895,11 @@ async function CashFlowReportView({
           value={formatTry(totals.cashIn)}
           detail={`${formatMonthYearFromKey(startMonth)} – ${formatMonthYearFromKey(endMonth)}`}
         />
-        <StatCard label="İadeler" value={formatTry(totals.refunds)} detail="Aynı aralıkta yapılan iadeler" />
+        <StatCard
+          label="İadeler"
+          value={formatTry(totals.refunds)}
+          detail="Aynı aralıkta yapılan iadeler"
+        />
         <StatCard label="Giderler" value={formatTry(totals.expenses)} detail="Ödenmiş giderler" />
         <StatCard
           label="Net Nakit Girişi"
@@ -886,8 +910,8 @@ async function CashFlowReportView({
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.4fr_1fr]">
         <Card>
-          <h3 className="font-semibold text-ink">Aylık nakit girişi / iade</h3>
-          <p className="mt-1 text-sm text-muted">
+          <h3 className="font-semibold text-text-primary">Aylık nakit girişi / iade</h3>
+          <p className="mt-1 text-sm text-text-secondary">
             {formatMonthYearFromKey(startMonth)} – {formatMonthYearFromKey(endMonth)}
           </p>
           <div className="mt-5">
@@ -896,8 +920,8 @@ async function CashFlowReportView({
         </Card>
 
         <Card>
-          <h3 className="font-semibold text-ink">Ödeme yöntemi dağılımı</h3>
-          <p className="mt-1 text-sm text-muted">Nakit girişine göre pay</p>
+          <h3 className="font-semibold text-text-primary">Ödeme yöntemi dağılımı</h3>
+          <p className="mt-1 text-sm text-text-secondary">Nakit girişine göre pay</p>
           <div className="mt-5">
             <CourseDistributionPie
               data={distributionData}
@@ -908,24 +932,24 @@ async function CashFlowReportView({
       </div>
 
       <div className="mb-3 mt-6 flex items-center justify-between">
-        <h3 className="font-semibold text-ink">Ödeme yöntemi bazlı nakit akışı</h3>
+        <h3 className="font-semibold text-text-primary">Ödeme yöntemi bazlı nakit akışı</h3>
         <a
           href={`/raporlar/export?type=cash&${exportQuery.toString()}`}
-          className="rounded-xl border border-line bg-panel px-4 py-2.5 text-sm font-semibold text-brand-700 shadow-sm transition hover:bg-fill dark:text-brand-100"
+          className="rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-surface-muted text-primary"
         >
           CSV olarak dışa aktar
         </a>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-line bg-panel shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
         {byMethod.length === 0 ? (
-          <p className="px-5 py-10 text-center text-sm text-muted">
+          <p className="px-5 py-10 text-center text-sm text-text-secondary">
             Seçili aralık ve filtrelerde nakit hareketi yok.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left text-sm">
-              <thead className="bg-fill text-xs uppercase text-muted">
+              <thead className="bg-surface-muted text-xs uppercase text-text-secondary">
                 <tr>
                   <th className="px-5 py-3">Yöntem</th>
                   <th className="px-5 py-3">Nakit girişi</th>
@@ -937,15 +961,19 @@ async function CashFlowReportView({
               <tbody className="divide-y divide-line">
                 {byMethod.map((row) => (
                   <tr key={row.method}>
-                    <td className="px-5 py-4 font-semibold text-ink">
+                    <td className="px-5 py-4 font-semibold text-text-primary">
                       {methodLabels[row.method] ?? row.method}
                     </td>
-                    <td className="px-5 py-4 text-ink">{formatTry(Number(row.cash_in))}</td>
-                    <td className="px-5 py-4 text-muted">{formatTry(Number(row.refunds))}</td>
-                    <td className="px-5 py-4 font-semibold text-ink">
+                    <td className="px-5 py-4 text-text-primary">
+                      {formatTry(Number(row.cash_in))}
+                    </td>
+                    <td className="px-5 py-4 text-text-secondary">
+                      {formatTry(Number(row.refunds))}
+                    </td>
+                    <td className="px-5 py-4 font-semibold text-text-primary">
                       {formatTry(Number(row.net_cash))}
                     </td>
-                    <td className="px-5 py-4 text-muted">{row.payment_count}</td>
+                    <td className="px-5 py-4 text-text-secondary">{row.payment_count}</td>
                   </tr>
                 ))}
               </tbody>
@@ -955,10 +983,11 @@ async function CashFlowReportView({
       </div>
 
       {byMethod.length > 0 && (
-        <p className="mt-2 text-xs text-muted">
+        <p className="mt-2 text-xs text-text-secondary">
           Yöntem kırılımı toplamı:{" "}
-          {formatTry(byMethod.reduce((sum, m) => sum + Number(m.cash_in), 0))} nakit girişi — üstteki
-          &ldquo;Nakit Girişi&rdquo; ile aynı kaynaktan (aynı ay/filtre kümesi), birebir eşleşir.
+          {formatTry(byMethod.reduce((sum, m) => sum + Number(m.cash_in), 0))} nakit girişi —
+          üstteki &ldquo;Nakit Girişi&rdquo; ile aynı kaynaktan (aynı ay/filtre kümesi), birebir
+          eşleşir.
         </p>
       )}
     </>
@@ -979,8 +1008,8 @@ function TabLink({
       href={href}
       className={`-mb-px border-b-2 px-4 py-3 text-sm font-semibold transition ${
         active
-          ? "border-terra-700 text-terra-700 dark:text-terra-500"
-          : "border-transparent text-muted hover:text-ink"
+          ? "border-primary text-primary"
+          : "border-transparent text-text-secondary hover:text-text-primary"
       }`}
     >
       {children}

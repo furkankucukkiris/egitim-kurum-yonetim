@@ -50,17 +50,17 @@ export function MakeupCreditItem({
   const [mode, setMode] = useState<Mode>(null);
 
   return (
-    <li className="rounded-xl border border-line bg-panel p-3">
+    <li className="rounded-xl border border-border bg-surface p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="font-semibold text-ink">
+          <p className="font-semibold text-text-primary">
             {credit.studentFullName}
-            <span className="ml-2 text-xs font-normal text-muted">
+            <span className="ml-2 text-xs font-normal text-text-secondary">
               {credit.courseName}
             </span>
           </p>
 
-          <p className="mt-0.5 text-xs text-muted">
+          <p className="mt-0.5 text-xs text-text-secondary">
             {reasonLabels[credit.reason]} · {formatDate(credit.sourceStartsAt)}
             {credit.expiresAt ? ` · son geçerlilik ${formatDate(credit.expiresAt)}` : ""}
           </p>
@@ -88,18 +88,17 @@ export function MakeupCreditItem({
       {mode === "existing" && (
         <form
           action={scheduleMakeupIntoSession}
-          className="mt-3 flex flex-col gap-2 rounded-lg bg-fill p-3 sm:flex-row sm:items-end"
+          className="mt-3 flex flex-col gap-2 rounded-lg bg-surface-muted p-3 sm:flex-row sm:items-end"
         >
           <input type="hidden" name="creditId" value={credit.creditId} />
           <input type="hidden" name="date" value={date} />
 
-          <label className="flex-1 text-xs font-medium text-muted">
+          <label className="flex-1 text-xs font-medium text-text-secondary">
             Hedef oturum
-
             <select
               name="targetLessonSessionId"
               required
-              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
             >
               {sessionsForCourse.length === 0 && (
                 <option value="" disabled>
@@ -119,7 +118,7 @@ export function MakeupCreditItem({
           <button
             type="submit"
             disabled={sessionsForCourse.length === 0}
-            className="rounded-lg bg-terra-700 px-3 py-2 text-xs font-semibold text-white shadow-sm shadow-terra-700/20 hover:bg-terra-700/90 disabled:opacity-50"
+            className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-on-primary shadow-sm hover:bg-primary-hover disabled:opacity-50"
           >
             Ekle
           </button>
@@ -129,18 +128,17 @@ export function MakeupCreditItem({
       {mode === "new" && (
         <form
           action={scheduleMakeupNewSession}
-          className="mt-3 grid gap-2 rounded-lg bg-fill p-3 sm:grid-cols-2"
+          className="mt-3 grid gap-2 rounded-lg bg-surface-muted p-3 sm:grid-cols-2"
         >
           <input type="hidden" name="creditId" value={credit.creditId} />
           <input type="hidden" name="date" value={date} />
 
-          <label className="text-xs font-medium text-muted sm:col-span-2">
+          <label className="text-xs font-medium text-text-secondary sm:col-span-2">
             Öğretmen
-
             <select
               name="teacherProfileId"
               required
-              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
             >
               <option value="">Seçiniz</option>
               {teachers.map((teacher) => (
@@ -151,53 +149,49 @@ export function MakeupCreditItem({
             </select>
           </label>
 
-          <label className="text-xs font-medium text-muted sm:col-span-2">
+          <label className="text-xs font-medium text-text-secondary sm:col-span-2">
             Derslik (opsiyonel)
-
             <input
               name="roomName"
-              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
             />
           </label>
 
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             Tarih
-
             <input
               type="date"
               name="newDate"
               required
-              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
             />
           </label>
 
           <div className="grid grid-cols-2 gap-2">
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Başlangıç
-
               <input
                 type="time"
                 name="newStartTime"
                 required
-                className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+                className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
               />
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Bitiş
-
               <input
                 type="time"
                 name="newEndTime"
                 required
-                className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+                className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
               />
             </label>
           </div>
 
           <button
             type="submit"
-            className="self-end rounded-lg bg-terra-700 px-3 py-2 text-xs font-semibold text-white shadow-sm shadow-terra-700/20 hover:bg-terra-700/90 sm:col-span-2 sm:w-fit sm:justify-self-end"
+            className="self-end rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-on-primary shadow-sm hover:bg-primary-hover sm:col-span-2 sm:w-fit sm:justify-self-end"
           >
             Telafi oturumu oluştur
           </button>
@@ -207,25 +201,24 @@ export function MakeupCreditItem({
       {mode === "cancel" && (
         <form
           action={cancelMakeupCredit}
-          className="mt-3 flex flex-col gap-2 rounded-lg bg-fill p-3 sm:flex-row sm:items-end"
+          className="mt-3 flex flex-col gap-2 rounded-lg bg-surface-muted p-3 sm:flex-row sm:items-end"
         >
           <input type="hidden" name="creditId" value={credit.creditId} />
           <input type="hidden" name="date" value={date} />
 
-          <label className="flex-1 text-xs font-medium text-muted">
+          <label className="flex-1 text-xs font-medium text-text-secondary">
             İptal gerekçesi
-
             <input
               name="reason"
               required
               minLength={3}
-              className="mt-1 w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none focus:border-terra-500"
+              className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
             />
           </label>
 
           <button
             type="submit"
-            className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-600/90"
+            className="rounded-lg bg-danger px-3 py-2 text-xs font-semibold text-on-primary hover:bg-danger/90"
           >
             Hakkı iptal et
           </button>
@@ -250,8 +243,8 @@ function ToggleButton({
       onClick={onClick}
       className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
         active
-          ? "border-terra-500 bg-terra-50 text-terra-700 dark:bg-terra-500/10"
-          : "border-line text-muted hover:bg-fill"
+          ? "border-primary-soft bg-primary-soft text-primary dark:bg-primary/10"
+          : "border-border text-text-secondary hover:bg-surface-muted"
       }`}
     >
       {label}

@@ -132,7 +132,10 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
       <PageHeader title={teacher.full_name} description="Hakediş kuralları ve aylık dökümü." />
 
       <div className="mb-6">
-        <Link href="/hakedis" className="text-xs font-medium text-brand-700 hover:underline dark:text-brand-100">
+        <Link
+          href="/hakedis"
+          className="text-xs font-medium text-primary hover:underline text-primary"
+        >
           ← Hakediş
         </Link>
       </div>
@@ -141,38 +144,42 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="p-6">
-          <h2 className="mb-1 text-base font-semibold text-ink">Ücret kuralları</h2>
+          <h2 className="mb-1 text-base font-semibold text-text-primary">Ücret kuralları</h2>
 
-          <p className="mb-4 text-xs leading-5 text-muted">
+          <p className="mb-4 text-xs leading-5 text-text-secondary">
             Her zaman en fazla bir açık uçlu (bitiş tarihi olmayan) kural olabilir. Ücret
             değiştiğinde mevcut kuralı sonlandırıp yenisini başlatın.
           </p>
 
           {ruleList.length === 0 ? (
-            <p className="mb-4 text-sm text-muted">Henüz bir kural yok.</p>
+            <p className="mb-4 text-sm text-text-secondary">Henüz bir kural yok.</p>
           ) : (
             <ul className="mb-4 space-y-2">
               {ruleList.map((rule) => (
-                <li key={rule.id} className="rounded-lg border border-line p-3 text-sm">
+                <li key={rule.id} className="rounded-lg border border-border p-3 text-sm">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-medium text-ink">
+                    <span className="font-medium text-text-primary">
                       {compensationTypeLabels[rule.compensation_type] ?? rule.compensation_type}
                     </span>
-                    <span className="font-semibold text-ink">{formatTry(rule.rate_amount)}</span>
+                    <span className="font-semibold text-text-primary">
+                      {formatTry(rule.rate_amount)}
+                    </span>
                   </div>
 
-                  <p className="mt-1 text-xs text-muted">
+                  <p className="mt-1 text-xs text-text-secondary">
                     {formatDate(rule.effective_from)} —{" "}
                     {rule.effective_to ? formatDate(rule.effective_to) : "açık uçlu"}
                   </p>
 
                   {(rule.cancellation_rate_amount || rule.makeup_rate_amount) && (
-                    <p className="mt-1 text-xs text-muted">
+                    <p className="mt-1 text-xs text-text-secondary">
                       {rule.cancellation_rate_amount
                         ? `Kurum iptali: ${formatTry(rule.cancellation_rate_amount)}`
                         : ""}
                       {rule.cancellation_rate_amount && rule.makeup_rate_amount ? " · " : ""}
-                      {rule.makeup_rate_amount ? `Telafi: ${formatTry(rule.makeup_rate_amount)}` : ""}
+                      {rule.makeup_rate_amount
+                        ? `Telafi: ${formatTry(rule.makeup_rate_amount)}`
+                        : ""}
                     </p>
                   )}
 
@@ -181,19 +188,19 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
                       <input type="hidden" name="teacherId" value={teacherId} />
                       <input type="hidden" name="ruleId" value={rule.id} />
 
-                      <label className="text-xs font-medium text-muted">
+                      <label className="text-xs font-medium text-text-secondary">
                         Bitiş tarihi
                         <input
                           name="effectiveTo"
                           type="date"
                           required
-                          className="mt-1 block rounded-lg border border-line bg-panel px-2 py-1.5 text-xs outline-none transition focus:border-terra-500"
+                          className="mt-1 block rounded-lg border border-border bg-surface px-2 py-1.5 text-xs outline-none transition focus:border-primary"
                         />
                       </label>
 
                       <button
                         type="submit"
-                        className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                        className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                       >
                         Sonlandır
                       </button>
@@ -206,19 +213,19 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
 
           {!openRule && (
             <details open={ruleList.length === 0}>
-              <summary className="cursor-pointer text-xs font-medium text-brand-700 dark:text-brand-100">
+              <summary className="cursor-pointer text-xs font-medium text-primary text-primary">
                 Yeni kural ekle
               </summary>
 
               <form action={createCompensationRule} className="mt-3 grid gap-2">
                 <input type="hidden" name="teacherId" value={teacherId} />
 
-                <label className="text-xs font-medium text-muted">
+                <label className="text-xs font-medium text-text-secondary">
                   Ücret modeli
                   <select
                     name="compensationType"
                     required
-                    className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                    className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                   >
                     <option value="per_lesson">Ders başına sabit</option>
                     <option value="per_minute">Dakika başına</option>
@@ -227,72 +234,72 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
                   </select>
                 </label>
 
-                <label className="text-xs font-medium text-muted">
+                <label className="text-xs font-medium text-text-secondary">
                   Tutar
                   <input
                     name="rateAmount"
                     type="text"
                     required
                     placeholder="0.00"
-                    className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                    className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                   />
                 </label>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <label className="text-xs font-medium text-muted">
+                  <label className="text-xs font-medium text-text-secondary">
                     Başlangıç
                     <input
                       name="effectiveFrom"
                       type="date"
                       required
-                      className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                      className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                     />
                   </label>
 
-                  <label className="text-xs font-medium text-muted">
+                  <label className="text-xs font-medium text-text-secondary">
                     Bitiş (opsiyonel)
                     <input
                       name="effectiveTo"
                       type="date"
-                      className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                      className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                     />
                   </label>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <label className="text-xs font-medium text-muted">
+                  <label className="text-xs font-medium text-text-secondary">
                     Kurum iptali tutarı (opsiyonel)
                     <input
                       name="cancellationRateAmount"
                       type="text"
                       placeholder="Boş = 0"
-                      className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                      className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                     />
                   </label>
 
-                  <label className="text-xs font-medium text-muted">
+                  <label className="text-xs font-medium text-text-secondary">
                     Telafi tutarı (opsiyonel)
                     <input
                       name="makeupRateAmount"
                       type="text"
                       placeholder="Boş = normal tutar"
-                      className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                      className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                     />
                   </label>
                 </div>
 
-                <label className="text-xs font-medium text-muted">
+                <label className="text-xs font-medium text-text-secondary">
                   Not
                   <input
                     name="note"
                     type="text"
-                    className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                    className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                   />
                 </label>
 
                 <button
                   type="submit"
-                  className="justify-self-start rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+                  className="justify-self-start rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
                 >
                   Kuralı ekle
                 </button>
@@ -303,18 +310,18 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
 
         <Card className="p-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-ink">{month} dökümü</h2>
+            <h2 className="text-base font-semibold text-text-primary">{month} dökümü</h2>
 
             <form method="get" className="flex items-center gap-2">
               <input
                 name="month"
                 type="month"
                 defaultValue={month}
-                className="rounded-lg border border-line bg-panel px-2 py-1.5 text-xs outline-none transition focus:border-terra-500"
+                className="rounded-lg border border-border bg-surface px-2 py-1.5 text-xs outline-none transition focus:border-primary"
               />
               <button
                 type="submit"
-                className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
               >
                 Git
               </button>
@@ -322,21 +329,19 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
           </div>
 
           <div className="mb-4 grid grid-cols-3 gap-2 text-center text-xs">
-            <div className="rounded-lg border border-line p-2">
-              <p className="text-muted">Bekleyen</p>
-              <p className="mt-1 font-semibold text-honey-700 dark:text-honey-500">
+            <div className="rounded-lg border border-border p-2">
+              <p className="text-text-secondary">Bekleyen</p>
+              <p className="mt-1 font-semibold text-accent-strong">
                 {formatTry(pendingTotal)}
               </p>
             </div>
-            <div className="rounded-lg border border-line p-2">
-              <p className="text-muted">Onaylı</p>
-              <p className="mt-1 font-semibold text-ink">{formatTry(approvedTotal)}</p>
+            <div className="rounded-lg border border-border p-2">
+              <p className="text-text-secondary">Onaylı</p>
+              <p className="mt-1 font-semibold text-text-primary">{formatTry(approvedTotal)}</p>
             </div>
-            <div className="rounded-lg border border-line p-2">
-              <p className="text-muted">Ödendi</p>
-              <p className="mt-1 font-semibold text-emerald-700 dark:text-emerald-400">
-                {formatTry(paidTotal)}
-              </p>
+            <div className="rounded-lg border border-border p-2">
+              <p className="text-text-secondary">Ödendi</p>
+              <p className="mt-1 font-semibold text-success">{formatTry(paidTotal)}</p>
             </div>
           </div>
 
@@ -345,11 +350,15 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
               <form action={approveCompensation}>
                 <input type="hidden" name="teacherId" value={teacherId} />
                 <input type="hidden" name="periodStart" value={monthStart} />
-                <input type="hidden" name="redirectTo" value={`/hakedis/${teacherId}?month=${month}`} />
+                <input
+                  type="hidden"
+                  name="redirectTo"
+                  value={`/hakedis/${teacherId}?month=${month}`}
+                />
 
                 <button
                   type="submit"
-                  className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                  className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                 >
                   Bu ayı onayla
                 </button>
@@ -360,11 +369,15 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
               <form action={markCompensationPaid}>
                 <input type="hidden" name="teacherId" value={teacherId} />
                 <input type="hidden" name="periodStart" value={monthStart} />
-                <input type="hidden" name="redirectTo" value={`/hakedis/${teacherId}?month=${month}`} />
+                <input
+                  type="hidden"
+                  name="redirectTo"
+                  value={`/hakedis/${teacherId}?month=${month}`}
+                />
 
                 <button
                   type="submit"
-                  className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                  className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                 >
                   Ödendi işaretle
                 </button>
@@ -373,12 +386,12 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
           </div>
 
           {logList.length === 0 ? (
-            <p className="text-sm text-muted">Bu ay için hakediş kaydı yok.</p>
+            <p className="text-sm text-text-secondary">Bu ay için hakediş kaydı yok.</p>
           ) : (
             <div className="max-h-80 overflow-y-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-line uppercase tracking-wide text-muted">
+                  <tr className="border-b border-border uppercase tracking-wide text-text-secondary">
                     <th className="py-2 pr-2">Tarih</th>
                     <th className="py-2 pr-2">Senaryo</th>
                     <th className="py-2 pr-2 text-right">Tutar</th>
@@ -388,8 +401,8 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
 
                 <tbody>
                   {logList.map((log) => (
-                    <tr key={log.id} className="border-b border-line/60">
-                      <td className="py-2 pr-2 whitespace-nowrap text-muted">
+                    <tr key={log.id} className="border-b border-border/60">
+                      <td className="py-2 pr-2 whitespace-nowrap text-text-secondary">
                         {formatDate(log.work_date)}
                       </td>
                       <td className="py-2 pr-2">
@@ -398,9 +411,7 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
                       </td>
                       <td
                         className={`py-2 pr-2 text-right font-semibold ${
-                          log.direction === 1
-                            ? "text-emerald-700 dark:text-emerald-400"
-                            : "text-rose-700 dark:text-rose-400"
+                          log.direction === 1 ? "text-success" : "text-danger"
                         }`}
                       >
                         {log.direction === 1 ? "+" : "-"}
@@ -425,54 +436,54 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
       </div>
 
       <Card className="mt-6 p-6">
-        <h2 className="mb-1 text-base font-semibold text-ink">Düzeltme / ek ödeme ekle</h2>
+        <h2 className="mb-1 text-base font-semibold text-text-primary">Düzeltme / ek ödeme ekle</h2>
 
-        <p className="mb-4 text-xs leading-5 text-muted">
-          Otomatik üretime dahil olmayan bonus, kesinti veya düzeltmeler için. Mevcut
-          kayıtlar asla değiştirilmez — düzeltme her zaman yeni bir satır olarak eklenir.
+        <p className="mb-4 text-xs leading-5 text-text-secondary">
+          Otomatik üretime dahil olmayan bonus, kesinti veya düzeltmeler için. Mevcut kayıtlar asla
+          değiştirilmez — düzeltme her zaman yeni bir satır olarak eklenir.
         </p>
 
         <form action={addCompensationAdjustment} className="grid gap-2 sm:grid-cols-4">
           <input type="hidden" name="teacherId" value={teacherId} />
           <input type="hidden" name="periodStart" value={monthStart} />
 
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             Tutar
             <input
               name="amount"
               type="text"
               required
               placeholder="0.00"
-              className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
             />
           </label>
 
-          <label className="text-xs font-medium text-muted">
+          <label className="text-xs font-medium text-text-secondary">
             Yön
             <select
               name="direction"
-              className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
             >
               <option value="1">Ekleme (+)</option>
               <option value="-1">Kesinti (-)</option>
             </select>
           </label>
 
-          <label className="text-xs font-medium text-muted sm:col-span-2">
+          <label className="text-xs font-medium text-text-secondary sm:col-span-2">
             Açıklama
             <input
               name="note"
               type="text"
               required
               minLength={3}
-              className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+              className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
             />
           </label>
 
           <div className="sm:col-span-4">
             <button
               type="submit"
-              className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink transition hover:bg-fill"
+              className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-muted"
             >
               Düzeltmeyi ekle
             </button>

@@ -32,8 +32,7 @@ function hijriPartsFor(date: Date) {
     day: "numeric",
   }).formatToParts(date);
 
-  const get = (type: string) =>
-    Number(parts.find((part) => part.type === type)?.value ?? NaN);
+  const get = (type: string) => Number(parts.find((part) => part.type === type)?.value ?? NaN);
 
   return { month: get("month"), day: get("day") };
 }
@@ -119,10 +118,7 @@ export function getHolidaysForYear(year: number): Holiday[] {
   );
 }
 
-export function getHolidaysForYearRange(
-  startYear: number,
-  endYear: number,
-): Holiday[] {
+export function getHolidaysForYearRange(startYear: number, endYear: number): Holiday[] {
   const holidays: Holiday[] = [];
 
   for (let year = startYear; year <= endYear; year += 1) {

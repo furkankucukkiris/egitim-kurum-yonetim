@@ -168,9 +168,7 @@ export async function reviewSessionChangeRequest(formData: FormData) {
   }
 
   revalidatePath("/yoklama");
-  redirect(
-    successRedirect(date, approve ? "Talep onaylandı ve uygulandı." : "Talep reddedildi."),
-  );
+  redirect(successRedirect(date, approve ? "Talep onaylandı ve uygulandı." : "Talep reddedildi."));
 }
 
 export async function scheduleMakeupIntoSession(formData: FormData) {
@@ -242,12 +240,18 @@ export async function scheduleMakeupNewSession(formData: FormData) {
 
   if (error) {
     console.error("Telafi oturumu oluşturulamadı:", error);
-    await logRejectedSchedulingAttempt(supabase, "lesson_sessions", "makeup_new_session_rejected", error, {
-      creditId,
-      teacherProfileId,
-      newStartsAt,
-      newEndsAt,
-    });
+    await logRejectedSchedulingAttempt(
+      supabase,
+      "lesson_sessions",
+      "makeup_new_session_rejected",
+      error,
+      {
+        creditId,
+        teacherProfileId,
+        newStartsAt,
+        newEndsAt,
+      },
+    );
     redirect(errorRedirect(date, error.message));
   }
 

@@ -9,9 +9,7 @@ type SetupPageProps = {
   }>;
 };
 
-export default async function SetupPage({
-  searchParams,
-}: SetupPageProps) {
+export default async function SetupPage({ searchParams }: SetupPageProps) {
   const { error } = await searchParams;
   const supabase = await createClient();
 
@@ -37,9 +35,7 @@ export default async function SetupPage({
   // mantığından bağımsız olarak burada da uygulanır — arayüz
   // yönlendirmesine güvenilmez, /kurulum'a doğrudan gidilse bile
   // sunucu tarafında engellenir.
-  const { data: systemBootstrapped } = await supabase.rpc(
-    "has_any_organization",
-  );
+  const { data: systemBootstrapped } = await supabase.rpc("has_any_organization");
 
   if (systemBootstrapped) {
     redirect("/hesap-erisimi");
@@ -47,50 +43,44 @@ export default async function SetupPage({
 
   return (
     <div className="mx-auto max-w-xl py-10">
-      <div className="rounded-3xl border border-line bg-panel p-7 shadow-sm">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-honey-700 dark:text-honey-500">
+      <div className="rounded-3xl border border-border bg-surface p-7 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-strong">
           İlk kurulum
         </p>
 
-        <h2 className="mt-3 text-2xl font-bold">
-          Kurum hesabını oluşturun
-        </h2>
+        <h2 className="mt-3 text-2xl font-bold">Kurum hesabını oluşturun</h2>
 
-        <p className="mt-2 text-sm leading-6 text-muted">
-          Bu işlem yalnızca bir kez gerçekleştirilebilir. Oturum açan
-          kullanıcı kurumun ilk yöneticisi olarak kaydedilecektir.
+        <p className="mt-2 text-sm leading-6 text-text-secondary">
+          Bu işlem yalnızca bir kez gerçekleştirilebilir. Oturum açan kullanıcı kurumun ilk
+          yöneticisi olarak kaydedilecektir.
         </p>
 
         {error && (
-          <div className="mt-5 rounded-xl bg-rose-50 dark:bg-rose-500/10 p-3 text-sm text-rose-700 dark:text-rose-400">
-            {error}
-          </div>
+          <div className="mt-5 rounded-xl bg-danger-soft p-3 text-sm text-danger">{error}</div>
         )}
 
         <form action={completeInitialSetup} className="mt-6 space-y-5">
           <label className="block text-sm font-medium">
             Kurum adı
-
             <input
               name="organizationName"
               type="text"
               required
               minLength={2}
               defaultValue="Şermin Şahin Kişisel Gelişim Kursu"
-              className="mt-2 w-full rounded-xl border border-line px-4 py-3 outline-none focus:border-terra-500"
+              className="mt-2 w-full rounded-xl border border-border px-4 py-3 outline-none focus:border-primary"
             />
           </label>
 
           <label className="block text-sm font-medium">
             Yönetici adı soyadı
-
             <input
               name="fullName"
               type="text"
               required
               minLength={2}
               placeholder="Adınız ve soyadınız"
-              className="mt-2 w-full rounded-xl border border-line px-4 py-3 outline-none focus:border-terra-500"
+              className="mt-2 w-full rounded-xl border border-border px-4 py-3 outline-none focus:border-primary"
             />
           </label>
 
@@ -98,7 +88,7 @@ export default async function SetupPage({
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-4 py-3 font-semibold text-white hover:bg-terra-700/90"
+            className="w-full rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary hover:bg-primary-hover"
           >
             Kurulumu tamamla
           </button>

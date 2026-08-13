@@ -40,7 +40,9 @@ export async function createProspect(formData: FormData) {
 
   revalidatePath("/aday-ogrenciler");
 
-  redirect(`/aday-ogrenciler/${prospectId}?success=${encodeURIComponent("Aday öğrenci oluşturuldu.")}`);
+  redirect(
+    `/aday-ogrenciler/${prospectId}?success=${encodeURIComponent("Aday öğrenci oluşturuldu.")}`,
+  );
 }
 
 export async function updateProspect(formData: FormData) {
@@ -81,7 +83,9 @@ export async function updateProspect(formData: FormData) {
   revalidatePath(`/aday-ogrenciler/${prospectId}`);
   revalidatePath("/aday-ogrenciler");
 
-  redirect(`/aday-ogrenciler/${prospectId}?success=${encodeURIComponent("Aday öğrenci güncellendi.")}`);
+  redirect(
+    `/aday-ogrenciler/${prospectId}?success=${encodeURIComponent("Aday öğrenci güncellendi.")}`,
+  );
 }
 
 export async function updateProspectStatus(formData: FormData) {
@@ -164,7 +168,9 @@ export async function scheduleTrialLesson(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/ogretmen-paneli");
 
-  redirect(`/aday-ogrenciler/${prospectId}?success=${encodeURIComponent("Deneme dersi planlandı.")}`);
+  redirect(
+    `/aday-ogrenciler/${prospectId}?success=${encodeURIComponent("Deneme dersi planlandı.")}`,
+  );
 }
 
 export async function cancelTrialLesson(formData: FormData) {
@@ -193,15 +199,21 @@ export async function cancelTrialLesson(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/ogretmen-paneli");
 
-  redirect(`/aday-ogrenciler/${prospectId}?success=${encodeURIComponent("Deneme dersi iptal edildi.")}`);
+  redirect(
+    `/aday-ogrenciler/${prospectId}?success=${encodeURIComponent("Deneme dersi iptal edildi.")}`,
+  );
 }
 
 export async function convertProspectToStudent(formData: FormData) {
   await requireRole(["admin"]);
 
   const prospectId = readText(formData, "prospectId");
-  const studentIdentityNumber = normalizeIdentityNumber(readText(formData, "studentIdentityNumber"));
-  const guardianIdentityNumber = normalizeIdentityNumber(readText(formData, "guardianIdentityNumber"));
+  const studentIdentityNumber = normalizeIdentityNumber(
+    readText(formData, "studentIdentityNumber"),
+  );
+  const guardianIdentityNumber = normalizeIdentityNumber(
+    readText(formData, "guardianIdentityNumber"),
+  );
   const birthDate = readText(formData, "birthDate");
   const registrationDate = readText(formData, "registrationDate");
   const guardianSecondaryPhone = readText(formData, "guardianSecondaryPhone");
@@ -249,7 +261,9 @@ export async function convertProspectToStudent(formData: FormData) {
   revalidatePath("/aday-ogrenciler");
   revalidatePath("/ogrenciler");
 
-  redirect(`/ogrenciler/${studentId}?success=${encodeURIComponent("Aday öğrenci, öğrenciye dönüştürüldü.")}`);
+  redirect(
+    `/ogrenciler/${studentId}?success=${encodeURIComponent("Aday öğrenci, öğrenciye dönüştürüldü.")}`,
+  );
 }
 
 function readText(formData: FormData, name: string) {

@@ -49,13 +49,15 @@ export async function fetchMonthlyPaymentsExportRows(
 ): Promise<PaymentsExportRow[]> {
   const { data, error } = await supabase
     .from("accruals")
-    .select(`
-      net_amount, allocated_amount, status, due_date, period_start,
-      enrollment:enrollments!inner (
-        student:students!inner ( first_name, last_name ),
-        course:courses!inner ( name )
-      )
-    `)
+    .select(
+      `
+        net_amount, allocated_amount, status, due_date, period_start,
+        enrollment:enrollments!inner (
+          student:students!inner ( first_name, last_name ),
+          course:courses!inner ( name )
+        )
+      `,
+    )
     .eq("organization_id", organizationId)
     .eq("period_start", monthStart)
     .not("status", "in", "(cancelled,refunded)");
@@ -120,9 +122,7 @@ export function paymentsExportRowsToCsv(rows: PaymentsExportRow[]): string {
   const lines = [CSV_COLUMNS.map((column) => escapeCsvField(column.label)).join(";")];
 
   for (const row of rows) {
-    lines.push(
-      CSV_COLUMNS.map((column) => escapeCsvField(row[column.key])).join(";"),
-    );
+    lines.push(CSV_COLUMNS.map((column) => escapeCsvField(row[column.key])).join(";"));
   }
 
   return "\uFEFF" + lines.join("\r\n");

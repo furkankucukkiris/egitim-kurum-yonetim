@@ -35,17 +35,17 @@ export default async function NewExpensePage({ searchParams }: NewExpensePagePro
 
       <Card className="max-w-xl p-6">
         {categoryList.length === 0 ? (
-          <p className="text-sm text-muted">
+          <p className="text-sm text-text-secondary">
             Önce Giderler sayfasından en az bir masraf kategorisi ekleyin.
           </p>
         ) : (
           <form action={createExpense} className="space-y-4">
-            <label className="block text-xs font-medium text-muted">
+            <label className="block text-xs font-medium text-text-secondary">
               Kategori
               <select
                 name="categoryId"
                 required
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               >
                 <option value="">Seçin</option>
                 {categoryList.map((category) => (
@@ -56,11 +56,11 @@ export default async function NewExpensePage({ searchParams }: NewExpensePagePro
               </select>
             </label>
 
-            <label className="block text-xs font-medium text-muted">
+            <label className="block text-xs font-medium text-text-secondary">
               Ders (opsiyonel — doğrudan ders maliyeti)
               <select
                 name="courseId"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               >
                 <option value="">—</option>
                 {courseList.map((course) => (
@@ -71,59 +71,59 @@ export default async function NewExpensePage({ searchParams }: NewExpensePagePro
               </select>
             </label>
 
-            <label className="block text-xs font-medium text-muted">
+            <label className="block text-xs font-medium text-text-secondary">
               Tutar
               <input
                 name="amount"
                 type="text"
                 required
                 placeholder="0.00"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
             <div className="grid grid-cols-2 gap-3">
-              <label className="block text-xs font-medium text-muted">
+              <label className="block text-xs font-medium text-text-secondary">
                 Masraf tarihi
                 <input
                   name="expenseDate"
                   type="date"
                   required
-                  className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                 />
               </label>
 
-              <label className="block text-xs font-medium text-muted">
+              <label className="block text-xs font-medium text-text-secondary">
                 Vade tarihi (opsiyonel)
                 <input
                   name="dueDate"
                   type="date"
-                  className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                 />
               </label>
             </div>
 
-            <label className="block text-xs font-medium text-muted">
+            <label className="block text-xs font-medium text-text-secondary">
               Tedarikçi
               <input
                 name="vendorName"
                 type="text"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="block text-xs font-medium text-muted">
+            <label className="block text-xs font-medium text-text-secondary">
               Not
               <textarea
                 name="note"
                 rows={3}
-                className="mt-1 block w-full resize-y rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
             <button
               type="submit"
-              className="rounded-xl bg-terra-700 shadow-sm shadow-terra-700/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terra-500/50 px-5 py-3 text-sm font-semibold text-white transition hover:bg-terra-700/90"
+              className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover"
             >
               Masrafı oluştur
             </button>

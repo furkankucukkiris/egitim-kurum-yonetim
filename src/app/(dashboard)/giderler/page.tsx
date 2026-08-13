@@ -104,20 +104,25 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
     supabase.rpc("get_monthly_expenses_by_category", { p_month_start: monthStart }),
     supabase
       .from("expenses")
-      .select("id, expense_date, vendor_name, amount, status, expense_categories(name), courses(name)")
+      .select(
+        "id, expense_date, vendor_name, amount, status, expense_categories(name), courses(name)",
+      )
       .eq("organization_id", profile.organizationId)
       .gte("expense_date", monthStart)
       .lt("expense_date", nextMonthStart(monthStart))
       .order("expense_date", { ascending: false }),
-    supabase
-      .from("expense_categories")
-      .select("id, name, is_direct_course_cost")
-      .order("name"),
+    supabase.from("expense_categories").select("id, name, is_direct_course_cost").order("name"),
     supabase
       .from("recurring_expense_templates")
-      .select("id, amount, due_day, vendor_name, is_active, expense_categories(name), courses(name)")
+      .select(
+        "id, amount, due_day, vendor_name, is_active, expense_categories(name), courses(name)",
+      )
       .order("created_at", { ascending: false }),
-    supabase.from("courses").select("id, name").eq("organization_id", profile.organizationId).order("name"),
+    supabase
+      .from("courses")
+      .select("id, name")
+      .eq("organization_id", profile.organizationId)
+      .order("name"),
   ]);
 
   if (summaryError) console.error("Kârlılık özeti alınamadı:", summaryError);
@@ -144,26 +149,26 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
       <SettingsAlert success={params.success} error={params.error} />
 
       <form method="get" className="mb-6 flex items-end gap-3">
-        <label className="text-xs font-medium text-muted">
+        <label className="text-xs font-medium text-text-secondary">
           Ay
           <input
             name="month"
             type="month"
             defaultValue={month}
-            className="mt-1 block rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+            className="mt-1 block rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
           />
         </label>
 
         <button
           type="submit"
-          className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink transition hover:bg-fill"
+          className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-muted"
         >
           Görüntüle
         </button>
 
         <Link
           href="/giderler/yeni"
-          className="ml-auto rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+          className="ml-auto rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
         >
           Yeni masraf
         </Link>
@@ -172,26 +177,24 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
       {summary && (
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="p-5">
-            <p className="text-sm font-medium text-muted">Gelir (tahakkuk)</p>
-            <p className="mt-3 text-2xl font-bold tracking-tight text-ink">
+            <p className="text-sm font-medium text-text-secondary">Gelir (tahakkuk)</p>
+            <p className="mt-3 text-2xl font-bold tracking-tight text-text-primary">
               {formatTry(summary.revenue_accrued)}
             </p>
           </Card>
 
           <Card className="p-5">
-            <p className="text-sm font-medium text-muted">Toplam gider</p>
-            <p className="mt-3 text-2xl font-bold tracking-tight text-ink">
+            <p className="text-sm font-medium text-text-secondary">Toplam gider</p>
+            <p className="mt-3 text-2xl font-bold tracking-tight text-text-primary">
               {formatTry(summary.total_expenses)}
             </p>
           </Card>
 
           <Card className="p-5">
-            <p className="text-sm font-medium text-muted">Brüt sonuç</p>
+            <p className="text-sm font-medium text-text-secondary">Brüt sonuç</p>
             <p
               className={`mt-3 text-2xl font-bold tracking-tight ${
-                summary.gross_result >= 0
-                  ? "text-emerald-700 dark:text-emerald-400"
-                  : "text-rose-700 dark:text-rose-400"
+                summary.gross_result >= 0 ? "text-success" : "text-danger"
               }`}
             >
               {formatTry(summary.gross_result)}
@@ -199,12 +202,10 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
           </Card>
 
           <Card className="p-5">
-            <p className="text-sm font-medium text-muted">Net sonuç</p>
+            <p className="text-sm font-medium text-text-secondary">Net sonuç</p>
             <p
               className={`mt-3 text-2xl font-bold tracking-tight ${
-                summary.net_result >= 0
-                  ? "text-emerald-700 dark:text-emerald-400"
-                  : "text-rose-700 dark:text-rose-400"
+                summary.net_result >= 0 ? "text-success" : "text-danger"
               }`}
             >
               {formatTry(summary.net_result)}
@@ -214,22 +215,23 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
       )}
 
       {summary && (
-        <p className="mb-6 text-xs text-muted">
+        <p className="mb-6 text-xs text-text-secondary">
           Doğrudan ders gideri: {formatTry(summary.direct_expenses)} · Dolaylı (genel) gider:{" "}
-          {formatTry(summary.indirect_expenses)} · Bu ay nakit ödenen: {formatTry(summary.expenses_paid_cash)}
+          {formatTry(summary.indirect_expenses)} · Bu ay nakit ödenen:{" "}
+          {formatTry(summary.expenses_paid_cash)}
         </p>
       )}
 
       <div className="mb-6 grid gap-6 lg:grid-cols-2">
         <Card className="p-6">
-          <h2 className="mb-4 text-base font-semibold text-ink">Kategori dağılımı</h2>
+          <h2 className="mb-4 text-base font-semibold text-text-primary">Kategori dağılımı</h2>
 
           {breakdown.length === 0 ? (
-            <p className="text-sm text-muted">Bu ay için masraf kaydı yok.</p>
+            <p className="text-sm text-text-secondary">Bu ay için masraf kaydı yok.</p>
           ) : (
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
+                <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
                   <th className="py-2 pr-3">Kategori</th>
                   <th className="py-2 pr-3 text-right">Planlı</th>
                   <th className="py-2 pr-3 text-right">Ödendi</th>
@@ -239,15 +241,17 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
 
               <tbody>
                 {breakdown.map((row) => (
-                  <tr key={row.category_id} className="border-b border-line/60">
+                  <tr key={row.category_id} className="border-b border-border/60">
                     <td className="py-2 pr-3">{row.category_name}</td>
-                    <td className="py-2 pr-3 text-right text-honey-700 dark:text-honey-500">
+                    <td className="py-2 pr-3 text-right text-accent-strong">
                       {formatTry(row.planned_amount)}
                     </td>
-                    <td className="py-2 pr-3 text-right text-emerald-700 dark:text-emerald-400">
+                    <td className="py-2 pr-3 text-right text-success">
                       {formatTry(row.paid_amount)}
                     </td>
-                    <td className="py-2 text-right text-muted">{formatTry(row.cancelled_amount)}</td>
+                    <td className="py-2 text-right text-text-secondary">
+                      {formatTry(row.cancelled_amount)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -256,14 +260,17 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
         </Card>
 
         <Card className="p-6">
-          <h2 className="mb-1 text-base font-semibold text-ink">Masraf kategorileri</h2>
+          <h2 className="mb-1 text-base font-semibold text-text-primary">Masraf kategorileri</h2>
 
           {categoryList.length === 0 ? (
-            <p className="mb-4 text-sm text-muted">Henüz kategori yok.</p>
+            <p className="mb-4 text-sm text-text-secondary">Henüz kategori yok.</p>
           ) : (
             <ul className="mb-4 divide-y divide-line">
               {categoryList.map((category) => (
-                <li key={category.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                <li
+                  key={category.id}
+                  className="flex items-center justify-between gap-3 py-2 text-sm"
+                >
                   <span>{category.name}</span>
                   {category.is_direct_course_cost && (
                     <StatusBadge label="Ders maliyeti" tone="neutral" />
@@ -274,7 +281,7 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
           )}
 
           <form action={createExpenseCategory} className="flex items-end gap-2">
-            <label className="flex-1 text-xs font-medium text-muted">
+            <label className="flex-1 text-xs font-medium text-text-secondary">
               Yeni kategori
               <input
                 name="name"
@@ -282,18 +289,18 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
                 required
                 minLength={2}
                 placeholder="Ör. Kira"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="flex items-center gap-1.5 pb-2.5 text-xs text-muted">
+            <label className="flex items-center gap-1.5 pb-2.5 text-xs text-text-secondary">
               <input type="checkbox" name="isDirectCourseCost" />
               Ders maliyeti
             </label>
 
             <button
               type="submit"
-              className="rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
             >
               Ekle
             </button>
@@ -302,27 +309,30 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
       </div>
 
       <Card className="mb-6 p-6">
-        <h2 className="mb-1 text-base font-semibold text-ink">Tekrarlayan masraflar</h2>
+        <h2 className="mb-1 text-base font-semibold text-text-primary">Tekrarlayan masraflar</h2>
 
-        <p className="mb-4 text-xs leading-5 text-muted">
-          Her ay aynı tutarla tekrar eden masraflar (kira, abonelik vb.) için şablon
-          tanımlayın; seçili ay için masrafları tek seferde oluşturun.
+        <p className="mb-4 text-xs leading-5 text-text-secondary">
+          Her ay aynı tutarla tekrar eden masraflar (kira, abonelik vb.) için şablon tanımlayın;
+          seçili ay için masrafları tek seferde oluşturun.
         </p>
 
         {templateList.length === 0 ? (
-          <p className="mb-4 text-sm text-muted">Henüz şablon yok.</p>
+          <p className="mb-4 text-sm text-text-secondary">Henüz şablon yok.</p>
         ) : (
           <ul className="mb-4 divide-y divide-line">
             {templateList.map((template) => (
-              <li key={template.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+              <li
+                key={template.id}
+                className="flex items-center justify-between gap-3 py-2 text-sm"
+              >
                 <div>
-                  <span className="font-medium text-ink">
+                  <span className="font-medium text-text-primary">
                     {template.expense_categories?.name ?? "—"}
                     {template.vendor_name ? ` — ${template.vendor_name}` : ""}
                     {template.courses ? ` (${template.courses.name})` : ""}
                   </span>
 
-                  <span className="ml-2 text-xs text-muted">
+                  <span className="ml-2 text-xs text-text-secondary">
                     {formatTry(template.amount)} · her ayın {template.due_day}. günü
                   </span>
 
@@ -335,7 +345,7 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
 
                   <button
                     type="submit"
-                    className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                    className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                   >
                     {template.is_active ? "Pasife al" : "Aktifleştir"}
                   </button>
@@ -346,17 +356,17 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
         )}
 
         <details className="mb-4">
-          <summary className="cursor-pointer text-xs font-medium text-brand-700 dark:text-brand-100">
+          <summary className="cursor-pointer text-xs font-medium text-primary text-primary">
             Yeni şablon ekle
           </summary>
 
           <form action={createRecurringExpenseTemplate} className="mt-3 grid gap-2 sm:grid-cols-2">
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Kategori
               <select
                 name="categoryId"
                 required
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               >
                 <option value="">Seçin</option>
                 {categoryList.map((category) => (
@@ -367,11 +377,11 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
               </select>
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Ders (opsiyonel — doğrudan ders maliyeti)
               <select
                 name="courseId"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               >
                 <option value="">—</option>
                 {courseList.map((course) => (
@@ -382,18 +392,18 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
               </select>
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Tutar
               <input
                 name="amount"
                 type="text"
                 required
                 placeholder="0.00"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Vade günü
               <input
                 name="dueDay"
@@ -402,24 +412,24 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
                 max={28}
                 required
                 defaultValue={1}
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Tedarikçi
               <input
                 name="vendorName"
                 type="text"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Ödeme yöntemi (opsiyonel)
               <select
                 name="paymentMethod"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               >
                 <option value="">—</option>
                 <option value="cash">Nakit</option>
@@ -433,7 +443,7 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
             <div className="sm:col-span-2">
               <button
                 type="submit"
-                className="rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
               >
                 Şablon ekle
               </button>
@@ -441,17 +451,20 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
           </form>
         </details>
 
-        <form action={generateMonthlyExpenses} className="flex items-end gap-2 border-t border-line pt-4">
+        <form
+          action={generateMonthlyExpenses}
+          className="flex items-end gap-2 border-t border-border pt-4"
+        >
           <input type="hidden" name="month" value={month} />
 
-          <p className="flex-1 text-xs leading-5 text-muted">
-            {month} ayı için aktif şablonlardan masraf oluştur. Aynı şablon için bu ay
-            zaten oluşturulduysa mükerrer kayıt eklenmez.
+          <p className="flex-1 text-xs leading-5 text-text-secondary">
+            {month} ayı için aktif şablonlardan masraf oluştur. Aynı şablon için bu ay zaten
+            oluşturulduysa mükerrer kayıt eklenmez.
           </p>
 
           <button
             type="submit"
-            className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink transition hover:bg-fill"
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-muted"
           >
             Bu ayın masraflarını oluştur
           </button>
@@ -459,15 +472,15 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
       </Card>
 
       <Card className="p-6">
-        <h2 className="mb-4 text-base font-semibold text-ink">{month} masrafları</h2>
+        <h2 className="mb-4 text-base font-semibold text-text-primary">{month} masrafları</h2>
 
         {expenseRows.length === 0 ? (
-          <p className="text-sm text-muted">Bu ay için masraf kaydı yok.</p>
+          <p className="text-sm text-text-secondary">Bu ay için masraf kaydı yok.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
+                <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
                   <th className="py-2 pr-4">Tarih</th>
                   <th className="py-2 pr-4">Kategori</th>
                   <th className="py-2 pr-4">Tedarikçi</th>
@@ -479,29 +492,34 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
 
               <tbody>
                 {expenseRows.map((expense) => (
-                  <tr key={expense.id} className="border-b border-line/60">
-                    <td className="py-3 pr-4 whitespace-nowrap text-xs text-muted">
+                  <tr key={expense.id} className="border-b border-border/60">
+                    <td className="py-3 pr-4 whitespace-nowrap text-xs text-text-secondary">
                       {formatDate(expense.expense_date)}
                     </td>
 
                     <td className="py-3 pr-4">
                       <Link
                         href={`/giderler/${expense.id}`}
-                        className="font-medium text-ink hover:underline"
+                        className="font-medium text-text-primary hover:underline"
                       >
                         {expense.expense_categories?.name ?? "—"}
                       </Link>
                     </td>
 
-                    <td className="py-3 pr-4 text-muted">{expense.vendor_name ?? "—"}</td>
-                    <td className="py-3 pr-4 text-muted">{expense.courses?.name ?? "—"}</td>
+                    <td className="py-3 pr-4 text-text-secondary">{expense.vendor_name ?? "—"}</td>
+                    <td className="py-3 pr-4 text-text-secondary">
+                      {expense.courses?.name ?? "—"}
+                    </td>
 
-                    <td className="py-3 pr-4 text-right font-semibold text-ink">
+                    <td className="py-3 pr-4 text-right font-semibold text-text-primary">
                       {formatTry(expense.amount)}
                     </td>
 
                     <td className="py-3">
-                      <StatusBadge label={statusLabels[expense.status]} tone={statusTones[expense.status]} />
+                      <StatusBadge
+                        label={statusLabels[expense.status]}
+                        tone={statusTones[expense.status]}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -516,7 +534,8 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
 
 function nextMonthStart(monthStart: string) {
   const [year, month] = monthStart.split("-").map(Number);
-  const next = month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const next =
+    month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, "0")}-01`;
   return next;
 }
 

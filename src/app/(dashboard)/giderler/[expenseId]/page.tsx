@@ -123,7 +123,7 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
       <div className="mb-6">
         <Link
           href="/giderler"
-          className="text-xs font-medium text-brand-700 hover:underline dark:text-brand-100"
+          className="text-xs font-medium text-primary hover:underline text-primary"
         >
           ← Giderler
         </Link>
@@ -134,8 +134,13 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="p-6">
           <div className="mb-4 flex items-center justify-between">
-            <p className="text-2xl font-bold text-ink">{formatTry(expenseDetail.amount)}</p>
-            <StatusBadge label={statusLabels[expenseDetail.status]} tone={statusTones[expenseDetail.status]} />
+            <p className="text-2xl font-bold text-text-primary">
+              {formatTry(expenseDetail.amount)}
+            </p>
+            <StatusBadge
+              label={statusLabels[expenseDetail.status]}
+              tone={statusTones[expenseDetail.status]}
+            />
           </div>
 
           <dl className="space-y-2 text-sm">
@@ -154,7 +159,7 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
                   label="Ödeme yöntemi"
                   value={
                     expenseDetail.payment_method
-                      ? methodLabels[expenseDetail.payment_method] ?? expenseDetail.payment_method
+                      ? (methodLabels[expenseDetail.payment_method] ?? expenseDetail.payment_method)
                       : "—"
                   }
                 />
@@ -170,21 +175,25 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
             {expenseDetail.note && <Row label="Not" value={expenseDetail.note} />}
           </dl>
 
-          <div className="mt-5 border-t border-line pt-4">
-            <p className="mb-2 text-xs font-medium text-muted">Makbuz / fatura</p>
+          <div className="mt-5 border-t border-border pt-4">
+            <p className="mb-2 text-xs font-medium text-text-secondary">Makbuz / fatura</p>
 
             {documentUrl && (
               <a
                 href={documentUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="mb-2 inline-block text-xs font-medium text-brand-700 hover:underline dark:text-brand-100"
+                className="mb-2 inline-block text-xs font-medium text-primary hover:underline text-primary"
               >
                 Mevcut belgeyi görüntüle
               </a>
             )}
 
-            <form action={uploadExpenseDocument} encType="multipart/form-data" className="flex items-end gap-2">
+            <form
+              action={uploadExpenseDocument}
+              encType="multipart/form-data"
+              className="flex items-end gap-2"
+            >
               <input type="hidden" name="expenseId" value={expenseDetail.id} />
 
               <input
@@ -192,12 +201,12 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
                 type="file"
                 accept="image/png,image/jpeg,image/webp,application/pdf"
                 required
-                className="block flex-1 text-xs text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-fill file:px-3 file:py-2 file:text-xs file:font-semibold file:text-brand-700 dark:file:text-brand-100"
+                className="block flex-1 text-xs text-text-secondary file:mr-3 file:rounded-lg file:border-0 file:bg-surface-muted file:px-3 file:py-2 file:text-xs file:font-semibold file:text-primary"
               />
 
               <button
                 type="submit"
-                className="rounded-lg border border-line px-3 py-2 text-xs font-medium text-ink transition hover:bg-fill"
+                className="rounded-lg border border-border px-3 py-2 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
               >
                 Yükle
               </button>
@@ -209,19 +218,19 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
           {expenseDetail.status === "planned" && (
             <>
               <Card className="p-6">
-                <h2 className="mb-4 text-base font-semibold text-ink">Ödeme kaydet</h2>
+                <h2 className="mb-4 text-base font-semibold text-text-primary">Ödeme kaydet</h2>
 
                 <form action={recordExpensePayment} className="space-y-4">
                   <input type="hidden" name="expenseId" value={expenseDetail.id} />
 
-                  <label className="block text-xs font-medium text-muted">
+                  <label className="block text-xs font-medium text-text-secondary">
                     Ödeme tarihi
                     <input
                       name="paidAt"
                       type="datetime-local"
                       required
                       defaultValue={new Date().toISOString().slice(0, 16)}
-                      className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                      className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                     />
                   </label>
 
@@ -229,7 +238,7 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
 
                   <button
                     type="submit"
-                    className="rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
                   >
                     Ödemeyi kaydet
                   </button>
@@ -237,18 +246,18 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
               </Card>
 
               <Card className="p-6">
-                <h2 className="mb-4 text-base font-semibold text-ink">Masrafı düzenle</h2>
+                <h2 className="mb-4 text-base font-semibold text-text-primary">Masrafı düzenle</h2>
 
                 <form action={updateExpenseDetails} className="space-y-3">
                   <input type="hidden" name="expenseId" value={expenseDetail.id} />
 
-                  <label className="block text-xs font-medium text-muted">
+                  <label className="block text-xs font-medium text-text-secondary">
                     Kategori
                     <select
                       name="categoryId"
                       required
                       defaultValue={expenseDetail.category_id}
-                      className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                      className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                     >
                       {categoryList.map((category) => (
                         <option key={category.id} value={category.id}>
@@ -258,12 +267,12 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
                     </select>
                   </label>
 
-                  <label className="block text-xs font-medium text-muted">
+                  <label className="block text-xs font-medium text-text-secondary">
                     Ders (opsiyonel)
                     <select
                       name="courseId"
                       defaultValue={expenseDetail.course_id ?? ""}
-                      className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                      className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                     >
                       <option value="">—</option>
                       {courseList.map((course) => (
@@ -274,63 +283,63 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
                     </select>
                   </label>
 
-                  <label className="block text-xs font-medium text-muted">
+                  <label className="block text-xs font-medium text-text-secondary">
                     Tutar
                     <input
                       name="amount"
                       type="text"
                       required
                       defaultValue={expenseDetail.amount.toFixed(2)}
-                      className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                      className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                     />
                   </label>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <label className="block text-xs font-medium text-muted">
+                    <label className="block text-xs font-medium text-text-secondary">
                       Masraf tarihi
                       <input
                         name="expenseDate"
                         type="date"
                         required
                         defaultValue={expenseDetail.expense_date}
-                        className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                        className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                       />
                     </label>
 
-                    <label className="block text-xs font-medium text-muted">
+                    <label className="block text-xs font-medium text-text-secondary">
                       Vade tarihi
                       <input
                         name="dueDate"
                         type="date"
                         defaultValue={expenseDetail.due_date ?? ""}
-                        className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                        className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                       />
                     </label>
                   </div>
 
-                  <label className="block text-xs font-medium text-muted">
+                  <label className="block text-xs font-medium text-text-secondary">
                     Tedarikçi
                     <input
                       name="vendorName"
                       type="text"
                       defaultValue={expenseDetail.vendor_name ?? ""}
-                      className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                      className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                     />
                   </label>
 
-                  <label className="block text-xs font-medium text-muted">
+                  <label className="block text-xs font-medium text-text-secondary">
                     Not
                     <textarea
                       name="note"
                       rows={2}
                       defaultValue={expenseDetail.note ?? ""}
-                      className="mt-1 block w-full resize-y rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                      className="mt-1 block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                     />
                   </label>
 
                   <button
                     type="submit"
-                    className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink transition hover:bg-fill"
+                    className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-surface-muted"
                   >
                     Kaydet
                   </button>
@@ -341,9 +350,9 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
 
           {expenseDetail.status !== "cancelled" && (
             <Card className="p-6">
-              <h2 className="mb-1 text-base font-semibold text-ink">Masrafı iptal et</h2>
+              <h2 className="mb-1 text-base font-semibold text-text-primary">Masrafı iptal et</h2>
 
-              <p className="mb-4 text-xs leading-5 text-muted">
+              <p className="mb-4 text-xs leading-5 text-text-secondary">
                 {expenseDetail.status === "paid"
                   ? "Bu masraf ödenmiş — iptal edildiğinde bağlı kasa hareketi fiziksel olarak silinmez, ters yönlü yeni bir kayıtla dengelenir."
                   : "Bu masraf henüz ödenmedi."}
@@ -352,20 +361,20 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
               <form action={cancelExpense} className="space-y-3">
                 <input type="hidden" name="expenseId" value={expenseDetail.id} />
 
-                <label className="block text-xs font-medium text-muted">
+                <label className="block text-xs font-medium text-text-secondary">
                   Gerekçe
                   <input
                     name="reason"
                     type="text"
                     required
                     minLength={3}
-                    className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                    className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                   />
                 </label>
 
                 <button
                   type="submit"
-                  className="rounded-lg border border-rose-300 px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-50 dark:border-rose-800/40 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                  className="rounded-lg border border-danger/40 px-4 py-2 text-sm font-medium text-danger transition hover:bg-danger-soft border-danger/30 text-danger dark:hover:bg-danger-soft/10"
                 >
                   Masrafı iptal et
                 </button>
@@ -381,13 +390,13 @@ export default async function ExpenseDetailPage({ params, searchParams }: PagePr
 function PaymentMethodField({ cashAccounts }: { cashAccounts: { id: string; name: string }[] }) {
   return (
     <>
-      <label className="block text-xs font-medium text-muted">
+      <label className="block text-xs font-medium text-text-secondary">
         Ödeme yöntemi
         <select
           name="paymentMethod"
           required
           defaultValue="cash"
-          className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+          className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
         >
           <option value="cash">Nakit</option>
           <option value="bank_transfer">Havale</option>
@@ -398,12 +407,12 @@ function PaymentMethodField({ cashAccounts }: { cashAccounts: { id: string; name
       </label>
 
       {cashAccounts.length > 0 ? (
-        <label className="block text-xs font-medium text-muted">
+        <label className="block text-xs font-medium text-text-secondary">
           Kasa hesabı (nakit ödemede zorunlu)
           <select
             name="cashAccountId"
             defaultValue=""
-            className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+            className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
           >
             <option value="">—</option>
             {cashAccounts.map((account) => (
@@ -414,9 +423,8 @@ function PaymentMethodField({ cashAccounts }: { cashAccounts: { id: string; name
           </select>
         </label>
       ) : (
-        <p className="text-xs text-rose-700 dark:text-rose-400">
-          Nakit ödeme için önce Kurum Ayarları → Kasa &amp; Banka&apos;dan bir kasa
-          hesabı ekleyin.
+        <p className="text-xs text-danger">
+          Nakit ödeme için önce Kurum Ayarları → Kasa &amp; Banka&apos;dan bir kasa hesabı ekleyin.
         </p>
       )}
     </>
@@ -426,8 +434,8 @@ function PaymentMethodField({ cashAccounts }: { cashAccounts: { id: string; name
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-3">
-      <dt className="text-muted">{label}</dt>
-      <dd className="text-right font-medium text-ink">{value}</dd>
+      <dt className="text-text-secondary">{label}</dt>
+      <dd className="text-right font-medium text-text-primary">{value}</dd>
     </div>
   );
 }

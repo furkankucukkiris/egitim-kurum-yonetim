@@ -6,11 +6,7 @@ import { SettingsAlert } from "@/components/settings/SettingsAlert";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { formatTry } from "@/lib/utils";
-import {
-  createBankDeposit,
-  recordCashCountAdjustment,
-  reverseCashMovement,
-} from "../actions";
+import { createBankDeposit, recordCashCountAdjustment, reverseCashMovement } from "../actions";
 
 const PAGE_SIZE = 20;
 
@@ -121,7 +117,7 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
       <div className="mb-6">
         <Link
           href="/kurum-ayarlari/kasa-banka"
-          className="text-xs font-medium text-brand-700 hover:underline dark:text-brand-100"
+          className="text-xs font-medium text-primary hover:underline text-primary"
         >
           ← Kasa &amp; Banka
         </Link>
@@ -131,13 +127,15 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2">
         <Card className="p-5">
-          <p className="text-xs text-muted">Güncel bakiye</p>
-          <p className="mt-1 text-2xl font-bold text-ink">{formatTry(Number(balance ?? 0))}</p>
+          <p className="text-xs text-text-secondary">Güncel bakiye</p>
+          <p className="mt-1 text-2xl font-bold text-text-primary">
+            {formatTry(Number(balance ?? 0))}
+          </p>
         </Card>
 
         <Card className="p-5">
-          <p className="text-xs text-muted">Yatırılmayı bekleyen nakit</p>
-          <p className="mt-1 text-2xl font-bold text-honey-700 dark:text-honey-500">
+          <p className="text-xs text-text-secondary">Yatırılmayı bekleyen nakit</p>
+          <p className="mt-1 text-2xl font-bold text-accent-strong">
             {formatTry(undepositedTotal)}
           </p>
         </Card>
@@ -145,28 +143,30 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
 
       <div className="mb-6 grid gap-6 lg:grid-cols-2">
         <Card className="p-6">
-          <h2 className="mb-1 text-base font-semibold text-ink">Banka/ATM yatırımı oluştur</h2>
+          <h2 className="mb-1 text-base font-semibold text-text-primary">
+            Banka/ATM yatırımı oluştur
+          </h2>
 
-          <p className="mb-4 text-xs leading-5 text-muted">
-            Yatırıma dahil edilecek hareketleri seçin — seçilen tutarların
-            toplamı yatırım tutarı olur.
+          <p className="mb-4 text-xs leading-5 text-text-secondary">
+            Yatırıma dahil edilecek hareketleri seçin — seçilen tutarların toplamı yatırım tutarı
+            olur.
           </p>
 
           {banks.length === 0 ? (
-            <p className="text-sm text-muted">
+            <p className="text-sm text-text-secondary">
               Önce en az bir aktif banka hesabı ekleyin.
             </p>
           ) : undepositedMovements.length === 0 ? (
-            <p className="text-sm text-muted">Yatırılmayı bekleyen nakit hareketi yok.</p>
+            <p className="text-sm text-text-secondary">Yatırılmayı bekleyen nakit hareketi yok.</p>
           ) : (
             <form action={createBankDeposit} className="space-y-4" encType="multipart/form-data">
               <input type="hidden" name="cashAccountId" value={cashAccountId} />
 
-              <div className="max-h-56 overflow-y-auto rounded-lg border border-line">
+              <div className="max-h-56 overflow-y-auto rounded-lg border border-border">
                 {undepositedMovements.map((movement) => (
                   <label
                     key={movement.id}
-                    className="flex items-center justify-between gap-3 border-b border-line px-3 py-2 text-sm last:border-b-0 hover:bg-fill"
+                    className="flex items-center justify-between gap-3 border-b border-border px-3 py-2 text-sm last:border-b-0 hover:bg-surface-muted"
                   >
                     <span className="flex items-center gap-2">
                       <input type="checkbox" name="movementIds" value={movement.id} />
@@ -176,17 +176,19 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
                       </span>
                     </span>
 
-                    <span className="font-semibold text-ink">{formatTry(movement.amount)}</span>
+                    <span className="font-semibold text-text-primary">
+                      {formatTry(movement.amount)}
+                    </span>
                   </label>
                 ))}
               </div>
 
-              <label className="block text-xs font-medium text-muted">
+              <label className="block text-xs font-medium text-text-secondary">
                 Banka hesabı
                 <select
                   name="bankAccountId"
                   required
-                  className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                 >
                   {banks.map((bank) => (
                     <option key={bank.id} value={bank.id}>
@@ -197,39 +199,39 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
                 </select>
               </label>
 
-              <label className="block text-xs font-medium text-muted">
+              <label className="block text-xs font-medium text-text-secondary">
                 Yatırım tarihi
                 <input
                   name="depositedAt"
                   type="datetime-local"
                   required
                   defaultValue={new Date().toISOString().slice(0, 16)}
-                  className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                 />
               </label>
 
-              <label className="block text-xs font-medium text-muted">
+              <label className="block text-xs font-medium text-text-secondary">
                 Makbuz (opsiyonel)
                 <input
                   name="receipt"
                   type="file"
                   accept="image/png,image/jpeg,image/webp,application/pdf"
-                  className="mt-1 block w-full text-sm text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-fill file:px-3 file:py-2 file:text-sm file:font-semibold file:text-brand-700 dark:file:text-brand-100"
+                  className="mt-1 block w-full text-sm text-text-secondary file:mr-3 file:rounded-lg file:border-0 file:bg-surface-muted file:px-3 file:py-2 file:text-sm file:font-semibold file:text-primary"
                 />
               </label>
 
-              <label className="block text-xs font-medium text-muted">
+              <label className="block text-xs font-medium text-text-secondary">
                 Not
                 <input
                   name="note"
                   type="text"
-                  className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                 />
               </label>
 
               <button
                 type="submit"
-                className="rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
               >
                 Yatırımı kaydet
               </button>
@@ -238,28 +240,27 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
         </Card>
 
         <Card className="p-6">
-          <h2 className="mb-1 text-base font-semibold text-ink">Kasa sayımı</h2>
+          <h2 className="mb-1 text-base font-semibold text-text-primary">Kasa sayımı</h2>
 
-          <p className="mb-4 text-xs leading-5 text-muted">
-            Fiziksel sayım defterden farklıysa fark otomatik olarak düzeltme
-            hareketi eklenir.
+          <p className="mb-4 text-xs leading-5 text-text-secondary">
+            Fiziksel sayım defterden farklıysa fark otomatik olarak düzeltme hareketi eklenir.
           </p>
 
           <form action={recordCashCountAdjustment} className="space-y-4">
             <input type="hidden" name="cashAccountId" value={cashAccountId} />
 
-            <label className="block text-xs font-medium text-muted">
+            <label className="block text-xs font-medium text-text-secondary">
               Sayılan tutar
               <input
                 name="countedAmount"
                 type="text"
                 required
                 placeholder="0.00"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="block text-xs font-medium text-muted">
+            <label className="block text-xs font-medium text-text-secondary">
               Açıklama
               <input
                 name="reason"
@@ -267,13 +268,13 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
                 required
                 minLength={3}
                 placeholder="Ör. Aylık kasa sayımı"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
             <button
               type="submit"
-              className="rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
             >
               Sayımı kaydet
             </button>
@@ -282,15 +283,15 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
       </div>
 
       <Card className="p-6">
-        <h2 className="mb-4 text-base font-semibold text-ink">Hareket geçmişi</h2>
+        <h2 className="mb-4 text-base font-semibold text-text-primary">Hareket geçmişi</h2>
 
         {ledger.length === 0 ? (
-          <p className="text-sm text-muted">Henüz bir hareket yok.</p>
+          <p className="text-sm text-text-secondary">Henüz bir hareket yok.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
+                <tr className="border-b border-border text-xs uppercase tracking-wide text-text-secondary">
                   <th className="py-2 pr-4">Tarih</th>
                   <th className="py-2 pr-4">Tür</th>
                   <th className="py-2 pr-4">Not</th>
@@ -302,35 +303,33 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
 
               <tbody>
                 {ledger.map((row) => (
-                  <tr key={row.id} className="border-b border-line/60">
-                    <td className="py-3 pr-4 whitespace-nowrap text-xs text-muted">
+                  <tr key={row.id} className="border-b border-border/60">
+                    <td className="py-3 pr-4 whitespace-nowrap text-xs text-text-secondary">
                       {formatDate(row.occurred_at)}
                     </td>
 
                     <td className="py-3 pr-4">
                       {movementTypeLabels[row.movement_type] ?? row.movement_type}
                       {row.is_deposited && (
-                        <span className="ml-1.5 text-xs text-muted">(yatırıldı)</span>
+                        <span className="ml-1.5 text-xs text-text-secondary">(yatırıldı)</span>
                       )}
                       {row.reverses_movement_id && (
-                        <span className="ml-1.5 text-xs text-muted">(ters kayıt)</span>
+                        <span className="ml-1.5 text-xs text-text-secondary">(ters kayıt)</span>
                       )}
                     </td>
 
-                    <td className="py-3 pr-4 text-muted">{row.note ?? "—"}</td>
+                    <td className="py-3 pr-4 text-text-secondary">{row.note ?? "—"}</td>
 
                     <td
                       className={`py-3 pr-4 text-right font-semibold ${
-                        row.direction === 1
-                          ? "text-emerald-700 dark:text-emerald-400"
-                          : "text-rose-700 dark:text-rose-400"
+                        row.direction === 1 ? "text-success" : "text-danger"
                       }`}
                     >
                       {row.direction === 1 ? "+" : "-"}
                       {formatTry(row.amount)}
                     </td>
 
-                    <td className="py-3 pr-4 text-right text-ink">
+                    <td className="py-3 pr-4 text-right text-text-primary">
                       {formatTry(row.running_balance)}
                     </td>
 
@@ -348,12 +347,12 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
                           required
                           minLength={3}
                           placeholder="Gerekçe"
-                          className="w-28 rounded-lg border border-line bg-panel px-2 py-1.5 text-xs outline-none transition focus:border-terra-500"
+                          className="w-28 rounded-lg border border-border bg-surface px-2 py-1.5 text-xs outline-none transition focus:border-primary"
                         />
 
                         <button
                           type="submit"
-                          className="rounded-lg border border-line px-3 py-1.5 text-xs font-medium text-ink transition hover:bg-fill"
+                          className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-primary transition hover:bg-surface-muted"
                         >
                           Ters kayıt
                         </button>
@@ -367,7 +366,7 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
         )}
 
         {totalPages > 1 && (
-          <div className="mt-4 flex items-center justify-between text-xs text-muted">
+          <div className="mt-4 flex items-center justify-between text-xs text-text-secondary">
             <span>
               Sayfa {page} / {totalPages}
             </span>
@@ -376,7 +375,7 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
               {page > 1 && (
                 <Link
                   href={`/kurum-ayarlari/kasa-banka/${cashAccountId}?page=${page - 1}`}
-                  className="rounded-lg border border-line px-3 py-1.5 font-medium text-ink transition hover:bg-fill"
+                  className="rounded-lg border border-border px-3 py-1.5 font-medium text-text-primary transition hover:bg-surface-muted"
                 >
                   Önceki
                 </Link>
@@ -385,7 +384,7 @@ export default async function CashAccountDetailPage({ params, searchParams }: Pa
               {page < totalPages && (
                 <Link
                   href={`/kurum-ayarlari/kasa-banka/${cashAccountId}?page=${page + 1}`}
-                  className="rounded-lg border border-line px-3 py-1.5 font-medium text-ink transition hover:bg-fill"
+                  className="rounded-lg border border-border px-3 py-1.5 font-medium text-text-primary transition hover:bg-surface-muted"
                 >
                   Sonraki
                 </Link>

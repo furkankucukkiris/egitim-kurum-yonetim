@@ -1,9 +1,6 @@
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import {
-  fetchMonthlyPaymentsExportRows,
-  paymentsExportRowsToCsv,
-} from "@/lib/payments/export";
+import { fetchMonthlyPaymentsExportRows, paymentsExportRowsToCsv } from "@/lib/payments/export";
 
 export async function GET(request: Request) {
   const profile = await requireRole(["admin"]);
@@ -22,11 +19,7 @@ export async function GET(request: Request) {
   let rows;
 
   try {
-    rows = await fetchMonthlyPaymentsExportRows(
-      supabase,
-      profile.organizationId,
-      `${month}-01`,
-    );
+    rows = await fetchMonthlyPaymentsExportRows(supabase, profile.organizationId, `${month}-01`);
   } catch (error) {
     console.error("Ödeme dışa aktarımı için veri alınamadı:", error);
 

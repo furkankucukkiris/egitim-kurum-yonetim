@@ -16,13 +16,7 @@ type ProspectStatus =
   | "declined";
 
 type LeadSource =
-  | "referral"
-  | "social_media"
-  | "website"
-  | "walk_in"
-  | "phone_call"
-  | "advertisement"
-  | "other";
+  "referral" | "social_media" | "website" | "walk_in" | "phone_call" | "advertisement" | "other";
 
 type ProspectRow = {
   id: string;
@@ -140,57 +134,57 @@ export default async function ProspectsPage({ searchParams }: ProspectsPageProps
 
       <Card className="mb-6 p-6">
         <details>
-          <summary className="cursor-pointer text-sm font-semibold text-ink">
+          <summary className="cursor-pointer text-sm font-semibold text-text-primary">
             + Yeni aday ekle
           </summary>
 
           <form action={createProspect} className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Öğrenci adı
               <input
                 name="studentFirstName"
                 required
                 minLength={2}
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Öğrenci soyadı
               <input
                 name="studentLastName"
                 required
                 minLength={2}
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Veli adı
               <input
                 name="guardianName"
                 required
                 minLength={2}
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Telefon
               <input
                 name="phone"
                 required
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Kaynak
               <select
                 name="leadSource"
                 required
                 defaultValue="other"
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               >
                 {Object.entries(leadSourceLabels).map(([value, label]) => (
                   <option key={value} value={value}>
@@ -200,22 +194,22 @@ export default async function ProspectsPage({ searchParams }: ProspectsPageProps
               </select>
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               İlk iletişim tarihi
               <input
                 name="initialContactDate"
                 type="date"
                 defaultValue={getTodayInIstanbul()}
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
-            <label className="text-xs font-medium text-muted">
+            <label className="text-xs font-medium text-text-secondary">
               Atanan personel (opsiyonel)
               <select
                 name="assignedProfileId"
                 defaultValue=""
-                className="mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               >
                 <option value="">—</option>
                 {staffList.map((member) => (
@@ -227,14 +221,19 @@ export default async function ProspectsPage({ searchParams }: ProspectsPageProps
             </label>
 
             <fieldset className="sm:col-span-2">
-              <legend className="text-xs font-medium text-muted">İlgilendiği dersler</legend>
+              <legend className="text-xs font-medium text-text-secondary">
+                İlgilendiği dersler
+              </legend>
 
               <div className="mt-2 flex flex-wrap gap-3">
                 {courseList.length === 0 ? (
-                  <p className="text-xs text-muted">Henüz aktif ders yok.</p>
+                  <p className="text-xs text-text-secondary">Henüz aktif ders yok.</p>
                 ) : (
                   courseList.map((course) => (
-                    <label key={course.id} className="flex items-center gap-1.5 text-xs text-ink">
+                    <label
+                      key={course.id}
+                      className="flex items-center gap-1.5 text-xs text-text-primary"
+                    >
                       <input type="checkbox" name="courseIds" value={course.id} />
                       {course.name}
                     </label>
@@ -243,19 +242,19 @@ export default async function ProspectsPage({ searchParams }: ProspectsPageProps
               </div>
             </fieldset>
 
-            <label className="text-xs font-medium text-muted sm:col-span-2">
+            <label className="text-xs font-medium text-text-secondary sm:col-span-2">
               Not
               <textarea
                 name="notes"
                 rows={2}
-                className="mt-1 block w-full resize-y rounded-lg border border-line bg-panel px-3 py-2 text-sm outline-none transition focus:border-terra-500"
+                className="mt-1 block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
               />
             </label>
 
             <div className="sm:col-span-2">
               <button
                 type="submit"
-                className="rounded-lg bg-terra-700 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-terra-700/20 transition hover:bg-terra-700/90"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
               >
                 Aday ekle
               </button>
@@ -271,8 +270,8 @@ export default async function ProspectsPage({ searchParams }: ProspectsPageProps
             href={filter.value ? `/aday-ogrenciler?status=${filter.value}` : "/aday-ogrenciler"}
             className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
               status === filter.value
-                ? "bg-terra-700 text-white"
-                : "border border-line text-ink hover:bg-fill"
+                ? "bg-primary text-on-primary"
+                : "border border-border text-text-primary hover:bg-surface-muted"
             }`}
           >
             {filter.label}
@@ -282,13 +281,13 @@ export default async function ProspectsPage({ searchParams }: ProspectsPageProps
 
       <Card className="p-0">
         {prospectList.length === 0 ? (
-          <p className="px-6 py-16 text-center text-sm text-muted">
+          <p className="px-6 py-16 text-center text-sm text-text-secondary">
             Bu filtrede aday öğrenci kaydı yok.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="bg-fill text-xs uppercase tracking-wide text-muted">
+              <thead className="bg-surface-muted text-xs uppercase tracking-wide text-text-secondary">
                 <tr>
                   <th className="px-5 py-3">Öğrenci</th>
                   <th className="px-5 py-3">Veli</th>
@@ -302,24 +301,33 @@ export default async function ProspectsPage({ searchParams }: ProspectsPageProps
 
               <tbody className="divide-y divide-line">
                 {prospectList.map((prospect) => (
-                  <tr key={prospect.id} className="hover:bg-fill">
+                  <tr key={prospect.id} className="hover:bg-surface-muted">
                     <td className="px-5 py-4">
                       <Link
                         href={`/aday-ogrenciler/${prospect.id}`}
-                        className="font-semibold text-ink hover:underline"
+                        className="font-semibold text-text-primary hover:underline"
                       >
                         {prospect.student_first_name} {prospect.student_last_name}
                       </Link>
                     </td>
-                    <td className="px-5 py-4 text-muted">{prospect.guardian_name}</td>
-                    <td className="px-5 py-4 text-muted">{prospect.phone}</td>
-                    <td className="px-5 py-4 text-muted">{leadSourceLabels[prospect.lead_source]}</td>
-                    <td className="px-5 py-4 text-muted">{prospect.assigned?.full_name ?? "—"}</td>
-                    <td className="px-5 py-4 text-muted">
-                      {prospect.next_follow_up_date ? formatDate(prospect.next_follow_up_date) : "—"}
+                    <td className="px-5 py-4 text-text-secondary">{prospect.guardian_name}</td>
+                    <td className="px-5 py-4 text-text-secondary">{prospect.phone}</td>
+                    <td className="px-5 py-4 text-text-secondary">
+                      {leadSourceLabels[prospect.lead_source]}
+                    </td>
+                    <td className="px-5 py-4 text-text-secondary">
+                      {prospect.assigned?.full_name ?? "—"}
+                    </td>
+                    <td className="px-5 py-4 text-text-secondary">
+                      {prospect.next_follow_up_date
+                        ? formatDate(prospect.next_follow_up_date)
+                        : "—"}
                     </td>
                     <td className="px-5 py-4">
-                      <StatusBadge label={statusLabels[prospect.status]} tone={statusTones[prospect.status]} />
+                      <StatusBadge
+                        label={statusLabels[prospect.status]}
+                        tone={statusTones[prospect.status]}
+                      />
                     </td>
                   </tr>
                 ))}

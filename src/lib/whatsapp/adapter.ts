@@ -34,8 +34,7 @@ class NullWhatsAppAdapter implements WhatsAppAdapter {
       success: false,
       provider: "null",
       errorCode: "provider_not_configured",
-      errorMessage:
-        "WhatsApp sağlayıcı entegrasyonu henüz yapılandırılmadı.",
+      errorMessage: "WhatsApp sağlayıcı entegrasyonu henüz yapılandırılmadı.",
     };
   }
 }

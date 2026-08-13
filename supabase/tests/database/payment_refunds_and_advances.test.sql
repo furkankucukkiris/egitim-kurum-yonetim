@@ -25,7 +25,7 @@
 
 begin;
 
-select plan(33);
+select plan(35);
 
 -- ---------------------------------------------------------------
 -- Fixture kurulumu (superuser olarak).
@@ -63,6 +63,11 @@ values
 
 insert into public.courses (id, organization_id, name, course_type, default_monthly_fee)
 values ('b2000000-0000-0000-0000-0000000c0001', 'b2000000-0000-0000-0000-000000000001', 'Resim', 'group', 1000);
+
+-- record_payment_for_course artık nakit ödemede kasa hesabı zorunlu
+-- kılıyor (bkz. cash_bank_module) — Senaryo C bu fixture'ı kullanır.
+insert into public.cash_accounts (id, organization_id, name)
+values ('b2000000-0000-0000-0000-0000000ca001', 'b2000000-0000-0000-0000-000000000001', 'Ana Kasa');
 
 insert into public.students (id, organization_id, first_name, last_name)
 values
@@ -288,22 +293,37 @@ select throws_ok(
 );
 
 -- ---------------------------------------------------------------
--- Senaryo C: makbuz numarası.
+-- Senaryo C: makbuz numarası ve ders bilgisi.
+--
+-- (Not: 'a0001' fixture'ı record_payment_for_course çağrılmadan
+-- doğrudan insert edildiği için receipt_number'ı hiç yok — bu
+-- senaryo bilerek RPC ile oluşturulan YENİ ödemeleri kontrol ediyor.)
 -- ---------------------------------------------------------------
 
+select lives_ok(
+  $$ select public.record_payment_for_course('b2000000-0000-0000-0000-0000000d0003', 'b2000000-0000-0000-0000-0000000c0001', 50, 'cash', null, 'b2000000-0000-0000-0000-0000000ca001') $$,
+  'yeni bir ödeme record_payment_for_course ile kaydedilebilir'
+);
+
 select ok(
-  (select receipt_number from public.payments where id = 'b2000000-0000-0000-0000-0000000a0001') is not null,
-  'kaydedilen ödemenin makbuz numarası var'
+  (select receipt_number from public.payments where student_id = 'b2000000-0000-0000-0000-0000000d0003' order by created_at desc limit 1) is not null,
+  'record_payment_for_course ile kaydedilen ödemenin makbuz numarası var'
+);
+
+select is(
+  (select course_id from public.payments where student_id = 'b2000000-0000-0000-0000-0000000d0003' order by created_at desc limit 1),
+  'b2000000-0000-0000-0000-0000000c0001'::uuid,
+  'ödemeye ders bilgisi de kaydediliyor'
 );
 
 select lives_ok(
-  $$ select public.record_payment_for_course('b2000000-0000-0000-0000-0000000d0003', 'b2000000-0000-0000-0000-0000000c0001', 50, 'cash', null) $$,
-  'yeni bir ödeme record_payment_for_course ile kaydedilebilir'
+  $$ select public.record_payment_for_course('b2000000-0000-0000-0000-0000000d0003', 'b2000000-0000-0000-0000-0000000c0001', 25, 'cash', null, 'b2000000-0000-0000-0000-0000000ca001') $$,
+  'aynı öğrenciye ikinci bir ödeme daha kaydedilebilir'
 );
 
 select isnt(
   (select receipt_number from public.payments where student_id = 'b2000000-0000-0000-0000-0000000d0003' order by created_at desc limit 1),
-  (select receipt_number from public.payments where id = 'b2000000-0000-0000-0000-0000000a0001'),
+  (select receipt_number from public.payments where student_id = 'b2000000-0000-0000-0000-0000000d0003' order by created_at asc limit 1),
   'iki farklı ödemenin makbuz numarası birbirinden farklı'
 );
 

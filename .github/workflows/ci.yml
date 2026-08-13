@@ -116,8 +116,8 @@ jobs:
         run: |
           npx supabase status -o env \
             --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
-            --override-name api.anon_key=NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY \
-            --override-name api.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
+            --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY \
+            --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
             >> "$GITHUB_ENV"
 
       - name: E2E testleri (Playwright)

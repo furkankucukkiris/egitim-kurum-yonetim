@@ -37,11 +37,13 @@ set local role authenticated;
 
 select throws_ok(
   $$ insert into public.organizations (name) values ('Sahte Kurum') $$,
+  '42501',
   'İstemci (authenticated) organizations tablosuna doğrudan insert yapamaz'
 );
 
 select throws_ok(
   $$ delete from public.organizations $$,
+  '42501',
   'İstemci (authenticated) organizations tablosundan doğrudan delete yapamaz'
 );
 

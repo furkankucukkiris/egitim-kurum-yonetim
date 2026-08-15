@@ -220,23 +220,38 @@ select throws_ok(
     null, null
   )$$,
   'P0001',
+  'Seçilen hareketlerden biri artık uygun değil (başka kasaya ait, negatif yönlü veya zaten yatırılmış olabilir).',
   'zaten yatırılmış bir hareket ikinci kez yatırıma dahil edilemez'
 );
 
 -- Veritabanı seviyesinde de tekil indeks var — authenticated'ın zaten
 -- bu tabloya insert izni yok (yalnızca RPC'ler yazabilir), o kontrolü
 -- atlayıp indeksin kendisini sınamak için superuser bağlamına geçiyoruz.
+-- İkinci, ayrı bir yatırım satırı oluşturuluyor ki asıl sınanan
+-- bank_deposit_items_cash_movement_unique (yalnızca cash_movement_id)
+-- indeksi tetiklensin — aynı (bank_deposit_id, cash_movement_id) çiftini
+-- tekrarlamak farklı (ve burada test edilmeyen) bir composite unique
+-- kısıtını (bank_deposit_id, cash_movement_id) tetikler.
 
 reset role;
 
-select throws_ok(
+insert into public.bank_deposits (
+  id, organization_id, cash_account_id, bank_account_id, deposited_at, amount
+)
+values (
+  'f6000000-0000-0000-0000-0000000e0099', 'f6000000-0000-0000-0000-000000000001',
+  'f6000000-0000-0000-0000-0000000e0001', 'f6000000-0000-0000-0000-0000000b0001',
+  now(), 1
+);
+
+select throws_like(
   $$insert into public.bank_deposit_items (organization_id, bank_deposit_id, cash_movement_id, amount)
-    select 'f6000000-0000-0000-0000-000000000001', bd.id, bdi.cash_movement_id, bdi.amount
+    select 'f6000000-0000-0000-0000-000000000001', 'f6000000-0000-0000-0000-0000000e0099',
+      bdi.cash_movement_id, bdi.amount
     from public.bank_deposit_items bdi
-    inner join public.bank_deposits bd on bd.id = bdi.bank_deposit_id
     limit 1$$,
-  '23505',
-  'unique index, aynı cash_movement_id''nin ikinci kez eklenmesini veritabanı seviyesinde de engeller'
+  '%bank_deposit_items_cash_movement_unique%',
+  'unique index, aynı cash_movement_id''nin farklı bir yatırıma da ikinci kez eklenmesini veritabanı seviyesinde engeller'
 );
 
 select set_config('request.jwt.claims', json_build_object('sub', 'f6000000-0000-0000-0000-0000000000a1', 'role', 'authenticated')::text, true);
@@ -356,15 +371,15 @@ select is(
 -- Fiziksel silme yok — authenticated (admin dahil) delete yapamaz
 -- ---------------------------------------------------------------
 
-select throws_ok(
+select throws_like(
   $$delete from public.cash_movements where cash_account_id = 'f6000000-0000-0000-0000-0000000e0001'$$,
-  '42501',
+  '%permission denied%',
   'admin dahi cash_movements''ten doğrudan satır silemez'
 );
 
-select throws_ok(
+select throws_like(
   $$update public.cash_movements set amount = 1 where cash_account_id = 'f6000000-0000-0000-0000-0000000e0001'$$,
-  '42501',
+  '%permission denied%',
   'admin dahi cash_movements''i doğrudan güncelleyemez'
 );
 

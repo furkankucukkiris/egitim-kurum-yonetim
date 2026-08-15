@@ -31,3 +31,6 @@ supabase/.branches/
 # operating system
 .DS_Store
 Thumbs.db
+
+# stray patch files
+*.patch

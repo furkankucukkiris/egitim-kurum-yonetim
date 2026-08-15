@@ -97,24 +97,54 @@ values (
 );
 
 -- ---------------------------------------------------------------
+-- run_monthly_automation_job çağrılarını yakalamak için yardımcı
+-- tablo. Bu dosyanın tamamı TEK bir transaction içinde çalıştığından
+-- (rollback ile izole edilir) pg_catalog.now()/created_at, aynı
+-- kurum+iş türü+dönem için birbirini izleyen "ilk" ve "ikinci"
+-- çalıştırma satırlarında BİREBİR AYNI değeri döner — bu yüzden
+-- "order by created_at desc limit 1" ile "en son satırı" bulmaya
+-- çalışmak belirsizdir ve rastgele hangi satırın döndüğüne bağlı
+-- olarak yanlış (önceki çalıştırmadan kalma) counts/triggered_by
+-- değerlerini okuyabilir. RPC'nin döndürdüğü job run id'sini burada
+-- yakalayıp sonraki assertion'larda id'ye göre sorgulamak, gerçek
+-- kullanımda (her çağrı kendi transaction'ında) sorun olmayan bu test
+-- kaynaklı belirsizliği ortadan kaldırır.
+-- ---------------------------------------------------------------
+
+create temp table _job_capture(
+  label text primary key,
+  id uuid,
+  threw boolean not null default false
+);
+
+-- ---------------------------------------------------------------
 -- Ders oturumu otomasyonu — ilk çalıştırma
 -- ---------------------------------------------------------------
 
-select lives_ok(
-  $$select public.run_monthly_automation_job(
+do $$
+declare
+  v_id uuid;
+begin
+  v_id := public.run_monthly_automation_job(
     'e5000000-0000-0000-0000-000000000001'::uuid,
     'lesson_sessions'::public.automation_job_type,
     '2027-03-01'::date, 'schedule', null
-  )$$,
+  );
+  insert into _job_capture(label, id) values ('sessions_run1', v_id);
+exception when others then
+  insert into _job_capture(label, id, threw) values ('sessions_run1', null, true);
+end;
+$$;
+
+select ok(
+  not (select threw from _job_capture where label = 'sessions_run1'),
   'run_monthly_automation_job (lesson_sessions, ilk çalıştırma) hata vermeden tamamlanır'
 );
 
 select is(
   (
     select status::text from public.automation_job_runs
-    where organization_id = 'e5000000-0000-0000-0000-000000000001'
-      and job_type = 'lesson_sessions' and period = '2027-03-01'
-    order by created_at desc limit 1
+    where id = (select id from _job_capture where label = 'sessions_run1')
   ),
   'succeeded',
   'ilk ders oturumu çalıştırması succeeded olarak işaretlenir'
@@ -123,9 +153,7 @@ select is(
 select is(
   (
     select (counts->>'created_count')::int from public.automation_job_runs
-    where organization_id = 'e5000000-0000-0000-0000-000000000001'
-      and job_type = 'lesson_sessions' and period = '2027-03-01'
-    order by created_at desc limit 1
+    where id = (select id from _job_capture where label = 'sessions_run1')
   ),
   (
     select count(*)::int from generate_series('2027-03-01'::date, '2027-03-31'::date, interval '1 day') d(v)
@@ -151,21 +179,30 @@ select is(
 -- İdempotency: aynı dönem tekrar çalıştırılınca mükerrer kayıt olmaz
 -- ---------------------------------------------------------------
 
-select lives_ok(
-  $$select public.run_monthly_automation_job(
+do $$
+declare
+  v_id uuid;
+begin
+  v_id := public.run_monthly_automation_job(
     'e5000000-0000-0000-0000-000000000001'::uuid,
     'lesson_sessions'::public.automation_job_type,
     '2027-03-01'::date, 'schedule', null
-  )$$,
+  );
+  insert into _job_capture(label, id) values ('sessions_run2', v_id);
+exception when others then
+  insert into _job_capture(label, id, threw) values ('sessions_run2', null, true);
+end;
+$$;
+
+select ok(
+  not (select threw from _job_capture where label = 'sessions_run2'),
   'aynı dönem için ikinci çalıştırma da hata vermeden tamamlanır'
 );
 
 select is(
   (
     select (counts->>'created_count')::int from public.automation_job_runs
-    where organization_id = 'e5000000-0000-0000-0000-000000000001'
-      and job_type = 'lesson_sessions' and period = '2027-03-01'
-    order by created_at desc limit 1
+    where id = (select id from _job_capture where label = 'sessions_run2')
   ),
   0,
   'ikinci çalıştırmada created_count = 0 (hepsi zaten mevcuttu)'
@@ -188,41 +225,59 @@ select is(
 -- Tahakkuk otomasyonu — ilk çalıştırma ve idempotency
 -- ---------------------------------------------------------------
 
-select lives_ok(
-  $$select public.run_monthly_automation_job(
+do $$
+declare
+  v_id uuid;
+begin
+  v_id := public.run_monthly_automation_job(
     'e5000000-0000-0000-0000-000000000001'::uuid,
     'accruals'::public.automation_job_type,
     '2027-03-01'::date, 'schedule', null
-  )$$,
+  );
+  insert into _job_capture(label, id) values ('accruals_run1', v_id);
+exception when others then
+  insert into _job_capture(label, id, threw) values ('accruals_run1', null, true);
+end;
+$$;
+
+select ok(
+  not (select threw from _job_capture where label = 'accruals_run1'),
   'run_monthly_automation_job (accruals, ilk çalıştırma) hata vermeden tamamlanır'
 );
 
 select is(
   (
     select (counts->>'created_count')::int from public.automation_job_runs
-    where organization_id = 'e5000000-0000-0000-0000-000000000001'
-      and job_type = 'accruals' and period = '2027-03-01'
-    order by created_at desc limit 1
+    where id = (select id from _job_capture where label = 'accruals_run1')
   ),
   1,
   'tek aktif kayıt için created_count = 1'
 );
 
-select lives_ok(
-  $$select public.run_monthly_automation_job(
+do $$
+declare
+  v_id uuid;
+begin
+  v_id := public.run_monthly_automation_job(
     'e5000000-0000-0000-0000-000000000001'::uuid,
     'accruals'::public.automation_job_type,
     '2027-03-01'::date, 'schedule', null
-  )$$,
+  );
+  insert into _job_capture(label, id) values ('accruals_run2', v_id);
+exception when others then
+  insert into _job_capture(label, id, threw) values ('accruals_run2', null, true);
+end;
+$$;
+
+select ok(
+  not (select threw from _job_capture where label = 'accruals_run2'),
   'aynı dönem için ikinci tahakkuk çalıştırması da hata vermeden tamamlanır'
 );
 
 select is(
   (
     select (counts->>'created_count')::int from public.automation_job_runs
-    where organization_id = 'e5000000-0000-0000-0000-000000000001'
-      and job_type = 'accruals' and period = '2027-03-01'
-    order by created_at desc limit 1
+    where id = (select id from _job_capture where label = 'accruals_run2')
   ),
   0,
   'ikinci tahakkuk çalıştırmasında created_count = 0'
@@ -294,21 +349,30 @@ select throws_ok(
   'teacher profiliyle yeniden deneme reddedilir'
 );
 
-select lives_ok(
-  $$select public.run_monthly_automation_job(
+do $$
+declare
+  v_id uuid;
+begin
+  v_id := public.run_monthly_automation_job(
     'e5000000-0000-0000-0000-000000000001'::uuid,
     'accruals'::public.automation_job_type,
     '2027-05-01'::date, 'manual_retry', 'e5000000-0000-0000-0000-0000000000a1'::uuid
-  )$$,
+  );
+  insert into _job_capture(label, id) values ('accruals_manual_retry', v_id);
+exception when others then
+  insert into _job_capture(label, id, threw) values ('accruals_manual_retry', null, true);
+end;
+$$;
+
+select ok(
+  not (select threw from _job_capture where label = 'accruals_manual_retry'),
   'admin profiliyle yeniden deneme başarıyla tamamlanır'
 );
 
 select is(
   (
     select triggered_by from public.automation_job_runs
-    where organization_id = 'e5000000-0000-0000-0000-000000000001'
-      and job_type = 'accruals' and period = '2027-05-01'
-    order by created_at desc limit 1
+    where id = (select id from _job_capture where label = 'accruals_manual_retry')
   ),
   'manual_retry',
   'yeniden deneme satırı manual_retry olarak işaretlenir'
@@ -321,13 +385,13 @@ select is(
 select set_config('request.jwt.claims', json_build_object('sub', 'e5000000-0000-0000-0000-0000000000a1', 'role', 'authenticated')::text, true);
 set local role authenticated;
 
-select throws_ok(
+select throws_like(
   $$select public.run_monthly_automation_job(
     'e5000000-0000-0000-0000-000000000001'::uuid,
     'accruals'::public.automation_job_type,
     '2027-06-01'::date, 'schedule', null
   )$$,
-  '42501',
+  '%permission denied for function run_monthly_automation_job%',
   'yönetici oturumu bile run_monthly_automation_job''ı doğrudan çağıramaz (yalnızca service_role)'
 );
 

@@ -85,6 +85,8 @@ select throws_ok(
       current_date, 1000, 1000
     )
   $$,
+  '23503',
+  'insert or update on table "enrollments" violates foreign key constraint "enrollments_course_id_fkey"',
   'başka bir organizasyonun dersine kayıt oluşturulamaz (composite FK)'
 );
 
@@ -101,6 +103,8 @@ select throws_ok(
       current_date, 1000, 1000
     )
   $$,
+  '23503',
+  'insert or update on table "enrollments" violates foreign key constraint "enrollments_student_id_fkey"',
   'başka bir organizasyonun öğrencisine kayıt oluşturulamaz (composite FK)'
 );
 
@@ -115,6 +119,8 @@ select throws_ok(
       500, 'cash'
     )
   $$,
+  '23503',
+  'insert or update on table "payments" violates foreign key constraint "payments_student_id_fkey"',
   'başka bir organizasyonun öğrencisine ödeme kaydedilemez (composite FK)'
 );
 
@@ -125,6 +131,8 @@ select throws_ok(
     insert into public.student_guardians (student_id, guardian_id, is_primary)
     values ('c0000001-0000-0000-0000-0000000d0001', 'c0000002-0000-0000-0000-0000000f0001', true)
   $$,
+  'P0001',
+  'Öğrenci ve veli farklı kurumlara ait olamaz',
   'öğrenci ve veli farklı kurumlara aitse eşleme oluşturulamaz (trigger)'
 );
 

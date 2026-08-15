@@ -915,11 +915,20 @@ Beş paralel iş — hiçbiri GitHub secret'ı kullanmıyor (`db-integration` ve
 2. **unit** — `npm test` (unit + component, veritabanı gerektirmez, en hızlı iş).
 3. **build** — `npm run build` (placeholder env değerleriyle — hiçbir sayfa build zamanında Supabase'e ağ çağrısı yapmıyor).
 4. **db-integration** — `supabase start` → `supabase db reset` (migration'ların temiz uygulandığının doğrulanması) → `supabase test db` (pgTAP paketinin tamamı).
-5. **e2e** — `supabase start` + `db reset` → Playwright, admin ve öğretmen temel akışları.
+5. **e2e** — `supabase start` + `db reset --no-seed` → Playwright, admin ve öğretmen temel akışları.
 
 Başarısız bir işin nedeni her zaman iş adından ve o işin kendi log'undan anlaşılır (pgTAP açıklayıcı Türkçe assertion mesajları kullanır, Vitest/Playwright varsayılan çıktısı zaten dosya+satır+beklenen/gerçek değeri gösterir).
 
-**Bilinen sınır:** Bu makinede Docker olmadığı için pgTAP paketi ve E2E testleri yazılırken gerçek şema/RPC imzalarına karşı dikkatli statik inceleme yapıldı ama lokal olarak çalıştırılıp doğrulanamadı — CI'daki ilk çalıştırma bunun ilk gerçek kanıtı olacak.
+**`db-integration` ile `e2e` farklı seed davranışı kullanır:** `db-integration` job'u seed'li `db reset` çalıştırır — pgTAP paketi `seed.sql`'in oluşturduğu demo kurum/dersler üzerine kurulu. `e2e` job'u ise `db reset --no-seed` kullanır — admin'in `/kurulum` akışını (ilk kurum oluşturma) test edebilmesi için sistemde gerçekten hiç kurum/profil olmaması, yani `has_any_organization()`'ın `false` dönmesi gerekiyor; seed'li bir veritabanında admin bunun yerine "kurum zaten var" yoluna (`/hesap-erisimi`) düşer. `e2e/global-setup.ts` bu ön koşulu (organizations/profiles boş, `has_any_organization() = false`, E2E admin kullanıcısı auth'ta var ve e-postası onaylı, henüz profili yok) Playwright başlamadan önce açıkça doğrular ve sağlanmazsa nedenini belirten bir hatayla erken durur. `supabase/seed.sql`'in kendisi silinmedi — yerel geliştirme ve pgTAP için hâlâ kullanılıyor.
+
+### Branch protection
+
+`main` dalı için repo ayarlarından (Settings → Branches / Rulesets) aşağıdaki kurallar el ile yapılandırılmalı — bu depoda bunu otomatik uygulayacak bir CLI/token erişimi yok:
+
+- Pull request olmadan doğrudan push/merge engellenmeli ("Require a pull request before merging").
+- Merge öncesi CI'ın başarılı olması zorunlu tutulmalı ("Require status checks to pass before merging") — gerekli status check olarak bu workflow'daki iş adları seçilmeli: `Lint & Typecheck`, `Unit & Component Testleri`, `Production Build`, `Migration Doğrulama + pgTAP`, `E2E (admin + öğretmen temel akışları)`.
+- Merge öncesi branch'in hedef daldan güncel olması zorunlu tutulmalı ("Require branches to be up to date before merging").
+- Tek geliştiricili bir repo olduğu için onay (review) şartı isteğe bağlı bırakılabilir; birden fazla katkıda bulunan olursa en az 1 onay eklenmesi önerilir.
 
 ## Güvenlik notu
 

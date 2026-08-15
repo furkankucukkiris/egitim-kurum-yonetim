@@ -17,10 +17,18 @@ export async function createClient() {
       },
       setAll(cookiesToSet) {
         try {
+          // httpOnly BİLEREK true değil: @supabase/ssr'nin browser
+          // client'ı (bkz. src/lib/supabase/client.ts) oturumu YALNIZCA
+          // document.cookie üzerinden okuyabiliyor — @supabase/ssr'nin
+          // kendi DEFAULT_COOKIE_OPTIONS'ı da bu yüzden httpOnly:false.
+          // httpOnly:true burada ayarlanınca client-side her auth
+          // çağrısı (ör. MFA enroll) sub claim'i olmayan anon anahtarına
+          // düşüp "invalid claim: missing sub claim" ile başarısız
+          // oluyordu — hiçbir client component daha önce MFA kurulumuna
+          // kadar gerçek bir auth çağrısı yapmadığı için fark edilmemişti.
           cookiesToSet.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, {
               ...options,
-              httpOnly: true,
               secure: process.env.NODE_ENV === "production",
               sameSite: "lax",
             }),

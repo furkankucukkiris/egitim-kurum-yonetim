@@ -22,7 +22,12 @@ test.describe("Admin temel akışı", () => {
   }) => {
     await loginAs(page, E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD);
 
-    // Henüz hiçbir kurum/profil yok → /kurulum'a yönlendirilir.
+    // Henüz hiçbir kurum/profil yok → /kurulum'a yönlendirilir. Yanlış bir
+    // sayfaya (ör. sistemde zaten bir kurum varsa düşülen /hesap-erisimi)
+    // yönlendirilirse bunu heading kontrolünden ÖNCE, mevcut URL'i içeren
+    // net bir hatayla yakalıyoruz — aksi halde hata yalnızca "heading
+    // bulunamadı" der ve asıl neden (yanlış yönlendirme) gizlenir.
+    await expect(page, `Beklenmeyen URL: ${page.url()}`).toHaveURL(/\/kurulum/);
     await expect(page.getByRole("heading", { name: "Kurum hesabını oluşturun" })).toBeVisible();
 
     await page.getByLabel("Kurum adı").fill(E2E_ORGANIZATION_NAME);
@@ -37,7 +42,11 @@ test.describe("Admin temel akışı", () => {
     await completeMfaEnrollment(page);
 
     // MFA tamamlanınca panele düşer — admin-only bir nav öğesi görünür olmalı.
-    await expect(page.getByRole("link", { name: "Öğrenciler" })).toBeVisible();
+    // href ile eşleştiriyoruz: nav ikonu (bkz. app-shell.tsx) aria-hidden
+    // değil, dolayısıyla erişilebilir ad "◎ Öğrenciler" oluyor — Playwright'ın
+    // varsayılan alt dize eşleşmesi bu yüzden "☆ Aday Öğrenciler" ile de
+    // çakışıp strict-mode ihlaline yol açıyordu.
+    await expect(page.locator('a[href="/ogrenciler"]')).toBeVisible();
 
     // Playwright her test icin yeni ve izole bir browser context acar. Bu
     // adim ayri test oldugunda admin oturumu kaybolup /giris'e donuyordu.
@@ -72,7 +81,9 @@ test.describe("Öğretmen temel akışı", () => {
     ).toBeVisible();
 
     const newPassword = "TeacherE2ePass456!";
-    await page.getByLabel("Yeni parola").fill(newPassword);
+    // exact:true şart — "Yeni parola" alt dizesi "Yeni parola tekrar"
+    // etiketiyle de eşleşip strict-mode ihlaline yol açıyordu.
+    await page.getByLabel("Yeni parola", { exact: true }).fill(newPassword);
     await page.getByLabel("Yeni parola tekrar").fill(newPassword);
     await page.getByRole("button", { name: "Parolamı belirle" }).click();
 

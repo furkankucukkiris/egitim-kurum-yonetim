@@ -105,8 +105,14 @@ jobs:
       - name: Yerel Supabase'i başlat
         run: npx supabase start
 
-      - name: Migration'ları uygula
-        run: npx supabase db reset
+      # E2E, `has_any_organization()`'ın false döndüğü, hiçbir kurum/profil
+      # olmayan gerçekten boş bir sisteme ihtiyaç duyuyor — seed.sql'in
+      # oluşturduğu demo kurum bu koşulu bozup admin'i /kurulum yerine
+      # /hesap-erisimi'ne düşürüyordu (bkz. e2e/global-setup.ts'teki
+      # doğrulama). Seed dosyasının kendisi (yerel geliştirme + pgTAP için
+      # hâlâ gerekli) değiştirilmiyor; yalnızca bu job'da çalıştırılmıyor.
+      - name: Migration'ları seed olmadan uygula
+        run: npx supabase db reset --no-seed
 
       # `supabase status -o env` bu çalıştırmaya özgü, geçici anahtarları
       # üretir ve doğrudan uygulamanın beklediği değişken adlarına

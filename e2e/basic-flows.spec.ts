@@ -81,7 +81,9 @@ test.describe("Öğretmen temel akışı", () => {
     ).toBeVisible();
 
     const newPassword = "TeacherE2ePass456!";
-    await page.getByLabel("Yeni parola").fill(newPassword);
+    // exact:true şart — "Yeni parola" alt dizesi "Yeni parola tekrar"
+    // etiketiyle de eşleşip strict-mode ihlaline yol açıyordu.
+    await page.getByLabel("Yeni parola", { exact: true }).fill(newPassword);
     await page.getByLabel("Yeni parola tekrar").fill(newPassword);
     await page.getByRole("button", { name: "Parolamı belirle" }).click();
 

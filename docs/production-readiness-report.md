@@ -1,28 +1,25 @@
 # Production Hazırlık Raporu
 
-**İncelenen commit:** `ce184a7eccb094037b08c8b6c70af2648a2a56ea` (branch `fix/e2e-seed-and-branch-protection`, `main`'in devamı — bkz. "Repo durumu" bölümü)
-**Rapor tarihi:** 2026-08-15
+**İncelenen commit:** `cd7497f9d319b4411b39ccb7e533e48197fc287a` (branch `fix/e2e-seed-and-branch-protection`, PR [#8](https://github.com/furkankucukkiris/egitim-kurum-yonetim/pull/8), `main`'in devamı — bkz. "Repo durumu" bölümü)
+**Rapor tarihi:** 2026-08-15 (ilk sürüm) / 2026-08-16 (CI sonucuyla güncellendi)
 **Hazırlayan:** Claude (bu oturum) — kullanıcı onayıyla, doğrudan Supabase Cloud/Vercel/GitHub erişimi olmadan.
 
 ---
 
 ## 1. Repo durumu
 
-`main` dalı, bu görev başladığında `9edede6` (MFA QR kodu render düzeltmesi) commit'indeydi. Çalışılan `fix/e2e-seed-and-branch-protection` branch'i bu commit'in üzerine, bu oturumda üretilen üretim-hazırlığı değişikliklerini içeren **1 yeni commit** (`ce184a7`) ekledi:
+`main` dalı, bu görev başladığında `9edede6` (MFA QR kodu render düzeltmesi) commit'indeydi. Çalışılan `fix/e2e-seed-and-branch-protection` branch'i bu commit'in üzerine 4 yeni commit ekledi ve `main`'e karşı PR [#8](https://github.com/furkankucukkiris/egitim-kurum-yonetim/pull/8) olarak açıldı:
 
-- `e2e/basic-flows.spec.ts`, `e2e/global-setup.ts`, `e2e/security-headers.spec.ts` (yeni)
-- `src/instrumentation.ts` (yeni), `src/lib/env-validation.ts` (yeni)
-- `src/app/api/health/route.ts` (yeni)
-- `.github/dependabot.yml` (yeni), `.github/workflows/codeql.yml` (yeni)
-- `docs/guvenlik-kontrol-listesi.md`, `docs/production-cloud-checklist.md` (yeni), `README.md`
+1. `ce184a7` — üretim-hazırlığı ana paketi: `e2e/basic-flows.spec.ts`/`global-setup.ts`/`security-headers.spec.ts` (yeni), `src/instrumentation.ts`+`src/lib/env-validation.ts` (yeni), `src/app/api/health/route.ts` (yeni), `.github/dependabot.yml`+`workflows/codeql.yml` (yeni), `docs/guvenlik-kontrol-listesi.md`, `docs/production-cloud-checklist.md` (yeni), `README.md`.
+2. `fe28156` — bu raporun ilk sürümü.
+3. `52a112a` — CI'da PR açıldıktan sonra ortaya çıkan **gerçek bir regresyon**ın düzeltmesi: `e2e` job'u yeni env-validasyonu yüzünden çöküyordu (bkz. bölüm 2).
+4. `cd7497f` — CI'ın canlı yakaladığı **gerçek bir flaky pgTAP testi**nin düzeltmesi (bkz. bölüm 2, bölüm 4).
 
-Bu commit `origin/fix/e2e-seed-and-branch-protection`'a push edildi. **`main`'e merge edilmedi** — bu depodaki `CI` workflow'u yalnızca `main`'e push'ta ve `pull_request` olaylarında tetikleniyor (branch push'ında değil); bu değişiklikleri CI'dan geçirmek için bir PR açılması gerekiyor. PR linki kullanıcıya bu oturumda verildi, bu rapor yazıldığında **henüz açılmamıştı**:
+**PR #8 bu rapor yazıldığında `main`'e merge edilmemiş durumda** — merge kararı kullanıcıya ait.
 
-> https://github.com/furkankucukkiris/egitim-kurum-yonetim/compare/main...fix/e2e-seed-and-branch-protection?expand=1
+## 2. Çalıştırılan komutlar ve sonuçlar
 
-**Bu, raporun en büyük tek bloklayıcısıdır** — aşağıdaki tüm kod değişiklikleri yerel olarak doğrulandı ama CI'daki `db-integration` ve `e2e` job'ları (Docker gerektirdiğinden bu makinede çalıştırılamıyor) bu spesifik commit için henüz koşmadı.
-
-## 2. Çalıştırılan komutlar ve sonuçlar (yerel)
+### Yerel (Docker olmayan bu makinede)
 
 | Komut | Sonuç |
 |---|---|
@@ -31,13 +28,26 @@ Bu commit `origin/fix/e2e-seed-and-branch-protection`'a push edildi. **`main`'e 
 | `npm run typecheck` | ✅ hatasız |
 | `npm test` (unit + component) | ✅ 5 dosya, 38/38 test |
 | `npm run build` (CI'daki `build` job'uyla birebir aynı placeholder env değerleriyle) | ✅ başarılı, 43 route derlendi, `instrumentation.ts` build'i etkilemedi (register() yalnızca gerçek sunucu başlangıcında çalışır — beklenen davranış doğrulandı) |
-| `npx supabase db reset` / `npx supabase test db` (pgTAP) | ❌ **çalıştırılamadı** — bu makinede Docker yok |
-| `npm run test:e2e` | ❌ **çalıştırılamadı** — Docker + yerel Supabase gerektiriyor |
 | Secret taraması: `git grep` (JWT/`eyJ...` deseni, `service_role` literal ataması) çalışan ağaçta + `git log -p --all -S "eyJ"` tüm commit geçmişinde | ✅ gerçek bir secret bulunamadı (tek eşleşme bir `package-lock.json` sha512 integrity hash'indeki tesadüfi "eyJ" alt dizesiydi) |
 | `.env*` commit geçmişi taraması (`git log --all --diff-filter=A --name-only`) | ✅ `.env.example` dışında hiç `.env*` dosyası commit edilmemiş |
 | `SUPABASE_SERVICE_ROLE_KEY` referans taraması (tüm repo) | ✅ yalnızca `src/lib/supabase/admin.ts`, `src/lib/env-validation.ts` (ikisi de `"server-only"`), `e2e/global-setup.ts` (test setup), ve dokümantasyon/CI dosyaları — 30 `"use client"` bileşeninin hiçbirinde yok |
 
-**Kullanıcının önceden doğruladığı durum** (bu oturumda tekrar koşulmadı, bu commit'e özgü değil): 17 pgTAP dosyasında 420 test, admin+öğretmen E2E akışları, temiz veritabanına migration — bunlar `a5724c3` commit'inde (bu branch'in bir önceki hâli, PR #7 ile `main`'e merge edildi) CI'da yeşildi. **Bu session'ın değişiklikleri (özellikle E2E'ye dokunan `basic-flows.spec.ts`/`global-setup.ts` düzenlemeleri) bu doğrulamanın bir parçası değildi ve yeniden koşulmalı.**
+### GitHub Actions CI — PR #8, commit `cd7497f` (final, yeşil)
+
+| Job | Sonuç |
+|---|---|
+| Lint & Typecheck | ✅ success |
+| Unit & Component Testleri | ✅ success |
+| Production Build | ✅ success |
+| Migration Doğrulama + pgTAP | ✅ success — **17 dosya, 420/420 test** |
+| E2E (admin + öğretmen temel akışları) | ✅ success |
+| CodeQL Analiz | ✅ success |
+
+Bu sonuca ilk denemede değil, **CI'ın gerçekten yakaladığı iki gerçek hatanın düzeltilmesinden sonra** ulaşıldı — ayrıntı için bölüm 4:
+
+- **Commit `ce184a7`'de CI:** `Migration Doğrulama + pgTAP` FAIL (flaky test, bkz. altta), `E2E` henüz koşmadan önce PR açılmamıştı.
+- **Commit `52a112a`'de CI:** `E2E` job'u `next start` açılışında çöktü ("eksik: NEXT_PUBLIC_INSTITUTION_NAME") — bu oturumun kendi env-validasyon değişikliğinin CI workflow'unu güncellemeyi unutmasından kaynaklanan gerçek bir regresyondu, aynı commit'te ayrıca `dashboard_financial_summary.test.sql`'deki flaky testi düzeltmeye çalışıldı ama `Migration Doğrulama + pgTAP` **farklı bir dosyada** (`cash_bank_module.test.sql`) aynı sınıf başka bir flaky testle FAIL verdi.
+- **Commit `cd7497f`'de CI:** tüm 5 job + CodeQL yeşil.
 
 Repo temizliği: kullanılmayan dosya, gerçek anahtar, dump veya hassas belge bulunmadı. `scripts/reset-all-data.sql` incelendi — bilinçli, açıkça uyarılı bir geliştirme/staging aracı, bir kaza değil.
 
@@ -54,10 +64,13 @@ Repo temizliği: kullanılmayan dosya, gerçek anahtar, dump veya hassas belge b
 | Header doğrulama | `e2e/security-headers.spec.ts` (yeni, bağımsız/durumsuz test) | Production build'in CSP/`X-Frame-Options`/`X-Content-Type-Options`/`Referrer-Policy`/`Permissions-Policy` header'larını gerçekten döndürdüğünü CI'da otomatik doğrular |
 | GitHub | `.github/dependabot.yml`, `.github/workflows/codeql.yml` | npm + GitHub Actions bağımlılıkları için haftalık Dependabot taraması, CodeQL statik analiz |
 | Dokümantasyon | `docs/production-cloud-checklist.md` (yeni) | Supabase Cloud/Vercel/GitHub'daki tüm elle yapılacak adımların tam kontrol listesi (bölüm 6-9 altında) |
+| CI regresyon düzeltmesi | `.github/workflows/ci.yml`'in `e2e` job'una `NEXT_PUBLIC_INSTITUTION_NAME` env'i eklendi | Bu oturumun kendi env-validasyon değişikliği (`instrumentation.ts`), CI'nın `e2e` job'unun bu değişkeni hiç set etmediğini fark etmemişti — `next start` açılışta çöküyordu. PR'da CI çalıştırılınca yakalandı, aynı gün düzeltildi. |
+| Flaky test düzeltmesi #1 | `dashboard_financial_summary.test.sql` — fixture zamanları `now()+N saat` yerine "bugün Europe/Istanbul öğlen" çapasına bağlandı | `today_total_session_count` testi, gerçek çalıştırma anı Europe/Istanbul gece yarısına yakınsa (~UTC 21:00-23:59) ikinci fixture oturumunu ertesi güne kaydırıp yanlış sonuç veriyordu — CI'da canlı gerçekleşti, `-dev` projesinde canlı doğrulandı. |
+| Flaky test düzeltmesi #2 | `cash_bank_module.test.sql` — `current_date` yerine Europe/Istanbul çapası | `get_cash_daily_balances()` kurumun timezone'una (Europe/Istanbul) göre gün kırılımı yapıyor, test bare `current_date` (Postgres oturumu UTC) kullanıyordu — aynı ~3 saatlik pencerede uyuşmazlık; `-dev` projesinde canlı doğrulandı (`current_date`=UTC günü, gerçek Istanbul günü bir gün ileride). |
 
 ## 4. Migration sonucu
 
-Bu commit için `db-integration` job'u (temiz veritabanına migration + pgTAP) **henüz koşmadı** (bölüm 1'e bakınız — PR açılmayı bekliyor). Kod incelemesiyle: bu oturumda hiçbir migration dosyası değiştirilmedi veya eklenmedi — yalnızca uygulama/test/CI/doküman dosyalarına dokunuldu, bu yüzden migration davranışının bir önceki yeşil koşudan (`a5724c3`) farklı olması beklenmiyor, ama bu bir **varsayım**dır, kanıt değil; PR açıldığında CI sonucu bu rapora eklenmelidir.
+**Doğrulandı — CI'da yeşil (commit `cd7497f`).** `Migration Doğrulama + pgTAP` job'u: `supabase db reset` (temiz veritabanına tüm migration'ların sıfırdan ve hatasız uygulanması) başarılı, ardından `supabase test db` (pgTAP) **17 dosya, 420/420 test** başarılı. Bu oturumda hiçbir migration dosyası değiştirilmedi/eklenmedi — yalnızca iki test dosyasındaki (`.test.sql`, şema değil) zaman-bağımlı fixture'lar düzeltildi (bkz. bölüm 3, "Flaky test düzeltmesi #1/#2").
 
 ## 5. Staging sonucu
 
@@ -84,7 +97,7 @@ Kod seviyesinde doğrulandı (değişmedi): `monthly-generation-daily-sweep` iş
 
 ## 9. Domain/HTTPS doğrulaması
 
-Domain yok (kullanıcı tercihi — bkz. bölüm 5). Vercel varsayılan `*.vercel.app` adresleri otomatik HTTPS/HSTS sağlar; production deployment henüz yapılmadığından bu **henüz canlı olarak doğrulanmadı**. `e2e/security-headers.spec.ts` CSP/`X-Frame-Options`/vb. header'ları CI'da (PR açıldığında) doğrulayacak.
+Domain yok (kullanıcı tercihi — bkz. bölüm 5). **CSP/`X-Frame-Options`/`X-Content-Type-Options`/`Referrer-Policy`/`Permissions-Policy` header'ları artık CI'da doğrulanıyor** (`e2e/security-headers.spec.ts`, `E2E` job'ının parçası, commit `cd7497f`'de yeşil geçti) — bu, production build'in header'ları gerçekten döndürdüğünün otomatik kanıtı. Vercel varsayılan `*.vercel.app` adresleri otomatik HTTPS/HSTS sağlar; ama gerçek production/staging deployment'ı henüz yapılmadığından HTTPS/HSTS'in canlı bir adreste döndüğü **henüz doğrulanmadı**.
 
 ## 10. Branch protection durumu
 
@@ -106,22 +119,29 @@ Kod/prosedür seviyesinde tamam (`docs/yedekleme-ve-geri-yukleme.md`, bu oturumd
 
 ## 14. Bilinen kalan riskler
 
-1. **CSP `script-src 'unsafe-inline'`** — nonce tabanlı bir CSP daha sıkı olurdu ama Next.js App Router hydration'ını bozma riski, bu makinede E2E ile doğrulanamadığından bilinçli olarak uygulanmadı. Telafi edici kontrol: `default-src 'self'` + `frame-ancestors 'none'` zaten üçüncü taraf script/iframe enjeksiyonunu byük ölçüde engelliyor.
+1. **CSP `script-src 'unsafe-inline'`** — nonce tabanlı bir CSP daha sıkı olurdu ama Next.js App Router hydration'ını bozma riski taşıyor. Bilinçli olarak uygulanmadı; mevcut CSP artık CI'da otomatik doğrulanıyor (bölüm 9). Telafi edici kontrol: `default-src 'self'` + `frame-ancestors 'none'` zaten üçüncü taraf script/iframe enjeksiyonunu büyük ölçüde engelliyor.
 2. **`httpOnly:false` oturum cookie'si** — bilinçli mimari tercih (client-side Supabase auth çağrıları için gerekli), CSP'ye bağımlı bir telafi. Nonce tabanlı CSP eklenmedikçe bu risk aynı seviyede kalır.
-3. **Bu commit CI'dan henüz geçmedi** (bölüm 1) — en büyük tekil risk, PR açılıp CI yeşil olana kadar bu değişiklikler "kodda var ama kanıtlanmamış" durumda.
+3. **Gerçek Supabase Cloud/Vercel altyapısı hiç kurulmadı** — kod ve CI tarafı artık tam kanıtlı (bölüm 2, 4), ama Auth/MFA/RLS/private Storage/cron/HTTPS'in **gerçek bir production/staging projesinde** çalıştığı henüz hiç doğrulanmadı; bugüne kadarki tüm doğrulama ya kod incelemesi ya da geçici/CI'a özel Supabase örnekleri üzerinden. Bu artık raporun tek büyük risk kategorisi.
 4. **Restore tatbikatı hiç yapılmadı** — yedeğin var olması, geri yüklenebilir olduğunu kanıtlamıyor.
-5. **CodeQL'in bu repoda gerçekten sonuç üretip üretemeyeceği** (Advanced Security/repo görünürlüğüne bağlı) doğrulanmadı.
+5. **pgTAP suite'inde bulunan sınıf hatası** (bkz. bölüm 3) yalnızca `current_date`/`now()+saat` deseni geçen iki yerde vardı ve ikisi de düzeltildi; ama bu, "gerçek zamana bağlı, timezone-duyarsız fixture" kalıbının başka test dosyalarında da tekrarlanabileceğinin canlı bir kanıtı — yeni pgTAP dosyası yazılırken bu deseni tekrarlamamak için `docs/production-readiness-report.md` bu bölümüne referans verilmesi önerilir.
 
 ## 15. Bloklayıcı maddeler (production onayından önce)
 
-- [ ] PR açılıp CI'ın (5 job, bu commit için) tamamının yeşil olduğu görülmeli.
+- [x] ~~PR açılıp CI'ın tamamının yeşil olduğu görülmeli~~ — **tamamlandı**, PR #8, commit `cd7497f`, 5/5 job + CodeQL yeşil.
 - [ ] Production Supabase projesi oluşturulup `docs/production-cloud-checklist.md` bölüm 1 tamamlanmalı.
 - [ ] Vercel hosting kurulup bölüm 2 tamamlanmalı (özellikle Preview/Production env ayrımı).
 - [ ] Staging smoke testi (bölüm 3, 22 madde) en az bir kez gerçek ortamda koşulup sonuçlanmalı.
 - [ ] En az bir staging restore tatbikatı yapılıp `yedekleme-ve-geri-yukleme.md`'ye gerçek sonuçla yazılmalı.
 - [ ] Branch protection + Dependabot/secret scanning Dashboard ayarları açılmalı.
 - [ ] Production smoke testi (bölüm 5) production'da bir kez koşulmalı.
+- [ ] PR #8 `main`'e merge edilmeli (kullanıcı kararı — bu rapor yazıldığında henüz merge edilmemişti).
 
 ## 16. Karar: **CONDITIONAL GO**
 
-Gerekçe (verilen karar kurallarına göre): kod, yerel test/lint/typecheck/build başarılı ve secret taraması temiz — ama (a) bu spesifik commit CI'dan (migration/pgTAP/E2E) henüz geçmedi, (b) gerçek Supabase Cloud production projesi, Vercel hosting, staging smoke testi ve restore tatbikatı hiçbiri henüz doğrulanmadı. Bunlar "Migration, Auth, MFA, RLS, private Storage, cron, HTTPS ve staging smoke testleri başarılıysa: GO" eşiğinin altında kalıyor ama "RLS/service-role/signup/migration/MFA/backup/private Storage konusunda doğrulanmamış KRİTİK bir risk" de yok (mevcut kod tabanı zaten önceki oturumlarda bunları kapsamlıca test etmişti) — bu yüzden **NO-GO değil, CONDITIONAL GO**: bölüm 15'teki maddeler tamamlanmadan gerçek öğrenci/veli/finans verisi girilmemelidir.
+Gerekçe (verilen karar kurallarına göre) — **güncellendi:** kod ve CI artık tam kanıtlı: lint/typecheck/build/unit yeşil, **migration temiz DB'ye uygulandı, 420/420 pgTAP testi geçti, E2E (admin+öğretmen akışları) geçti, CodeQL geçti** — hepsi PR #8'de gerçek CI koşusuyla doğrulandı (commit `cd7497f`), varsayım değil. Bu süreçte CI'ın canlı yakaladığı iki gerçek hata (bir regresyon, bir pre-existing flaky test) de düzeltildi ve doğrulandı.
+
+Karar hâlâ **GO değil**, çünkü: gerçek Supabase Cloud production projesi, Vercel hosting, staging smoke testi ve restore tatbikatının HİÇBİRİ henüz gerçek bir ortamda doğrulanmadı — "Migration, Auth, MFA, RLS, private Storage, cron, HTTPS ve staging smoke testleri başarılıysa: GO" eşiği, migration/pgTAP/E2E ayağı artık karşılansa da Auth/RLS/private Storage/cron/HTTPS'in gerçek bir Supabase Cloud/hosting ortamında çalıştığı kanıtlanmadığı için hâlâ tam karşılanmıyor.
+
+Karar **NO-GO da değil** çünkü RLS/service-role/signup/migration/MFA/backup/private Storage'da doğrulanmamış KRİTİK bir risk yok — bu alanların hepsi hem kod incelemesiyle hem de CI'daki gerçek pgTAP/E2E koşusuyla kapsamlıca test edildi; eksik olan yalnızca bunların **gerçek bulut altyapısında** tekrarlanması.
+
+**Sonuç: CONDITIONAL GO** — bölüm 15'teki kalan maddeler (artık yalnızca gerçek Supabase Cloud/Vercel/GitHub Dashboard adımları + PR merge kararı) tamamlanmadan gerçek öğrenci/veli/finans verisi girilmemelidir.

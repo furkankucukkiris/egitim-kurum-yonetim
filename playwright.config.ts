@@ -11,7 +11,10 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? "github" : "list",
+  // "github" tek başına playwright-report/ üretmiyor (yalnızca PR
+  // annotation'ları basıyor) — bu yüzden CI'da artifact olarak
+  // yüklenecek bir HTML raporu da açıkça isteniyor.
+  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   timeout: 60_000,
 
   use: {

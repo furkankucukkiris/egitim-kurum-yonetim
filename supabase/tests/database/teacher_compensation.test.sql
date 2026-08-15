@@ -113,6 +113,12 @@ select lives_ok(
 -- Öğretmen A oturumları — 4 senaryo (Şubat 2027, ilk kural: per_minute)
 -- ---------------------------------------------------------------
 
+-- lesson_sessions yalnızca RPC/otomasyon üzerinden yazılabilir
+-- (authenticated'ın doğrudan INSERT/UPDATE izni yok) — bu fixture
+-- satırları migration sahibi rolüne geçilerek eklenir, sonra admin1
+-- bağlamına geri dönülür.
+reset role;
+
 insert into public.lesson_sessions (
   id, organization_id, course_id, teacher_profile_id, starts_at, ends_at,
   is_makeup, attendance_locked_at
@@ -136,6 +142,9 @@ where id = 'b8000000-0000-0000-0000-0000001e0002';
 update public.lesson_sessions
 set cancelled_at = now(), cancellation_reason = 'öğretmen gelmedi', cancellation_kind = 'teacher_absence'
 where id = 'b8000000-0000-0000-0000-0000001e0003';
+
+select set_config('request.jwt.claims', json_build_object('sub', 'b8000000-0000-0000-0000-0000000000a1', 'role', 'authenticated')::text, true);
+set local role authenticated;
 
 select lives_ok(
   $$select public.generate_teacher_compensation('2027-02-01'::date)$$,
@@ -207,6 +216,8 @@ select is(
 -- göre doğru kuralın seçildiğini kanıtlar.
 -- ---------------------------------------------------------------
 
+reset role;
+
 insert into public.lesson_sessions (
   id, organization_id, course_id, teacher_profile_id, starts_at, ends_at,
   is_makeup, attendance_locked_at
@@ -215,6 +226,9 @@ values (
   'b8000000-0000-0000-0000-0000001e0006', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001',
   'b8000000-0000-0000-0000-0000000000a2', '2027-08-03 10:00:00+03', '2027-08-03 12:00:00+03', false, now()
 );
+
+select set_config('request.jwt.claims', json_build_object('sub', 'b8000000-0000-0000-0000-0000000000a1', 'role', 'authenticated')::text, true);
+set local role authenticated;
 
 select is(
   (select created_count from public.generate_teacher_compensation('2027-08-01'::date)),
@@ -234,7 +248,7 @@ select is(
 
 reset role;
 
-select throws_ok(
+select throws_like(
   $$insert into public.teacher_work_logs (
       organization_id, teacher_profile_id, lesson_session_id, work_date, period_start,
       unit_amount, total_amount, direction, source
@@ -243,7 +257,7 @@ select throws_ok(
       unit_amount, total_amount, direction, source
     from public.teacher_work_logs
     where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0006'$$,
-  '23505',
+  '%teacher_work_logs_session_unique%',
   'aynı oturum için ikinci hakediş satırı veritabanı seviyesinde de engellenir'
 );
 
@@ -261,6 +275,8 @@ select lives_ok(
   'Öğretmen B için per_student kuralı oluşturulur'
 );
 
+reset role;
+
 insert into public.lesson_sessions (
   id, organization_id, course_id, teacher_profile_id, starts_at, ends_at,
   is_makeup, attendance_locked_at
@@ -275,6 +291,9 @@ values
   ('b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000001e0007', 'b8000000-0000-0000-0000-0000000f0001', 'b8000000-0000-0000-0000-0000000d0001', 'present'),
   ('b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000001e0007', 'b8000000-0000-0000-0000-0000000f0002', 'b8000000-0000-0000-0000-0000000d0002', 'present'),
   ('b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000001e0007', 'b8000000-0000-0000-0000-0000000f0003', 'b8000000-0000-0000-0000-0000000d0003', 'absent');
+
+select set_config('request.jwt.claims', json_build_object('sub', 'b8000000-0000-0000-0000-0000000000a1', 'role', 'authenticated')::text, true);
+set local role authenticated;
 
 select is(
   (select created_count from public.generate_teacher_compensation('2027-03-01'::date)),
@@ -312,6 +331,8 @@ select lives_ok(
   'Öğretmen B için monthly_salary kuralı oluşturulur'
 );
 
+reset role;
+
 insert into public.lesson_sessions (
   id, organization_id, course_id, teacher_profile_id, starts_at, ends_at,
   is_makeup, attendance_locked_at
@@ -320,6 +341,9 @@ values (
   'b8000000-0000-0000-0000-0000001e0008', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001',
   'b8000000-0000-0000-0000-0000000000a3', '2027-04-05 10:00:00+03', '2027-04-05 11:00:00+03', false, now()
 );
+
+select set_config('request.jwt.claims', json_build_object('sub', 'b8000000-0000-0000-0000-0000000000a1', 'role', 'authenticated')::text, true);
+set local role authenticated;
 
 select lives_ok(
   $$select public.generate_teacher_compensation('2027-04-01'::date)$$,
@@ -374,10 +398,10 @@ select is(
   'onaylı 4 satır ödendi olarak işaretlenir'
 );
 
-select throws_ok(
+select throws_like(
   $$update public.teacher_work_logs set total_amount = 1
     where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0001'$$,
-  '42501',
+  '%permission denied%',
   'admin dahi ödenmiş bir hakediş satırını doğrudan güncelleyemez'
 );
 
@@ -452,7 +476,7 @@ select throws_ok(
   'öğretmen kendine düzeltme ekleyemez'
 );
 
-select throws_ok(
+select throws_like(
   $$insert into public.teacher_work_logs (
       organization_id, teacher_profile_id, work_date, period_start, unit_amount, total_amount, direction, source
     )
@@ -460,7 +484,7 @@ select throws_ok(
       'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000000a2',
       '2027-02-01', '2027-02-01', 999, 999, 1, 'adjustment'
     )$$,
-  '42501',
+  '%permission denied%',
   'öğretmen kendi hakediş satırını doğrudan REST ile insert edemez (eski güvenlik açığı kapatıldı)'
 );
 

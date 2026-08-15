@@ -20,10 +20,7 @@ test.describe("Admin temel akışı", () => {
   test("ilk kurulum, MFA ve öğretmen hesabı oluşturma", async ({
     page,
   }) => {
-    await page.goto("/giris");
-    await page.getByLabel("E-posta").fill(E2E_ADMIN_EMAIL);
-    await page.getByLabel("Parola").fill(E2E_ADMIN_PASSWORD);
-    await page.getByRole("button", { name: "Giriş yap" }).click();
+    await loginAs(page, E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD);
 
     // Henüz hiçbir kurum/profil yok → /kurulum'a yönlendirilir.
     await expect(page.getByRole("heading", { name: "Kurum hesabını oluşturun" })).toBeVisible();
@@ -68,10 +65,7 @@ test.describe("Öğretmen temel akışı", () => {
   }) => {
     expect(teacherTemporaryPassword).not.toBe("");
 
-    await page.goto("/giris");
-    await page.getByLabel("E-posta").fill(teacherEmail);
-    await page.getByLabel("Parola").fill(teacherTemporaryPassword);
-    await page.getByRole("button", { name: "Giriş yap" }).click();
+    await loginAs(page, teacherEmail, teacherTemporaryPassword);
 
     await expect(
       page.getByRole("heading", { name: "Kendi parolanızı belirleyin" }),
@@ -96,6 +90,38 @@ test.describe("Öğretmen temel akışı", () => {
     await expect(page.getByRole("link", { name: "MEB Yönetimi" })).toHaveCount(0);
   });
 });
+
+// Giriş sonrası sunucu, requireProfile()'ın kararına göre /kurulum,
+// /hesap-erisimi, /mfa-kur, /parola-yenile veya doğrudan bir panele
+// yönlendirir — hangisi olduğu senaryoya göre değişir, bu yüzden burada
+// yalnızca /giris'ten AYRILDIĞINI bekliyoruz (her çağıran kendi hedef
+// sayfasını ayrıca doğrular). Giriş başarısızsa (yanlış parola, rate
+// limit, NEXT_PUBLIC_SUPABASE_* ortam değişkenleri CI'da doğru
+// aktarılmamış vb.) sunucu ?error=... ile /giris'te kalır — bu durumda
+// ekrandaki gerçek hata mesajını ve o anki URL'yi test hatasına
+// taşıyoruz ki CI logunda yalnızca "heading bulunamadı" değil, asıl
+// neden görünsün.
+async function loginAs(page: Page, email: string, password: string) {
+  await page.goto("/giris");
+  await page.getByLabel("E-posta").fill(email);
+  await page.getByLabel("Parola").fill(password);
+  await page.getByRole("button", { name: "Giriş yap" }).click();
+
+  try {
+    await page.waitForURL((url) => !url.pathname.startsWith("/giris"), {
+      timeout: 15_000,
+    });
+  } catch {
+    const errorText = await page
+      .locator("main")
+      .innerText()
+      .catch(() => "(sayfa içeriği okunamadı)");
+    throw new Error(
+      `loginAs(${email}): giriş sonrası /giris'ten ayrılamadı (mevcut URL: ${page.url()}).\n` +
+        `Sayfa içeriği:\n${errorText}`,
+    );
+  }
+}
 
 async function completeMfaEnrollment(page: Page) {
   await page.getByRole("button", { name: "Kuruluma başla" }).click();

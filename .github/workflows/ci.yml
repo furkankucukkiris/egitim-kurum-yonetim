@@ -123,6 +123,23 @@ jobs:
             | jq -r 'to_entries[] | "\(.key)=\(.value)"' \
             >> "$GITHUB_ENV"
 
+      # `supabase status -o json --override-name` alan adı eşleşmesi
+      # sessizce başarısız olursa (ör. CLI sürümü fieldKey'leri
+      # değiştirirse), üç değişkenden biri boş kalır ve Next.js build'i
+      # bunu asla loglamadan derler — sonuç, E2E'nin çok daha sonra,
+      # anlamsız bir "heading bulunamadı" timeout'uyla başarısız olması
+      # olur. Burada erken ve açıkça patlatıyoruz.
+      - name: Ortam değişkenlerini doğrula
+        run: |
+          missing=()
+          [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] && missing+=("NEXT_PUBLIC_SUPABASE_URL")
+          [ -z "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ] && missing+=("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY")
+          [ -z "$SUPABASE_SERVICE_ROLE_KEY" ] && missing+=("SUPABASE_SERVICE_ROLE_KEY")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::supabase status'tan şu ortam değişkenleri alınamadı: ${missing[*]}"
+            exit 1
+          fi
+
       - name: E2E testleri (Playwright)
         run: npm run test:e2e
 
@@ -131,5 +148,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            test-results/
           retention-days: 7

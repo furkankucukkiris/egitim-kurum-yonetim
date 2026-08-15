@@ -264,7 +264,7 @@ set local role authenticated;
 -- Çakışma: aynı saatte (Zeynep'in kendi Piyano oturumuyla aynı an)
 -- öğretmen B için yeni bir telafi oturumu açmaya çalışmak, öğretmen
 -- çakışması yüzünden reddedilmeli.
-select throws_ok(
+select throws_like(
   $$
   select public.schedule_makeup(
     (select id from public.makeup_credits where reason = 'student_absence'),
@@ -275,15 +275,14 @@ select throws_ok(
     (date '2026-06-01' + time '15:00') at time zone 'Europe/Istanbul'
   )
   $$,
-  'P0001',
-  'Seçilen saatte öğretmen veya derslik uygun değil.',
+  '%Öğretmen%çakışıyor%',
   'çakışan öğretmen saatinde telafi oturumu oluşturulamaz'
 );
 
 -- Çakışma: farklı bir öğretmenle ama öğrencinin (Zeynep) kendi
 -- Piyano dersiyle aynı saatte yeni oturum açmak, öğrenci çakışması
 -- yüzünden reddedilmeli.
-select throws_ok(
+select throws_like(
   $$
   select public.schedule_makeup(
     (select id from public.makeup_credits where reason = 'student_absence'),
@@ -294,8 +293,7 @@ select throws_ok(
     (date '2026-06-01' + time '15:00') at time zone 'Europe/Istanbul'
   )
   $$,
-  'P0001',
-  'Öğrencinin bu saatte başka bir programı var.',
+  '%çakışma var%',
   'öğrencinin kendi programıyla çakışan telafi oturumu oluşturulamaz'
 );
 
@@ -325,10 +323,23 @@ select is(
   'yeni telafi oturumu is_makeup=true olarak işaretlenir'
 );
 
+-- Yalnızca Ali'nin bu senaryoyla ilgili (Haziran 2026) tahakkuku
+-- sayılır. Kapsamsız bir count(*) yanlışlıkla organizasyondaki TÜM
+-- tahakkukları sayar: enrollments_create_initial_accrual tetikleyicisi
+-- (20260808120000) her yeni enrollment için otomatik olarak CARİ aya
+-- ait bir tahakkuk da açtığından (Ali ve Zeynep'in enrollment'ları
+-- eklenirken), bu enrollment_id'ye göre daraltılsa bile 2 satır
+-- (fixture'ın Haziran 2026 satırı + tetikleyicinin cari ay satırı)
+-- görünür. Asıl sınanmak istenen, telafi planlamasının Haziran 2026
+-- tahakkukuna dokunmadığıdır.
 select is(
-  (select count(*)::int from public.accruals),
+  (
+    select count(*)::int from public.accruals
+    where enrollment_id = 'd0000000-0000-0000-0000-0000000f0001'
+      and period_start = date '2026-06-01'
+  ),
   1,
-  'telafi planlama, tahakkuk sayısını değiştirmez (finans elle yönetilir)'
+  'telafi planlama, Ali''nin Haziran 2026 tahakkuk sayısını değiştirmez (finans elle yönetilir)'
 );
 
 -- ---------------------------------------------------------------

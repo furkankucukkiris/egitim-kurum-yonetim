@@ -269,9 +269,9 @@ select throws_ok(
 -- Fiziksel silme yok — authenticated (admin dahil) delete yapamaz
 -- ---------------------------------------------------------------
 
-select throws_ok(
+select throws_like(
   $$delete from public.expenses where vendor_name = 'Kırtasiye A.Ş.'$$,
-  '42501',
+  '%permission denied%',
   'admin dahi expenses''ten doğrudan satır silemez'
 );
 
@@ -313,7 +313,7 @@ select is(
 
 reset role;
 
-select throws_ok(
+select throws_like(
   $$insert into public.expenses (
       organization_id, category_id, template_id, period_start, expense_date, amount, status
     )
@@ -321,7 +321,7 @@ select throws_ok(
     from public.expenses
     where template_id is not null
     limit 1$$,
-  '23505',
+  '%expenses_template_period_unique%',
   'kısmi tekil indeks (template_id, period_start), RPC''den bağımsız olarak da mükerrer satırı engeller'
 );
 

@@ -300,30 +300,64 @@ select throws_ok(
 -- senaryo bilerek RPC ile oluşturulan YENİ ödemeleri kontrol ediyor.)
 -- ---------------------------------------------------------------
 
-select lives_ok(
-  $$ select public.record_payment_for_course('b2000000-0000-0000-0000-0000000d0003', 'b2000000-0000-0000-0000-0000000c0001', 50, 'cash', null, 'b2000000-0000-0000-0000-0000000ca001') $$,
+-- Bu dosyanın tamamı tek bir transaction içinde çalıştığından
+-- (rollback ile izole edilir) pg_catalog.now()/created_at, art arda
+-- eklenen iki ödeme satırında BİREBİR AYNI değeri döner — bu yüzden
+-- "order by created_at asc/desc" ile "ilk"/"ikinci" ödemeyi ayırt
+-- etmeye çalışmak belirsizdir. RPC'nin döndürdüğü payment id'sini
+-- burada yakalayıp id'ye göre sorgulamak bu belirsizliği ortadan
+-- kaldırır (gerçek kullanımda, her çağrı ayrı bir istekte/transaction'da
+-- olduğundan bu belirsizlik oluşmaz).
+create temp table _payment_capture(label text primary key, id uuid);
+
+do $$
+declare
+  v_id uuid;
+begin
+  v_id := public.record_payment_for_course(
+    'b2000000-0000-0000-0000-0000000d0003', 'b2000000-0000-0000-0000-0000000c0001',
+    50, 'cash', null, 'b2000000-0000-0000-0000-0000000ca001'
+  );
+  insert into _payment_capture(label, id) values ('kaan_payment1', v_id);
+end;
+$$;
+
+select ok(
+  not (select id from _payment_capture where label = 'kaan_payment1') is null,
   'yeni bir ödeme record_payment_for_course ile kaydedilebilir'
 );
 
 select ok(
-  (select receipt_number from public.payments where student_id = 'b2000000-0000-0000-0000-0000000d0003' order by created_at desc limit 1) is not null,
+  (select receipt_number from public.payments where id = (select id from _payment_capture where label = 'kaan_payment1')) is not null,
   'record_payment_for_course ile kaydedilen ödemenin makbuz numarası var'
 );
 
 select is(
-  (select course_id from public.payments where student_id = 'b2000000-0000-0000-0000-0000000d0003' order by created_at desc limit 1),
+  (select course_id from public.payments where id = (select id from _payment_capture where label = 'kaan_payment1')),
   'b2000000-0000-0000-0000-0000000c0001'::uuid,
   'ödemeye ders bilgisi de kaydediliyor'
 );
 
-select lives_ok(
-  $$ select public.record_payment_for_course('b2000000-0000-0000-0000-0000000d0003', 'b2000000-0000-0000-0000-0000000c0001', 25, 'cash', null, 'b2000000-0000-0000-0000-0000000ca001') $$,
+do $$
+declare
+  v_id uuid;
+begin
+  v_id := public.record_payment_for_course(
+    'b2000000-0000-0000-0000-0000000d0003', 'b2000000-0000-0000-0000-0000000c0001',
+    25, 'cash', null, 'b2000000-0000-0000-0000-0000000ca001'
+  );
+  insert into _payment_capture(label, id) values ('kaan_payment2', v_id);
+end;
+$$;
+
+select ok(
+  not (select id from _payment_capture where label = 'kaan_payment2') is null,
   'aynı öğrenciye ikinci bir ödeme daha kaydedilebilir'
 );
 
 select isnt(
-  (select receipt_number from public.payments where student_id = 'b2000000-0000-0000-0000-0000000d0003' order by created_at desc limit 1),
-  (select receipt_number from public.payments where student_id = 'b2000000-0000-0000-0000-0000000d0003' order by created_at asc limit 1),
+  (select receipt_number from public.payments where id = (select id from _payment_capture where label = 'kaan_payment2')),
+  (select receipt_number from public.payments where id = (select id from _payment_capture where label = 'kaan_payment1')),
   'iki farklı ödemenin makbuz numarası birbirinden farklı'
 );
 

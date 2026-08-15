@@ -115,7 +115,18 @@ select throws_like(
 -- ---------------------------------------------------------------
 -- Öğrenci/veli ilk kaydı artık denetleniyor, T.C. kimlik numarası
 -- HİÇ loglanmıyor.
+--
+-- Görünürlük/izolasyon fixture satırları (org1: 'x', org2: 'y', en
+-- üstte) işini bitirdi — aşağıdaki sorgular table_name/action'a göre
+-- tek satır bekliyor; fixture satırları aynı table_name/action'ı
+-- paylaştığından (kontrolsüz skaler alt sorguları "more than one row
+-- returned" ile patlatıp) önce temizleniyor.
 -- ---------------------------------------------------------------
+
+reset role;
+delete from public.audit_logs;
+select set_config('request.jwt.claims', json_build_object('sub', 'c9000000-0000-0000-0000-0000000000a1', 'role', 'authenticated')::text, true);
+set local role authenticated;
 
 select lives_ok(
   $$select public.create_student_with_guardian(
@@ -133,13 +144,17 @@ select is(
 
 select ok(
   not (
-    (select new_data from public.audit_logs where table_name = 'students' and action = 'create') ? 'identity_number'
+    (select new_data from public.audit_logs
+     where table_name = 'students' and action = 'create'
+     order by created_at desc limit 1) ? 'identity_number'
   ),
   'öğrenci denetim satırında identity_number anahtarı HİÇ yok'
 );
 
 select is(
-  (select new_data->>'first_name' from public.audit_logs where table_name = 'students' and action = 'create'),
+  (select new_data->>'first_name' from public.audit_logs
+   where table_name = 'students' and action = 'create'
+   order by created_at desc limit 1),
   'Ali',
   'öğrenci denetim satırı kimlik-dışı alanları (first_name) doğru içerir'
 );
@@ -169,7 +184,7 @@ select is(
     select array(select jsonb_object_keys(new_data) from public.audit_logs
      where table_name = 'teacher_course_meb_authorizations' order by 1)
   ),
-  array['checked_at','checked_by','document_number','note','status','valid_from','valid_until'],
+  array['checked_at','checked_by','document_number','note','resolved_at','responsible_profile_id','status','valid_from','valid_until'],
   'MEB yetki denetim satırı yalnızca bilinen alanları içerir (satırın tamamı değil)'
 );
 

@@ -147,8 +147,16 @@ select throws_like(
   'Grup A''nın bitiş tarihi olmadığı için (açık uçlu), Eylül 15''te başlayan aynı saatteki grup da çakışır'
 );
 
+-- class_groups yalnızca RPC üzerinden yazılabilir (authenticated'ın
+-- doğrudan UPDATE izni yok) — bu fixture satırı migration sahibi
+-- rolüne geçilerek uygulanır, sonra admin1 bağlamına geri dönülür.
+reset role;
+
 update public.class_groups set ends_on = '2026-09-10'
 where organization_id = 'c3000000-0000-0000-0000-000000000001' and name = 'Grup A';
+
+select set_config('request.jwt.claims', json_build_object('sub', 'c3000000-0000-0000-0000-0000000000a1', 'role', 'authenticated')::text, true);
+set local role authenticated;
 
 select lives_ok(
   $$ select public.create_class_group('Grup F', 'c3000000-0000-0000-0000-0000000c0001', 'c3000000-0000-0000-0000-0000000000a2', 'ODA-4', 2, 3, '10:00', 60, '2026-09-15', null) $$,
@@ -218,7 +226,7 @@ select throws_ok(
     insert into public.class_groups (organization_id, course_id, name, weekday, start_time, duration_minutes, starts_on, ends_on)
     values ('c3000000-0000-0000-0000-000000000001', 'c3000000-0000-0000-0000-0000000c0001', 'Bypass Grup', 2, '09:00', 60, '2026-09-10', '2026-09-01')
   $$,
-  '23514',
+  '23514', 'new row for relation "class_groups" violates check constraint "class_groups_dates_check"',
   'class_groups_dates_check kısıtı, RPC''yi bypass eden doğrudan insert''i de reddeder'
 );
 
@@ -227,7 +235,7 @@ select throws_ok(
     insert into public.enrollments (organization_id, student_id, course_id, starts_on, ends_on, list_monthly_fee, net_monthly_fee)
     values ('c3000000-0000-0000-0000-000000000001', 'c3000000-0000-0000-0000-0000000d0001', 'c3000000-0000-0000-0000-0000000c0001', '2026-09-10', '2026-09-01', 1000, 1000)
   $$,
-  '23514',
+  '23514', 'new row for relation "enrollments" violates check constraint "enrollments_dates_check"',
   'enrollments_dates_check kısıtı, RPC''yi bypass eden doğrudan insert''i de reddeder'
 );
 
@@ -541,6 +549,12 @@ select is(
 -- (reschedule/telafi tarafından kullanılır).
 -- ---------------------------------------------------------------
 
+-- lesson_sessions yalnızca RPC/otomasyon üzerinden yazılabilir
+-- (authenticated'ın doğrudan INSERT izni yok) — bu fixture satırı
+-- migration sahibi rolüne geçilerek eklenir, sonra admin1 bağlamına
+-- geri dönülür.
+reset role;
+
 insert into public.lesson_sessions (id, organization_id, class_group_id, course_id, teacher_profile_id, starts_at, ends_at, room_name)
 values (
   'c3000000-0000-0000-0000-0000000e0001', 'c3000000-0000-0000-0000-000000000001',
@@ -548,6 +562,9 @@ values (
   'c3000000-0000-0000-0000-0000000c0001', 'c3000000-0000-0000-0000-0000000000a2',
   '2026-09-02 10:00:00+03', '2026-09-02 11:00:00+03', 'ODA-1'
 );
+
+select set_config('request.jwt.claims', json_build_object('sub', 'c3000000-0000-0000-0000-0000000000a1', 'role', 'authenticated')::text, true);
+set local role authenticated;
 
 select is(
   public.describe_session_scheduling_conflict(

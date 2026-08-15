@@ -15,10 +15,12 @@ export async function updateSession(request: NextRequest) {
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           response = NextResponse.next({ request });
+          // httpOnly bilerek true değil — bkz. src/lib/supabase/server.ts'teki
+          // aynı satırın gerekçesi (browser client oturumu yalnızca
+          // document.cookie ile okuyabiliyor).
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, {
               ...options,
-              httpOnly: true,
               secure: process.env.NODE_ENV === "production",
               sameSite: "lax",
             }),

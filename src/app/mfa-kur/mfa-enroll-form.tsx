@@ -151,12 +151,13 @@ export function MfaEnrollForm() {
 
         {qrCode && (
           <div className="grid place-items-center rounded-xl bg-white p-4">
+            {/* supabase-js'in mfa.enroll() yanıtındaki data.totp.qr_code
+                zaten tam bir data URI (bkz. Supabase TOTP dokümanı) — tekrar
+                data:...;utf-8,encodeURIComponent(...) ile sarmalamak
+                bozuk/çift kodlanmış bir URI üretip QR'ın hiç render
+                edilmemesine yol açıyordu. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`data:image/svg+xml;utf-8,${encodeURIComponent(qrCode)}`}
-              alt="MFA QR kodu"
-              className="h-48 w-48"
-            />
+            <img src={qrCode} alt="MFA QR kodu" className="h-48 w-48" />
           </div>
         )}
 

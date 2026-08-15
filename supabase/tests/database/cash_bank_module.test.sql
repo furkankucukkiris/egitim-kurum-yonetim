@@ -356,11 +356,22 @@ select throws_ok(
 -- Günlük bakiye tamamen hareketlerden yeniden hesaplanır
 -- ---------------------------------------------------------------
 
+-- `current_date` yerine Europe/Istanbul çapası kullanılıyor —
+-- get_cash_daily_balances() organizasyonun timezone'una (varsayılan
+-- Europe/Istanbul) göre gün kırılımı yapıyor, ama pgTAP oturumunun
+-- `current_date`'i Postgres sunucu saat dilimine (UTC) göre çözülüyor.
+-- İkisi günün ~3 saatlik bir diliminde (UTC 21:00-23:59, Istanbul zaten
+-- ertesi gün) uyuşmuyor — bu pencerede bare current_date, hareketin
+-- gerçekte bucketlandığı Istanbul gününden bir gün geride kalıp
+-- running_balance'ı 0 döndürüyordu (CI'da canlı gerçekleşmiş, flaky bir
+-- hataydı; bkz. dashboard_financial_summary.test.sql'deki aynı sınıf
+-- düzeltme).
 select is(
   (
     select running_balance from public.get_cash_daily_balances(
       'f6000000-0000-0000-0000-0000000e0001'::uuid,
-      current_date, current_date
+      (pg_catalog.now() at time zone 'Europe/Istanbul')::date,
+      (pg_catalog.now() at time zone 'Europe/Istanbul')::date
     )
   ),
   50::numeric,

@@ -13,7 +13,8 @@ Bu liste, sistem gerçek öğrenci/veli/finans verisi taşımaya başlamadan ön
 
 ## 2. Cookie / session
 
-- [x] Oturum cookie'leri kodda açıkça `httpOnly: true`, `sameSite: "lax"`, ve production'da `secure: true` olarak set ediliyor (`src/lib/supabase/server.ts`, `src/lib/supabase/proxy.ts`) — artık kütüphane varsayılanına bırakılmıyor.
+- [x] Oturum cookie'leri kodda açıkça `sameSite: "lax"` ve production'da `secure: true` olarak set ediliyor (`src/lib/supabase/server.ts`, `src/lib/supabase/proxy.ts`).
+- [x] **`httpOnly` BİLİNÇLİ OLARAK `false`** (kütüphane varsayılanı da zaten bu — `@supabase/ssr`'nin `DEFAULT_COOKIE_OPTIONS`'ı `httpOnly:false`). Gerekçe: `src/lib/supabase/client.ts`'teki tarayıcı client'ı oturumu yalnızca `document.cookie` üzerinden okuyabiliyor; MFA enroll/verify gibi client-side auth çağrıları bu erişime bağımlı — `httpOnly:true` denendiğinde bu çağrılar `sub` claim'i olmayan anon anahtara düşüp başarısız oluyordu (bkz. commit `3fd8c44`). **Risk:** bu, oturum cookie'sini bir XSS açığına karşı `httpOnly:true`'nun sağladığı korumadan mahrum bırakır — sayfaya script enjekte edebilen bir saldırgan cookie'yi doğrudan okuyabilir. **Telafi edici kontrol** `next.config.ts`'deki CSP'dir (`script-src 'self' 'unsafe-inline'` — yalnızca kendi origin'imizden script çalışır, üçüncü taraf/injected `<script src=...>` engellenir; `unsafe-inline` sınırlaması için bkz. madde 3). Bu mimaride CSP, `httpOnly` eksikliğinin karşılığı olan asıl savunma katmanıdır — sıkılaştırılması (nonce tabanlı, `unsafe-inline` olmadan) bu yüzden öncelikli kalmalıdır.
 - [x] Pasif (`is_active = false`) bir kullanıcının geçerli bir oturum token'ı olsa da veri göremediği doğrulandı: `current_organization_id()`/`current_app_role()` fonksiyonları `profiles.is_active = true` şartını içeriyor, `is_active = false` olunca bu fonksiyonlar `NULL` döner ve tüm RLS politikaları (`organization_id = current_organization_id()`) hiçbir satır döndürmez.
 
 ## 3. HTTP güvenlik başlıkları
@@ -39,7 +40,8 @@ Bu liste, sistem gerçek öğrenci/veli/finans verisi taşımaya başlamadan ön
 - [x] `SUPABASE_SERVICE_ROLE_KEY` hiçbir `NEXT_PUBLIC_` değişkeninde veya client component'te kullanılmıyor (grep ile doğrulandı) — yalnızca `src/lib/supabase/admin.ts` (`"server-only"` importlu) ve üç server action dosyasında.
 - [x] `.env.local` git tarafından izlenmiyor (`.gitignore`), `.env.example` yalnızca placeholder içeriyor.
 - [x] Repo genelinde gerçek bir JWT/servis anahtarı deseni (`eyJ...`, gerçek `service_role` değeri) bulunamadı — yalnızca değişken adı referansları ve dokümantasyon var.
-- [ ] Bu taramayı periyodik olarak tekrarlayın (özellikle commit geçmişine bir şey sızmışsa `git log -p` ile de kontrol edilmeli — bu oturumda yalnızca güncel ağaç tarandı).
+- [x] (2026-08-15) Bu tarama commit geçmişinin TAMAMINDA (`git log -p --all`) tekrarlandı — hiçbir `.env*` dosyası (`.env.example` hariç) hiçbir commit'te eklenmemiş, JWT/service_role deseni geçmişte de bulunamadı. Bu taramayı periyodik olarak (özellikle yeni bir katkıda bulunan eklendiğinde) tekrarlayın.
+- [x] (2026-08-15) `src/instrumentation.ts` + `src/lib/env-validation.ts` — production'da (yalnızca gerçek sunucu başlangıcında, build zamanında değil) dört zorunlu ortam değişkeninden biri eksik veya hâlâ `.env.example` placeholder değerindeyse sunucu açılışta anlaşılır bir hatayla durur; yanlış yapılandırılmış bir production artık sessizce ayakta kalıp ilk istekte belirsiz bir hatayla karşılaşmaz.
 
 ## 6. Loglama
 
@@ -59,4 +61,4 @@ Bu liste, sistem gerçek öğrenci/veli/finans verisi taşımaya başlamadan ön
 
 ---
 
-*Bu liste kod incelemesiyle (2026-08-14) oluşturuldu. Yeni bir modül eklendiğinde veya Supabase proje ayarları değiştiğinde güncellenmelidir.*
+*Bu liste kod incelemesiyle (2026-08-14) oluşturuldu, cookie/httpOnly maddesi kodla tutarsız olduğu için (2026-08-15) düzeltildi. Yeni bir modül eklendiğinde veya Supabase proje ayarları değiştiğinde güncellenmelidir.*

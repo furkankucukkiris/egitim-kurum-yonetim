@@ -51,7 +51,20 @@ npx supabase db push
 
 `SUPABASE_SERVICE_ROLE_KEY` yalnızca sunucuda öğretmen Auth hesabı
 oluşturmak için kullanılır. Bu değişkene `NEXT_PUBLIC_` öneki
-eklemeyin; anahtarı tarayıcı koduna veya Git deposuna koymayın.
+eklemeyin; anahtarı tarayıcı koduna veya Git deposuna koymayın. Yalnızca
+`"server-only"` importlu dosyalarda (`src/lib/supabase/admin.ts`,
+`src/lib/env-validation.ts`) ve server action'larda kullanılır — hiçbir
+`"use client"` bileşeninde referansı yoktur (statik olarak grep ile
+doğrulanır, bkz. [`production-readiness-report.md`](docs/production-readiness-report.md)).
+
+**Eksik/placeholder ortam değişkeni erken hata verir.** `src/instrumentation.ts`,
+Next.js sunucusu gerçekten başladığında (production'da `next start` /
+hosting sağlayıcısının cold start'ı — `next build` sırasında ÇALIŞMAZ)
+`src/lib/env-validation.ts`'i çağırır; dört zorunlu değişkenden biri
+eksikse veya hâlâ `.env.example`'daki placeholder değerdeyse (`YOUR_...`)
+sunucu anlaşılır bir hatayla açılışta durur — yanlış yapılandırılmış bir
+production ortamı sessizce ayakta kalıp ilk gerçek istekte belirsiz bir
+hatayla karşılaşılmaz.
 
 ## 4. Yerel Supabase ile geliştirme
 
@@ -919,16 +932,23 @@ Beş paralel iş — hiçbiri GitHub secret'ı kullanmıyor (`db-integration` ve
 
 Başarısız bir işin nedeni her zaman iş adından ve o işin kendi log'undan anlaşılır (pgTAP açıklayıcı Türkçe assertion mesajları kullanır, Vitest/Playwright varsayılan çıktısı zaten dosya+satır+beklenen/gerçek değeri gösterir).
 
-**`db-integration` ile `e2e` farklı seed davranışı kullanır:** `db-integration` job'u seed'li `db reset` çalıştırır — pgTAP paketi `seed.sql`'in oluşturduğu demo kurum/dersler üzerine kurulu. `e2e` job'u ise `db reset --no-seed` kullanır — admin'in `/kurulum` akışını (ilk kurum oluşturma) test edebilmesi için sistemde gerçekten hiç kurum/profil olmaması, yani `has_any_organization()`'ın `false` dönmesi gerekiyor; seed'li bir veritabanında admin bunun yerine "kurum zaten var" yoluna (`/hesap-erisimi`) düşer. `e2e/global-setup.ts` bu ön koşulu (organizations/profiles boş, `has_any_organization() = false`, E2E admin kullanıcısı auth'ta var ve e-postası onaylı, henüz profili yok) Playwright başlamadan önce açıkça doğrular ve sağlanmazsa nedenini belirten bir hatayla erken durur. `supabase/seed.sql`'in kendisi silinmedi — yerel geliştirme ve pgTAP için hâlâ kullanılıyor.
+**`db-integration` ile `e2e` farklı seed davranışı kullanır:** `db-integration` job'u seed'li `db reset` çalıştırır — pgTAP paketi `seed.sql`'in oluşturduğu demo kurum/dersler üzerine kurulu. `e2e` job'u ise `db reset --no-seed` kullanır — admin'in `/kurulum` akışını (ilk kurum oluşturma) test edebilmesi için sistemde gerçekten hiç kurum/profil olmaması, yani `has_any_organization()`'ın `false` dönmesi gerekiyor; seed'li bir veritabanında admin bunun yerine "kurum zaten var" yoluna (`/hesap-erisimi`) düşer. `e2e/global-setup.ts` bu ön koşulu (organizations/profiles boş, `has_any_organization() = false`, E2E admin kullanıcısı auth'ta var ve e-postası onaylı, henüz profili yok) Playwright başlamadan önce açıkça doğrular ve sağlanmazsa nedenini belirten bir hatayla erken durur. Bu doğrulama fonksiyonu ayrıca `NEXT_PUBLIC_SUPABASE_URL`'in localhost/127.0.0.1 DIŞINDA bir adres olması durumunda (ör. yanlışlıkla bir staging/production projesine karşı çalıştırılırsa) da erken ve kesin bir hatayla durur — tek istisna, `E2E_ALLOW_REMOTE_SUPABASE_URL`'in test edilen URL'yle birebir aynı ayarlandığı bilinçli/izole bir çalıştırma. `supabase/seed.sql`'in kendisi silinmedi — yerel geliştirme ve pgTAP için hâlâ kullanılıyor.
+
+**`e2e/basic-flows.spec.ts` retries:0 ile çalışır** (`playwright.config.ts`'teki global CI retry'sini, yalnızca bu dosya için, `test.describe.configure({ retries: 0 })` ile geçersiz kılar). Bu dosyadaki admin kurulumu → öğretmen oluşturma → öğretmen girişi akışı aynı boş veritabanı üzerinde paylaşılan state ile sıralı çalışıyor; global retry (1) burada açık kalsaydı, ilk denemenin yarıda bıraktığı state (ör. kurum zaten oluşmuş ama MFA tamamlanmamış) ikinci denemeyi farklı ve kafa karıştırıcı bir hatayla başarısız kılabilirdi. `e2e/security-headers.spec.ts` gibi bağımsız/durumsuz dosyalar bu override'a dahil değil — onlar için global retry geçerliliğini korur.
+
+**`e2e/security-headers.spec.ts`** production build'in (`webServer` `next build && next start` çalıştırdığından `NODE_ENV=production`) `next.config.ts`'deki CSP/`X-Frame-Options`/`X-Content-Type-Options`/`Referrer-Policy`/`Permissions-Policy` header'larını gerçekten döndürdüğünü doğrular.
 
 ### Branch protection
 
 `main` dalı için repo ayarlarından (Settings → Branches / Rulesets) aşağıdaki kurallar el ile yapılandırılmalı — bu depoda bunu otomatik uygulayacak bir CLI/token erişimi yok:
 
 - Pull request olmadan doğrudan push/merge engellenmeli ("Require a pull request before merging").
-- Merge öncesi CI'ın başarılı olması zorunlu tutulmalı ("Require status checks to pass before merging") — gerekli status check olarak bu workflow'daki iş adları seçilmeli: `Lint & Typecheck`, `Unit & Component Testleri`, `Production Build`, `Migration Doğrulama + pgTAP`, `E2E (admin + öğretmen temel akışları)`.
+- Merge öncesi CI'ın başarılı olması zorunlu tutulmalı ("Require status checks to pass before merging") — gerekli status check olarak bu workflow'daki iş adları seçilmeli: `Lint & Typecheck`, `Unit & Component Testleri`, `Production Build`, `Migration Doğrulama + pgTAP`, `E2E (admin + öğretmen temel akışları)`; mümkünse `CodeQL Analiz` de eklenmeli.
 - Merge öncesi branch'in hedef daldan güncel olması zorunlu tutulmalı ("Require branches to be up to date before merging").
 - Tek geliştiricili bir repo olduğu için onay (review) şartı isteğe bağlı bırakılabilir; birden fazla katkıda bulunan olursa en az 1 onay eklenmesi önerilir.
+- **Settings → Code security and analysis**'ten Dependabot alerts, Dependabot security updates ve (kullanılabiliyorsa) Secret scanning elle açılmalı — `.github/dependabot.yml` ve `.github/workflows/codeql.yml` bu depoda hazır ama Dashboard'daki bu üç anahtarı otomatik açmaz.
+
+Bulut/hosting tarafındaki (Supabase Cloud, Vercel, domain, staging, yedekleme, GitHub güvenlik ayarları) tüm elle yapılacak adımların tam kontrol listesi için bkz. [`docs/production-cloud-checklist.md`](docs/production-cloud-checklist.md).
 
 ## Güvenlik notu
 

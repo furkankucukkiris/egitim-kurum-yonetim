@@ -34,43 +34,16 @@ export default async function globalSetup() {
   // çevirip admin'i /hesap-erisimi'ne düşürür ve test burada, gerçek
   // nedeni gizleyen bir "heading bulunamadı" timeout'undan ÖNCE, net bir
   // hatayla durur.
-  // `{ count: "exact", head: true }` bir HTTP HEAD isteği üretir; HEAD
-  // yanıtları HTTP spesifikasyonu gereği hata durumunda bile hiçbir body
-  // taşımaz, bu yüzden postgrest-js hata mesajını/kodunu dolduramıyor ve
-  // (varsa) gerçek nedeni gizleyen boş bir `error.message` ile karşılaşılıyor.
-  // Bunun yerine body her zaman dolu gelen normal bir GET kullanıyoruz.
-  const { data: organizationRows, error: organizationsError } = await admin
-    .from("organizations")
-    .select("id");
-
-  if (organizationsError) {
-    throw new Error(
-      `E2E ön koşul kontrolü başarısız: organizations tablosu okunamadı: ${organizationsError.message}`,
-    );
-  }
-
-  if (organizationRows.length !== 0) {
-    throw new Error(
-      `E2E ön koşul kontrolü başarısız: organizations tablosunda ${organizationRows.length} kayıt var, 0 bekleniyordu. ` +
-        "Bu genellikle `supabase db reset`in seed.sql'i de çalıştırdığı (E2E job'unda --no-seed eksik) anlamına gelir.",
-    );
-  }
-
-  const { data: profileRows, error: profilesError } = await admin.from("profiles").select("id");
-
-  if (profilesError) {
-    throw new Error(
-      `E2E ön koşul kontrolü başarısız: profiles tablosu okunamadı: ${profilesError.message}`,
-    );
-  }
-
-  if (profileRows.length !== 0) {
-    throw new Error(
-      `E2E ön koşul kontrolü başarısız: profiles tablosunda ${profileRows.length} kayıt var, 0 bekleniyordu. ` +
-        "Veritabanı gerçekten boş bir `db reset`ten gelmiyor olabilir.",
-    );
-  }
-
+  //
+  // organizations/profiles tablolarını service_role ile doğrudan
+  // sorgulamıyoruz: service_role hiçbir yerde tablo GRANT'ına güvenmiyor
+  // (mevcut kod yalnızca Admin Auth API'sini ve authenticated-context
+  // RPC'leri kullanıyor), bu yüzden bu erişim garanti değil — nitekim
+  // taze bir yerel `db reset`te gerçekten "permission denied" veriyordu.
+  // has_any_organization() zaten SECURITY DEFINER + service_role'e açık
+  // grant'li tek RPC; `false` dönmesi tek başına yeterli, çünkü
+  // profiles.organization_id `not null references organizations(id)` —
+  // kurum yoksa hiçbir profil de var olamaz (bkz. initial_schema.sql).
   const { data: hasAnyOrganization, error: hasAnyOrganizationError } = await admin.rpc(
     "has_any_organization",
   );
@@ -127,22 +100,8 @@ export default async function globalSetup() {
     );
   }
 
-  const { data: adminProfile, error: adminProfileError } = await admin
-    .from("profiles")
-    .select("id")
-    .eq("id", adminUser.id)
-    .maybeSingle();
-
-  if (adminProfileError) {
-    throw new Error(
-      `E2E ön koşul kontrolü başarısız: ${E2E_ADMIN_EMAIL} profili kontrol edilemedi: ${adminProfileError.message}`,
-    );
-  }
-
-  if (adminProfile) {
-    throw new Error(
-      `E2E ön koşul kontrolü başarısız: ${E2E_ADMIN_EMAIL} için zaten bir uygulama profili var. ` +
-        "/kurulum akışı yalnızca henüz profili olmayan bir admin ile test edilebilir.",
-    );
-  }
+  // Admin'in zaten bir profili olup olmadığını ayrıca sorgulamıyoruz —
+  // yukarıdaki has_any_organization()=false kontrolü, FK zinciri
+  // yüzünden (profiles.organization_id -> organizations(id) not null)
+  // sistemde hiçbir profilin var olamayacağını zaten kanıtlıyor.
 }

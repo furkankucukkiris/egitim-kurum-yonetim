@@ -42,7 +42,11 @@ test.describe("Admin temel akışı", () => {
     await completeMfaEnrollment(page);
 
     // MFA tamamlanınca panele düşer — admin-only bir nav öğesi görünür olmalı.
-    await expect(page.getByRole("link", { name: "Öğrenciler" })).toBeVisible();
+    // href ile eşleştiriyoruz: nav ikonu (bkz. app-shell.tsx) aria-hidden
+    // değil, dolayısıyla erişilebilir ad "◎ Öğrenciler" oluyor — Playwright'ın
+    // varsayılan alt dize eşleşmesi bu yüzden "☆ Aday Öğrenciler" ile de
+    // çakışıp strict-mode ihlaline yol açıyordu.
+    await expect(page.locator('a[href="/ogrenciler"]')).toBeVisible();
 
     // Playwright her test icin yeni ve izole bir browser context acar. Bu
     // adim ayri test oldugunda admin oturumu kaybolup /giris'e donuyordu.

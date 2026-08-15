@@ -183,20 +183,32 @@ where enrollment_id = 'f0000000-0000-0000-0000-00000000e004' and period_start = 
 
 -- ---------------------------------------------------------------
 -- Bugünkü ders oturumları: biri aktif, biri iptal.
+--
+-- starts_at, ham `now() + interval 'N hour'` yerine "bugün öğlen"
+-- (Europe/Istanbul) çapasına göre kuruluyor — RPC'nin kendisi de
+-- "bugün"ü aynı şekilde hesaplıyor (bkz. get_dashboard_financial_summary
+-- içindeki v_today). Ham now()+saat kullanılsaydı, test gece yarısına
+-- yakın (Europe/Istanbul ~21:00-23:59) çalıştığında ikinci oturum
+-- ertesi güne kayıp today_total_session_count'u yanlışlıkla 1
+-- düşürüyordu (CI'da gerçekleşmiş, flaky bir hataydı) — now() her ikisi
+-- için de aynı transaction içinde donuk olsa bile, üzerine eklenen saat
+-- gün sınırını geçebiliyordu. Öğlen çapası bu sınırı asla geçmez.
 -- ---------------------------------------------------------------
 
 insert into public.lesson_sessions (id, organization_id, class_group_id, course_id, teacher_profile_id, starts_at, ends_at)
 values (
   'f0000000-0000-0000-0000-00000003a001', 'f0000000-0000-0000-0000-000000000001',
   'f0000000-0000-0000-0000-0000000b0001', 'f0000000-0000-0000-0000-0000000c0001', 'f0000000-0000-0000-0000-0000000000a2',
-  pg_catalog.now(), pg_catalog.now() + interval '1 hour'
+  (((pg_catalog.now() at time zone 'Europe/Istanbul')::date)::timestamp at time zone 'Europe/Istanbul') + interval '12 hours',
+  (((pg_catalog.now() at time zone 'Europe/Istanbul')::date)::timestamp at time zone 'Europe/Istanbul') + interval '13 hours'
 );
 
 insert into public.lesson_sessions (id, organization_id, class_group_id, course_id, teacher_profile_id, starts_at, ends_at, cancelled_at, cancellation_reason)
 values (
   'f0000000-0000-0000-0000-00000003a002', 'f0000000-0000-0000-0000-000000000001',
   'f0000000-0000-0000-0000-0000000b0001', 'f0000000-0000-0000-0000-0000000c0001', 'f0000000-0000-0000-0000-0000000000a2',
-  pg_catalog.now() + interval '2 hour', pg_catalog.now() + interval '3 hour',
+  (((pg_catalog.now() at time zone 'Europe/Istanbul')::date)::timestamp at time zone 'Europe/Istanbul') + interval '14 hours',
+  (((pg_catalog.now() at time zone 'Europe/Istanbul')::date)::timestamp at time zone 'Europe/Istanbul') + interval '15 hours',
   pg_catalog.now(), 'Test iptali'
 );
 

@@ -92,6 +92,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [lint-and-typecheck]
+    env:
+      # Supabase'ten gelen 3 değişkenden farklı olarak bu, Supabase'e
+      # özgü değil — saf uygulama görüntü ayarı. `webServer` (next build
+      # && next start → NODE_ENV=production) src/instrumentation.ts
+      # üzerinden bunun varlığını zorunlu kılıyor (bkz.
+      # src/lib/env-validation.ts); burada tanımlanmazsa sunucu açılışta
+      # "eksik: NEXT_PUBLIC_INSTITUTION_NAME" hatasıyla çöker.
+      NEXT_PUBLIC_INSTITUTION_NAME: "E2E Test Kurumu"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -8,6 +8,24 @@ updates:
       npm-dependencies:
         patterns:
           - "*"
+    ignore:
+      # typescript-eslint (eslint-config-next'in bağımlısı) henüz
+      # TypeScript'in yeni major sürümlerini desteklemiyor olabiliyor —
+      # PR #12'de tam bu yüzden `npm run lint` CI'da kırıldı (typescript
+      # 5.9.3 -> 7.0.2, typescript-eslint "does not support TS 7.0"
+      # hatasıyla çöktü). Minor/patch güncellemeler hâlâ öneriliyor;
+      # yalnızca major sürüm atlamaları, ekosistem yetişene kadar elle
+      # gözden geçirilmek üzere devre dışı.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # Aynı PR'da eslint 9 -> 10 de ayrı, gerçek bir kırılmaya yol
+      # açtı: eslint-config-next'in vendored eslint-plugin-react'i
+      # ESLint 10'un context API değişikliğiyle (context.getFilename()
+      # kaldırıldı) uyumsuz — "contextOrFilename.getFilename is not a
+      # function". eslint-config-next Next.js 16 ile güncellenene kadar
+      # elle gözden geçirilmek üzere aynı şekilde devre dışı.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"

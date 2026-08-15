@@ -11,7 +11,19 @@ import {
 // girişi) birbirine bağımlı ve sıralı çalışması gerekiyor — aynı dosya
 // içinde test.describe.configure({ mode: "serial" }) ile, dosyalar
 // arası (alfabetik) sıralamaya güvenmek yerine açıkça garanti ediliyor.
-test.describe.configure({ mode: "serial" });
+//
+// retries: 0 BİLİNÇLİ — playwright.config.ts'teki global CI retry'si
+// (1) burada YOK SAYILIYOR. Bu dosyadaki iki test aynı boş veritabanı
+// üzerinde paylaşılan state (aynı admin kullanıcı, kapanışta tutulan
+// teacherEmail/teacherTemporaryPassword) ile sıralı çalışıyor; ilk
+// test (kurulum) yarıda başarısız olup Playwright onu otomatik tekrar
+// denerse, ikinci denemede sistemde artık bir kurum/admin/MFA factor'ü
+// VAR olur — /kurulum ilk assertion'ında (toHaveURL /\/kurulum/) veya
+// zorunlu MFA adımında, asıl hatayı gizleyen, kafa karıştırıcı ikincil
+// bir hatayla başarısız olur. Bağımsız/durumsuz E2E dosyaları
+// eklenirse onlar için global retry (CI'da 1) korunmaya devam eder —
+// bu override yalnızca bu dosyaya özgü.
+test.describe.configure({ mode: "serial", retries: 0 });
 
 const teacherEmail = `e2e-ogretmen-${Date.now()}@example.test`;
 let teacherTemporaryPassword = "";

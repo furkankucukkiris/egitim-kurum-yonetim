@@ -19,9 +19,16 @@ export default async function globalSetup() {
     );
   }
 
-  // Yerel/CI'a ait geçici Supabase örneğinin dışına asla bağlanmıyoruz —
-  // url her zaman `supabase start` çıktısından (localhost) geliyor, bu
-  // fonksiyon production/staging bir projeye karşı çalıştırılamaz.
+  // E2E, admin kurulum akışını test etmek için `has_any_organization()`'ı
+  // false'a zorlamak amacıyla kullanıcı/organizasyon oluşturuyor ve bu
+  // veriler kalıcı — yanlışlıkla gerçek bir production/staging projesine
+  // karşı çalıştırılırsa geri dönüşü olmayan veri kirliliği yaratır. Bu
+  // yüzden yalnızca yorum satırına güvenmek yerine kod seviyesinde sert
+  // bir kapı var: URL, `supabase start`'ın ürettiği localhost/127.0.0.1
+  // adresi DEĞİLSE, yalnızca `E2E_ALLOW_REMOTE_SUPABASE_URL` ortam
+  // değişkeni AYNI URL'yle birebir eşleşiyorsa (kasıtlı, tek kullanımlık
+  // bir izin) devam edilir — aksi halde global setup burada durur.
+  assertNotProductionSupabaseUrl(url);
 
   const admin = createClient(url, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -104,4 +111,39 @@ export default async function globalSetup() {
   // yukarıdaki has_any_organization()=false kontrolü, FK zinciri
   // yüzünden (profiles.organization_id -> organizations(id) not null)
   // sistemde hiçbir profilin var olamayacağını zaten kanıtlıyor.
+}
+
+function assertNotProductionSupabaseUrl(url: string) {
+  let hostname: string;
+
+  try {
+    hostname = new URL(url).hostname;
+  } catch {
+    throw new Error(`E2E ön koşul kontrolü başarısız: NEXT_PUBLIC_SUPABASE_URL geçersiz bir URL (${url}).`);
+  }
+
+  const isLocalhost = hostname === "127.0.0.1" || hostname === "localhost" || hostname === "::1";
+
+  if (isLocalhost) {
+    return;
+  }
+
+  // İzole, tek kullanımlık bir staging/disposable projeye karşı bilinçli
+  // olarak çalıştırmak isteyenler için tek istisna: değişken hem tanımlı
+  // hem de test edilen URL'yle BİREBİR aynı olmalı (kopyala-yapıştır
+  // hatasına veya "bir yerde tanımlıydı" yanlışlıklarına karşı).
+  const explicitlyAllowedUrl = process.env.E2E_ALLOW_REMOTE_SUPABASE_URL;
+
+  if (explicitlyAllowedUrl && explicitlyAllowedUrl === url) {
+    return;
+  }
+
+  throw new Error(
+    `E2E ön koşul kontrolü başarısız: NEXT_PUBLIC_SUPABASE_URL (${url}) localhost değil. ` +
+      "Bu test paketi kalıcı, geri alınamaz veri (kurum/kullanıcı/MFA factor'ü) oluşturur ve " +
+      "yanlışlıkla production veya paylaşılan bir staging projesine karşı ÇALIŞTIRILMAMALIDIR. " +
+      "Yalnızca `npx supabase start`'ın ürettiği yerel/CI örneğine karşı çalışacak şekilde " +
+      "tasarlanmıştır. Bilerek izole, tek kullanımlık bir uzak projeye karşı çalıştırıyorsanız " +
+      "`E2E_ALLOW_REMOTE_SUPABASE_URL` değişkenini bu URL'yle BİREBİR aynı değere ayarlayın.",
+  );
 }

@@ -25,3 +25,15 @@ site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:3000/**"]
 jwt_expiry = 3600
 enable_signup = false
+
+# Admin akışı zorunlu TOTP MFA kurulumuna dayanıyor (bkz. src/lib/auth.ts
+# requireProfile, src/app/mfa-kur) — supabase-cli'nin yerel GoTrue'su TOTP
+# enroll/verify'ı bu bölüm olmadan varsayılan kapalı bırakıyor, bu da
+# `supabase.auth.mfa.enroll()`'un hiçbir zaman secret döndürmemesine yol
+# açıyordu (E2E'de "mfa-secret" testid'i hiç görünmeden 60s timeout).
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true

@@ -34,36 +34,39 @@ export default async function globalSetup() {
   // çevirip admin'i /hesap-erisimi'ne düşürür ve test burada, gerçek
   // nedeni gizleyen bir "heading bulunamadı" timeout'undan ÖNCE, net bir
   // hatayla durur.
-  const { count: organizationCount, error: organizationCountError } = await admin
+  // `{ count: "exact", head: true }` bir HTTP HEAD isteği üretir; HEAD
+  // yanıtları HTTP spesifikasyonu gereği hata durumunda bile hiçbir body
+  // taşımaz, bu yüzden postgrest-js hata mesajını/kodunu dolduramıyor ve
+  // (varsa) gerçek nedeni gizleyen boş bir `error.message` ile karşılaşılıyor.
+  // Bunun yerine body her zaman dolu gelen normal bir GET kullanıyoruz.
+  const { data: organizationRows, error: organizationsError } = await admin
     .from("organizations")
-    .select("id", { count: "exact", head: true });
+    .select("id");
 
-  if (organizationCountError) {
+  if (organizationsError) {
     throw new Error(
-      `E2E ön koşul kontrolü başarısız: organizations tablosu okunamadı: ${organizationCountError.message}`,
+      `E2E ön koşul kontrolü başarısız: organizations tablosu okunamadı: ${organizationsError.message}`,
     );
   }
 
-  if (organizationCount !== 0) {
+  if (organizationRows.length !== 0) {
     throw new Error(
-      `E2E ön koşul kontrolü başarısız: organizations tablosunda ${organizationCount} kayıt var, 0 bekleniyordu. ` +
+      `E2E ön koşul kontrolü başarısız: organizations tablosunda ${organizationRows.length} kayıt var, 0 bekleniyordu. ` +
         "Bu genellikle `supabase db reset`in seed.sql'i de çalıştırdığı (E2E job'unda --no-seed eksik) anlamına gelir.",
     );
   }
 
-  const { count: profileCount, error: profileCountError } = await admin
-    .from("profiles")
-    .select("id", { count: "exact", head: true });
+  const { data: profileRows, error: profilesError } = await admin.from("profiles").select("id");
 
-  if (profileCountError) {
+  if (profilesError) {
     throw new Error(
-      `E2E ön koşul kontrolü başarısız: profiles tablosu okunamadı: ${profileCountError.message}`,
+      `E2E ön koşul kontrolü başarısız: profiles tablosu okunamadı: ${profilesError.message}`,
     );
   }
 
-  if (profileCount !== 0) {
+  if (profileRows.length !== 0) {
     throw new Error(
-      `E2E ön koşul kontrolü başarısız: profiles tablosunda ${profileCount} kayıt var, 0 bekleniyordu. ` +
+      `E2E ön koşul kontrolü başarısız: profiles tablosunda ${profileRows.length} kayıt var, 0 bekleniyordu. ` +
         "Veritabanı gerçekten boş bir `db reset`ten gelmiyor olabilir.",
     );
   }

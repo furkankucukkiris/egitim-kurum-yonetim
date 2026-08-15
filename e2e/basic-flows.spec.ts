@@ -22,7 +22,12 @@ test.describe("Admin temel akışı", () => {
   }) => {
     await loginAs(page, E2E_ADMIN_EMAIL, E2E_ADMIN_PASSWORD);
 
-    // Henüz hiçbir kurum/profil yok → /kurulum'a yönlendirilir.
+    // Henüz hiçbir kurum/profil yok → /kurulum'a yönlendirilir. Yanlış bir
+    // sayfaya (ör. sistemde zaten bir kurum varsa düşülen /hesap-erisimi)
+    // yönlendirilirse bunu heading kontrolünden ÖNCE, mevcut URL'i içeren
+    // net bir hatayla yakalıyoruz — aksi halde hata yalnızca "heading
+    // bulunamadı" der ve asıl neden (yanlış yönlendirme) gizlenir.
+    await expect(page, `Beklenmeyen URL: ${page.url()}`).toHaveURL(/\/kurulum/);
     await expect(page.getByRole("heading", { name: "Kurum hesabını oluşturun" })).toBeVisible();
 
     await page.getByLabel("Kurum adı").fill(E2E_ORGANIZATION_NAME);

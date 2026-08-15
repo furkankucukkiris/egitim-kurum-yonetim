@@ -63,7 +63,7 @@ insert into public.class_groups (
   weekday, start_time, duration_minutes, starts_on, ends_on, is_active
 )
 values (
-  'e5000000-0000-0000-0000-0000000g0001', 'e5000000-0000-0000-0000-000000000001',
+  'e5000000-0000-0000-0000-0000000b0001', 'e5000000-0000-0000-0000-000000000001',
   'e5000000-0000-0000-0000-0000000c0001', 'e5000000-0000-0000-0000-0000000000a2',
   'Grup A', 3, '10:00', 60, '2027-01-01', null, true
 );
@@ -78,7 +78,7 @@ insert into public.enrollments (
 values (
   'e5000000-0000-0000-0000-0000000f0001', 'e5000000-0000-0000-0000-000000000001',
   'e5000000-0000-0000-0000-0000000d0001', 'e5000000-0000-0000-0000-0000000c0001',
-  'e5000000-0000-0000-0000-0000000g0001', '2027-01-01', null, 'active', 1000, 1000, 5
+  'e5000000-0000-0000-0000-0000000b0001', '2027-01-01', null, 'active', 1000, 1000, 5
 );
 
 -- Dondurulmuş bir kayıt: tahakkuk otomasyonunun bunu ATLAMASI gerekir
@@ -93,7 +93,7 @@ insert into public.enrollments (
 values (
   'e5000000-0000-0000-0000-0000000f0002', 'e5000000-0000-0000-0000-000000000001',
   'e5000000-0000-0000-0000-0000000d0002', 'e5000000-0000-0000-0000-0000000c0001',
-  'e5000000-0000-0000-0000-0000000g0001', '2027-01-01', null, 'frozen', 1000, 1000, 5
+  'e5000000-0000-0000-0000-0000000b0001', '2027-01-01', null, 'frozen', 1000, 1000, 5
 );
 
 -- ---------------------------------------------------------------
@@ -137,7 +137,7 @@ select is(
 select is(
   (
     select count(*)::int from public.lesson_sessions
-    where class_group_id = 'e5000000-0000-0000-0000-0000000g0001'
+    where class_group_id = 'e5000000-0000-0000-0000-0000000b0001'
       and starts_at >= '2027-03-01'::timestamptz and starts_at < '2027-04-01'::timestamptz
   ),
   (
@@ -174,7 +174,7 @@ select is(
 select is(
   (
     select count(*)::int from public.lesson_sessions
-    where class_group_id = 'e5000000-0000-0000-0000-0000000g0001'
+    where class_group_id = 'e5000000-0000-0000-0000-0000000b0001'
       and starts_at >= '2027-03-01'::timestamptz and starts_at < '2027-04-01'::timestamptz
   ),
   (
@@ -373,7 +373,7 @@ select ok(
 select is(
   (
     select count(*)::int from public.lesson_sessions
-    where class_group_id = 'e5000000-0000-0000-0000-0000000g0001'
+    where class_group_id = 'e5000000-0000-0000-0000-0000000b0001'
       and starts_at >= '2027-04-01'::timestamptz and starts_at < '2027-05-01'::timestamptz
   ),
   0,

@@ -89,10 +89,10 @@ reset role;
 select set_config('request.jwt.claims', json_build_object('sub', 'f6000000-0000-0000-0000-0000000000a2', 'role', 'authenticated')::text, true);
 set local role authenticated;
 
-select throws_ok(
+select throws_like(
   $$insert into public.cash_accounts (organization_id, name)
     values ('f6000000-0000-0000-0000-000000000001', 'Teacher Kasa')$$,
-  '42501',
+  '%row-level security%',
   'teacher kasa hesabı oluşturamaz'
 );
 

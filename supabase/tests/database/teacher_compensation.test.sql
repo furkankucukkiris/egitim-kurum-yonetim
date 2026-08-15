@@ -119,23 +119,23 @@ insert into public.lesson_sessions (
 )
 values
   -- normal: 90 dakika, kilitli
-  ('b8000000-0000-0000-0000-0000001s0001', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001', 'b8000000-0000-0000-0000-0000000000a2', '2027-02-03 10:00:00+03', '2027-02-03 11:30:00+03', false, now()),
+  ('b8000000-0000-0000-0000-0000001e0001', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001', 'b8000000-0000-0000-0000-0000000000a2', '2027-02-03 10:00:00+03', '2027-02-03 11:30:00+03', false, now()),
   -- kurum iptali
-  ('b8000000-0000-0000-0000-0000001s0002', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001', 'b8000000-0000-0000-0000-0000000000a2', '2027-02-05 10:00:00+03', '2027-02-05 11:00:00+03', false, null),
+  ('b8000000-0000-0000-0000-0000001e0002', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001', 'b8000000-0000-0000-0000-0000000000a2', '2027-02-05 10:00:00+03', '2027-02-05 11:00:00+03', false, null),
   -- öğretmen devamsızlığı
-  ('b8000000-0000-0000-0000-0000001s0003', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001', 'b8000000-0000-0000-0000-0000000000a2', '2027-02-08 10:00:00+03', '2027-02-08 11:00:00+03', false, null),
+  ('b8000000-0000-0000-0000-0000001e0003', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001', 'b8000000-0000-0000-0000-0000000000a2', '2027-02-08 10:00:00+03', '2027-02-08 11:00:00+03', false, null),
   -- telafi, kilitli, 60 dakika
-  ('b8000000-0000-0000-0000-0000001s0004', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001', 'b8000000-0000-0000-0000-0000000000a2', '2027-02-10 10:00:00+03', '2027-02-10 11:00:00+03', true, now()),
+  ('b8000000-0000-0000-0000-0000001e0004', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001', 'b8000000-0000-0000-0000-0000000000a2', '2027-02-10 10:00:00+03', '2027-02-10 11:00:00+03', true, now()),
   -- henüz sonlanmamış (ne kilitli ne iptal) — üretime dahil olmamalı
-  ('b8000000-0000-0000-0000-0000001s0005', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001', 'b8000000-0000-0000-0000-0000000000a2', '2027-02-12 10:00:00+03', '2027-02-12 11:00:00+03', false, null);
+  ('b8000000-0000-0000-0000-0000001e0005', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001', 'b8000000-0000-0000-0000-0000000000a2', '2027-02-12 10:00:00+03', '2027-02-12 11:00:00+03', false, null);
 
 update public.lesson_sessions
 set cancelled_at = now(), cancellation_reason = 'kurum kaynaklı', cancellation_kind = 'institution'
-where id = 'b8000000-0000-0000-0000-0000001s0002';
+where id = 'b8000000-0000-0000-0000-0000001e0002';
 
 update public.lesson_sessions
 set cancelled_at = now(), cancellation_reason = 'öğretmen gelmedi', cancellation_kind = 'teacher_absence'
-where id = 'b8000000-0000-0000-0000-0000001s0003';
+where id = 'b8000000-0000-0000-0000-0000001e0003';
 
 select lives_ok(
   $$select public.generate_teacher_compensation('2027-02-01'::date)$$,
@@ -149,55 +149,55 @@ select is(
 );
 
 select is(
-  (select count(*)::int from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0005'),
+  (select count(*)::int from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0005'),
   0,
   'henüz sonlanmamış (kilitli/iptal değil) oturum için hakediş satırı oluşmaz'
 );
 
 select is(
-  (select total_amount from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0001'),
+  (select total_amount from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0001'),
   900::numeric,
   'normal oturum: per_minute (10 ₺/dk) × 90 dakika = 900'
 );
 
 select is(
-  (select scenario from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0001'),
+  (select scenario from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0001'),
   'regular',
   'normal oturumun senaryosu "regular"'
 );
 
 select is(
-  (select total_amount from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0002'),
+  (select total_amount from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0002'),
   50::numeric,
   'kurum iptali: yapılandırılmış düz tutar (50) kullanılır, dakika hesaba katılmaz'
 );
 
 select is(
-  (select scenario from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0002'),
+  (select scenario from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0002'),
   'institution_cancelled',
   'kurum iptali senaryosu doğru etiketlenir'
 );
 
 select is(
-  (select total_amount from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0003'),
+  (select total_amount from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0003'),
   0::numeric,
   'öğretmen devamsızlığı: tutar her zaman 0'
 );
 
 select is(
-  (select scenario from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0003'),
+  (select scenario from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0003'),
   'teacher_absence',
   'öğretmen devamsızlığı satırı yine de izlenebilirlik için oluşturulur'
 );
 
 select is(
-  (select total_amount from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0004'),
+  (select total_amount from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0004'),
   600::numeric,
   'telafi: makeup_rate_amount ayarlanmadığı için normal rate_amount (10 ₺/dk × 60 dk) kullanılır'
 );
 
 select is(
-  (select scenario from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0004'),
+  (select scenario from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0004'),
   'makeup',
   'telafi senaryosu doğru etiketlenir'
 );
@@ -212,7 +212,7 @@ insert into public.lesson_sessions (
   is_makeup, attendance_locked_at
 )
 values (
-  'b8000000-0000-0000-0000-0000001s0006', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001',
+  'b8000000-0000-0000-0000-0000001e0006', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001',
   'b8000000-0000-0000-0000-0000000000a2', '2027-08-03 10:00:00+03', '2027-08-03 12:00:00+03', false, now()
 );
 
@@ -223,7 +223,7 @@ select is(
 );
 
 select is(
-  (select total_amount from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0006'),
+  (select total_amount from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0006'),
   200::numeric,
   'Ağustos oturumu ikinci (per_lesson, 200₺ sabit) kuralı kullanır — süreden bağımsız'
 );
@@ -242,7 +242,7 @@ select throws_ok(
     select organization_id, teacher_profile_id, lesson_session_id, work_date, period_start,
       unit_amount, total_amount, direction, source
     from public.teacher_work_logs
-    where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0006'$$,
+    where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0006'$$,
   '23505',
   'aynı oturum için ikinci hakediş satırı veritabanı seviyesinde de engellenir'
 );
@@ -266,15 +266,15 @@ insert into public.lesson_sessions (
   is_makeup, attendance_locked_at
 )
 values (
-  'b8000000-0000-0000-0000-0000001s0007', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001',
+  'b8000000-0000-0000-0000-0000001e0007', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001',
   'b8000000-0000-0000-0000-0000000000a3', '2027-03-03 10:00:00+03', '2027-03-03 11:00:00+03', false, now()
 );
 
 insert into public.attendance (organization_id, lesson_session_id, enrollment_id, student_id, status)
 values
-  ('b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000001s0007', 'b8000000-0000-0000-0000-0000000f0001', 'b8000000-0000-0000-0000-0000000d0001', 'present'),
-  ('b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000001s0007', 'b8000000-0000-0000-0000-0000000f0002', 'b8000000-0000-0000-0000-0000000d0002', 'present'),
-  ('b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000001s0007', 'b8000000-0000-0000-0000-0000000f0003', 'b8000000-0000-0000-0000-0000000d0003', 'absent');
+  ('b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000001e0007', 'b8000000-0000-0000-0000-0000000f0001', 'b8000000-0000-0000-0000-0000000d0001', 'present'),
+  ('b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000001e0007', 'b8000000-0000-0000-0000-0000000f0002', 'b8000000-0000-0000-0000-0000000d0002', 'present'),
+  ('b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000001e0007', 'b8000000-0000-0000-0000-0000000f0003', 'b8000000-0000-0000-0000-0000000d0003', 'absent');
 
 select is(
   (select created_count from public.generate_teacher_compensation('2027-03-01'::date)),
@@ -283,13 +283,13 @@ select is(
 );
 
 select is(
-  (select total_amount from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0007'),
+  (select total_amount from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0007'),
   60::numeric,
   'per_student: yalnızca "present" 2 öğrenci × 30₺ = 60 (devamsız öğrenci sayılmaz)'
 );
 
 select is(
-  (select student_count from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0007'),
+  (select student_count from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0007'),
   2,
   'student_count anlık görüntüsü doğru katılımcı sayısını taşır'
 );
@@ -317,7 +317,7 @@ insert into public.lesson_sessions (
   is_makeup, attendance_locked_at
 )
 values (
-  'b8000000-0000-0000-0000-0000001s0008', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001',
+  'b8000000-0000-0000-0000-0000001e0008', 'b8000000-0000-0000-0000-000000000001', 'b8000000-0000-0000-0000-0000000c0001',
   'b8000000-0000-0000-0000-0000000000a3', '2027-04-05 10:00:00+03', '2027-04-05 11:00:00+03', false, now()
 );
 
@@ -327,7 +327,7 @@ select lives_ok(
 );
 
 select is(
-  (select count(*)::int from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0008'),
+  (select count(*)::int from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0008'),
   0,
   'monthly_salary kuralı olan öğretmen için oturum bazlı satır ÜRETİLMEZ'
 );
@@ -376,7 +376,7 @@ select is(
 
 select throws_ok(
   $$update public.teacher_work_logs set total_amount = 1
-    where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0001'$$,
+    where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0001'$$,
   '42501',
   'admin dahi ödenmiş bir hakediş satırını doğrudan güncelleyemez'
 );
@@ -387,7 +387,7 @@ select throws_ok(
 -- ---------------------------------------------------------------
 
 select is(
-  (select rate_snapshot from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001s0001'),
+  (select rate_snapshot from public.teacher_work_logs where lesson_session_id = 'b8000000-0000-0000-0000-0000001e0001'),
   10::numeric,
   'onaylanmış/ödenmiş satırın rate_snapshot''ı, üretildiği andaki kural tutarını korur'
 );

@@ -35,15 +35,15 @@ select set_config(
 );
 set local role authenticated;
 
-select throws_ok(
+select throws_like(
   $$ insert into public.organizations (name) values ('Sahte Kurum') $$,
-  '42501',
+  '%permission denied%',
   'İstemci (authenticated) organizations tablosuna doğrudan insert yapamaz'
 );
 
-select throws_ok(
+select throws_like(
   $$ delete from public.organizations $$,
-  '42501',
+  '%permission denied%',
   'İstemci (authenticated) organizations tablosundan doğrudan delete yapamaz'
 );
 

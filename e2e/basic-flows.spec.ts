@@ -17,7 +17,7 @@ const teacherEmail = `e2e-ogretmen-${Date.now()}@example.test`;
 let teacherTemporaryPassword = "";
 
 test.describe("Admin temel akışı", () => {
-  test("ilk kurulum: giriş, kurum/admin oluşturma, zorunlu MFA kurulumu", async ({
+  test("ilk kurulum, MFA ve öğretmen hesabı oluşturma", async ({
     page,
   }) => {
     await page.goto("/giris");
@@ -41,11 +41,9 @@ test.describe("Admin temel akışı", () => {
 
     // MFA tamamlanınca panele düşer — admin-only bir nav öğesi görünür olmalı.
     await expect(page.getByRole("link", { name: "Öğrenciler" })).toBeVisible();
-  });
 
-  test("admin bir öğretmen hesabı oluşturur ve geçici parola ekranda görünür", async ({
-    page,
-  }) => {
+    // Playwright her test icin yeni ve izole bir browser context acar. Bu
+    // adim ayri test oldugunda admin oturumu kaybolup /giris'e donuyordu.
     await page.goto("/ogretmenler");
 
     await page.getByLabel("Ad soyad").fill("E2E Öğretmen");

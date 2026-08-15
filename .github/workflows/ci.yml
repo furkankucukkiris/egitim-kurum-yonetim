@@ -62,6 +62,7 @@ jobs:
   db-integration:
     name: Migration Doğrulama + pgTAP
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -89,6 +90,7 @@ jobs:
   e2e:
     name: E2E (admin + öğretmen temel akışları)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [lint-and-typecheck]
     steps:
       - uses: actions/checkout@v4
@@ -114,10 +116,11 @@ jobs:
       # edilip burası güncellenebilir.
       - name: Ortam değişkenlerini yerel Supabase'ten al
         run: |
-          npx supabase status -o env \
+          npx supabase status -o json \
             --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
             --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY \
             --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
+            | jq -r 'to_entries[] | "\(.key)=\(.value)"' \
             >> "$GITHUB_ENV"
 
       - name: E2E testleri (Playwright)

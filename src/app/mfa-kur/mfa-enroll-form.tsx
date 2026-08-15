@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { storeMfaRecoveryCode } from "./actions";
 
 type Step = "start" | "verify" | "recovery";
 
 export function MfaEnrollForm() {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("start");
   const [factorId, setFactorId] = useState<string | null>(null);
   const [qrCode, setQrCode] = useState<string | null>(null);
@@ -102,7 +104,8 @@ export function MfaEnrollForm() {
   }
 
   function finish() {
-    window.location.href = "/";
+    router.push("/");
+    router.refresh();
   }
 
   if (step === "start") {

@@ -98,22 +98,22 @@ select has_function('public', 'log_rejected_scheduling_attempt', 'log_rejected_s
 -- --- class_schedule_overlaps() birim testleri ---
 
 select ok(
-  public.class_schedule_overlaps(3, '10:00', 60, '2026-01-01', null, 3, '10:30', 60, '2026-01-01', null),
+  public.class_schedule_overlaps(3::smallint, '10:00', 60, '2026-01-01', null, 3::smallint, '10:30', 60, '2026-01-01', null),
   '10:00-11:00 ile 10:30-11:30 çakışır'
 );
 
 select ok(
-  not public.class_schedule_overlaps(3, '10:00', 60, '2026-01-01', null, 3, '11:00', 60, '2026-01-01', null),
+  not public.class_schedule_overlaps(3::smallint, '10:00', 60, '2026-01-01', null, 3::smallint, '11:00', 60, '2026-01-01', null),
   '10:00-11:00 ile 11:00-12:00 bitişik saatler çakışmaz'
 );
 
 select ok(
-  not public.class_schedule_overlaps(3, '10:00', 60, '2026-01-01', '2026-06-30', 3, '10:00', 60, '2026-09-01', null),
+  not public.class_schedule_overlaps(3::smallint, '10:00', 60, '2026-01-01', '2026-06-30', 3::smallint, '10:00', 60, '2026-09-01', null),
   'aynı gün/saat ama kesişmeyen tarih aralıkları çakışmaz'
 );
 
 select ok(
-  not public.class_schedule_overlaps(3, '10:00', 60, '2026-01-01', null, 4, '10:00', 60, '2026-01-01', null),
+  not public.class_schedule_overlaps(3::smallint, '10:00', 60, '2026-01-01', null, 4::smallint, '10:00', 60, '2026-01-01', null),
   'farklı haftanın günleri çakışmaz'
 );
 

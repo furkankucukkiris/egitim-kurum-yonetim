@@ -23,7 +23,9 @@ select plan(16);
 -- öğrenciye atanmış, diğeri ilgisiz).
 -- ---------------------------------------------------------------
 
-delete from storage.objects where bucket_id = 'student-photos';
+-- storage.objects dogrudan silmeyi koruyan Storage API tetikleyicisine
+-- takilmamak icin burada DELETE yapilmaz. Test transaction'i zaten sonunda
+-- rollback edilir ve yerel test veritabani temiz baslar.
 delete from public.attendance;
 delete from public.enrollments;
 delete from public.student_guardians;

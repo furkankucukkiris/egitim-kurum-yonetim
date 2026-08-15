@@ -68,7 +68,9 @@ values
 -- ---------------------------------------------------------------
 
 select set_config('request.jwt.claims', json_build_object('sub', 'c0000001-0000-0000-0000-0000000000a1', 'role', 'authenticated')::text, true);
-set local role authenticated;
+-- Bu dosya RLS'i degil, veritabaninin composite FK/trigger butunlugunu
+-- sinar. RPC-only tablolara authenticated DML acmamak icin fixture
+-- yazmalari migration sahibi rolde birakilir.
 
 -- 1) enrollments: org1 kaydı, org2'nin dersine referans -- engellenmeli.
 select throws_ok(

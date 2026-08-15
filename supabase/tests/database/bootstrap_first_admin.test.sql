@@ -7,7 +7,7 @@
 
 begin;
 
-select plan(12);
+select plan(13);
 
 -- ---------------------------------------------------------------
 -- Fonksiyonların var olduğunu doğrula.
@@ -138,11 +138,17 @@ select is(
 
 select is(
   (select count(*)::int from public.organizations),
-  1,
-  'Reddedilen dış kullanıcı sistemde ikinci bir kurum oluşturamaz'
+  0,
+  'Profilsiz dış kullanıcı mevcut kurum satırını göremez'
 );
 
 reset role;
+
+select is(
+  (select count(*)::int from public.organizations),
+  1,
+  'Reddedilen dış kullanıcı sistemde ikinci bir kurum oluşturamaz'
+);
 
 -- ---------------------------------------------------------------
 -- Senaryo 3: Pasif kullanıcı hiçbir kurum verisine erişemez.

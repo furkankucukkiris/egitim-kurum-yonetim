@@ -93,22 +93,22 @@ reset role;
 select set_config('request.jwt.claims', json_build_object('sub', 'c9000000-0000-0000-0000-0000000000a1', 'role', 'authenticated')::text, true);
 set local role authenticated;
 
-select throws_ok(
+select throws_like(
   $$insert into public.audit_logs (organization_id, table_name, action)
     values ('c9000000-0000-0000-0000-000000000001', 'students', 'create')$$,
-  '42501',
+  '%permission denied%',
   'admin dahi audit_logs''a doğrudan insert yapamaz'
 );
 
-select throws_ok(
+select throws_like(
   $$update public.audit_logs set action = 'tampered' where organization_id = 'c9000000-0000-0000-0000-000000000001'$$,
-  '42501',
+  '%permission denied%',
   'admin dahi audit_logs''ı doğrudan güncelleyemez'
 );
 
-select throws_ok(
+select throws_like(
   $$delete from public.audit_logs where organization_id = 'c9000000-0000-0000-0000-000000000001'$$,
-  '42501',
+  '%permission denied%',
   'admin dahi audit_logs''tan doğrudan satır silemez'
 );
 
@@ -149,8 +149,12 @@ select is(
 -- değil) — new_data yalnızca beklenen anahtarları içerir.
 -- ---------------------------------------------------------------
 
+reset role;
+
 insert into public.courses (id, organization_id, name, course_type, default_duration_minutes, default_monthly_fee)
 values ('c9000000-0000-0000-0000-0000000c0001', 'c9000000-0000-0000-0000-000000000001', 'Resim', 'group', 60, 1000);
+
+set local role authenticated;
 
 select lives_ok(
   $$select public.set_teacher_course_meb_authorization(

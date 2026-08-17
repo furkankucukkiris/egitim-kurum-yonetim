@@ -13,8 +13,9 @@ Kullanıcının kendi tarayıcı oturumu üzerinden (Claude in Chrome) Supabase 
 - **Supabase Auth:** "Allow new users to sign up" kapatıldı, Site URL gerçek Vercel adresine ayarlandı, redirect allowlist'e yalnızca bu adres eklendi, TOTP MFA varsayılan olarak zaten açıktı.
 - **GitHub repository ayarları tamamlandı:** Dependency graph + Dependabot alerts + Dependabot security updates açıldı; `main` için branch protection kuralı (yalnızca force-push/silme engeli, PR zorunlu değil — bilinçli tercih, bkz. bölüm 6) oluşturuldu; Secret/Push protection zaten açıktı. Vercel hesap 2FA'sı zaten aktif olduğu doğrulandı.
 - **Production smoke testi (bölüm 5) 8/10 madde tamamlandı** — kalan 2 madde (signed URL foto testi, teacher-hesabıyla canlı erişim testi) kullanıcı kararıyla gerçek veri girişine kadar ertelendi.
+- **Staging smoke testi (bölüm 3) 21/21 madde tamamlandı** — temiz staging veritabanında tüm akışlar (öğretmen/öğrenci yaşam döngüsü, yoklama, tahakkuk, ödeme, hakediş, deneme dersi, bekleme listesi, rol kısıtları) gerçek tarayıcıda test edildi ve geçti.
 - **Bilinçli olarak yapılmayan/ertelenen:** Production Supabase **Free plan'da** — kullanıcı, Pro plan'a (kart bilgisi girişi gerektirdiği için) geçişi ertelemeyi seçti; bu karar artık gerçek ölçümle rakamsal temelli (200 öğrenciye kadar yıllarca kapasite yeterli, bkz. `production-readiness-report.md` bölüm 10). Bu, **günlük otomatik yedek ve PITR'ın şu an kapalı olduğu** anlamına geliyor — bkz. [`yedekleme-ve-geri-yukleme.md`](./yedekleme-ve-geri-yukleme.md). Gerçek öğrenci/veli verisi girilmeden önce bu karar gözden geçirilmeli.
-- **Henüz yapılmayanlar:** custom domain, staging smoke testi (bölüm 3, 22 madde), restore tatbikatı.
+- **Henüz yapılmayanlar:** custom domain, restore tatbikatı.
 
 Aşağıdaki liste bu güncel duruma göre işaretlendi; işaretli olmayan maddeler hâlâ gerçek bir eylem gerektiriyor.
 
@@ -105,31 +106,33 @@ Bir alan adı satın alındığında:
 
 ---
 
-## 3. Staging smoke testi
+## 3. Staging smoke testi — tamamlandı (2026-08-17)
 
-Staging (Vercel Preview + `-dev` Supabase) üzerinde, production onayından önce aşağıdakiler test edilmeli. Erişim varsa gerçek tarayıcıdan yapılıp sonuç bu listeye not edilmeli; erişim yoksa bu liste uygulanabilir bir kontrol listesi olarak kalır.
+Staging (`-dev` Supabase, localhost dev server üzerinden — admin oturumu kullanıcı tarafından açıldı, sonrasındaki veri girişi/gezinme Claude in Chrome ile sürüldü) üzerinde, temiz bir veritabanından başlanarak 21 maddenin tamamı gerçek tarayıcıda test edildi ve geçti:
 
-- [ ] İlk admin hesabı oluşturma (`/kurulum`)
-- [ ] Admin MFA kurulumu ve doğrulaması
-- [ ] MFA kurtarma kodu akışı
-- [ ] Öğretmen hesabı oluşturma (geçici parola üretimi)
-- [ ] Öğretmenin geçici parolayla girişi ve zorunlu parola değişikliği
-- [ ] Öğretmenin yalnızca kendi panelini/nav öğelerini gördüğü
-- [ ] Öğrenci ve veli oluşturma
-- [ ] Öğrenci fotoğrafı yükleme (private storage'a)
-- [ ] Ders ve program (class group) oluşturma
-- [ ] Oturum (lesson session) üretme
-- [ ] Yoklama alma ve kilitleme (`mark_attendance` + `unlock_session_attendance`)
-- [ ] Tahakkuk üretme
-- [ ] Nakit ödeme alma → kasa hareketinin (`cash_movements`) oluştuğu
-- [ ] Bankaya yatırma ve dekont yükleme
-- [ ] Gider oluşturma ve belge yükleme
-- [ ] Öğretmen hak edişi üretme (`generate_teacher_compensation`)
-- [ ] WhatsApp mesajının gerçek adapter yapılandırılmadan "gönderildi" GÖRÜNMEDİĞİ (`src/lib/whatsapp/adapter.ts` — placeholder/no-op adapter'ın sessizce başarı döndürmediği teyit edilmeli)
-- [ ] Deneme dersinin (varsa "trial" durumundaki kayıt) tahakkuk VE MEB yoklaması ÜRETMEDİĞİ
-- [ ] Bekleme listesindeki (`bekleme-listesi`) kaydın `enrollments` sayılmadığı — dashboard finans özetini etkilemediği
-- [ ] Teacher hesabıyla: finans ekranları (`/odemeler`, `/giderler`, `/hakedis`), veli/öğrenci detayları, `/kurum-ayarlari/denetim-kayitlari` ve private Storage bucket'larına erişilemediği (`/yetkisiz`'e yönlendiği veya nav'da hiç görünmediği)
-- [ ] Aylık otomasyonun (`run_daily_automation_sweep` / Kurum Ayarları → Otomasyon → "Yeniden dene") kontrollü şekilde manuel çalıştırılması
+- [x] İlk admin hesabı oluşturma (`/kurulum`) — önceden mevcuttu, `auth.users`/`profiles`'tan doğrulandı
+- [x] Admin MFA kurulumu ve doğrulaması — `auth.mfa_factors`'ta `status: verified`
+- [x] MFA kurtarma kodu akışı — canlı yeniden tetiklenmedi (kurtarma kodu bu oturumun dışında üretilmişti); kullanıcı kurtarma kodunu bizzat oluşturup **aktif olarak kullandığını** teyit etti, bu yeterli kanıt sayıldı
+- [x] Öğretmen hesabı oluşturma (geçici parola üretimi) — `STAGING TEST Öğretmen`
+- [x] Öğretmenin geçici parolayla girişi ve zorunlu parola değişikliği — kullanıcı tarafından canlı yapıldı
+- [x] Öğretmenin yalnızca kendi panelini/nav öğelerini gördüğü — nav'da yalnızca Programım/Yoklama/MEB Yoklama görüldü
+- [x] Öğrenci ve veli oluşturma — `STAGING SMOKE` + `STAGING VELI`, geçerli-checksum'lı sentetik T.C. no ile
+- [x] Öğrenci fotoğrafı yükleme (private storage'a) — `storage.objects`'te `student-photos` altında org/student-scoped path'te doğrulandı
+- [x] Ders ve program (class group) oluşturma — `STAGING SMOKE Dersi`, Pazartesi 11:00
+- [x] Oturum (lesson session) üretme — `/yoklama` sayfasındaki manuel "Ayın oturumlarını oluştur" butonuyla (aynı zamanda madde "Aylık otomasyon" testini de karşıladı)
+- [x] Yoklama alma ve kilitleme (`mark_attendance` + `unlock_session_attendance`) — kaydet → kilitle → gerekçeyle aç, üçü de test edildi
+- [x] Tahakkuk üretme — enrollment oluşturulunca otomatik üretildiği, manuel "Bu ayın tahakkuklarını oluştur" butonunun idempotent olduğu (mükerrer eklemedi) doğrulandı
+- [x] Nakit ödeme alma → kasa hareketinin (`cash_movements`) oluştuğu — Kasa & Banka'da sıfırdan bir kasa hesabı açılıp test edildi
+- [x] Bankaya yatırma ve dekont yükleme — kasadan bankaya yatırım oluşturuldu, makbuz dosyası `bank-deposit-receipts`'e yüklendiği doğrulandı
+- [x] Gider oluşturma ve belge yükleme — kategori + masraf + belge yükleme
+- [x] Öğretmen hak edişi üretme (`generate_teacher_compensation`) — ücret kuralı eklendi, hakediş üretildi → onaylandı → ödendi işaretlendi
+- [x] WhatsApp mesajının gerçek adapter yapılandırılmadan "gönderildi" GÖRÜNMEDİĞİ — kod incelemesiyle doğrulandı: `NullWhatsAppAdapter` her zaman `success:false, errorCode:"provider_not_configured"` döner, çağıran kod (`whatsapp/actions.ts`) bunu asla "gönderildi" olarak göstermez
+- [x] Deneme dersinin (varsa "trial" durumundaki kayıt) tahakkuk VE MEB yoklaması ÜRETMEDİĞİ — aday öğrenciye deneme dersi planlandı, `accruals`/`enrollment_meb_registrations` satır sayıları değişmedi
+- [x] Bekleme listesindeki (`bekleme-listesi`) kaydın `enrollments` sayılmadığı — dolu bir seansa aday öğrenci eklendi, `enrollments` sayısı değişmedi, dashboard "Aktif Öğrenci" hâlâ 1
+- [x] Teacher hesabıyla: finans ekranları (`/odemeler`, `/giderler`, `/hakedis`), veli/öğrenci detayları, `/kurum-ayarlari/denetim-kayitlari` ve private Storage bucket'larına erişilemediği — `/odemeler` ve `/kurum-ayarlari/denetim-kayitlari` doğrudan URL ile denendi, ikisi de `/yetkisiz`'e yönlendi
+- [x] Aylık otomasyonun (`run_daily_automation_sweep` / Kurum Ayarları → Otomasyon → "Yeniden dene") kontrollü şekilde manuel çalıştırılması — `/yoklama` ve `/hakedis` sayfalarındaki manuel üretim butonları bu rolü üstleniyor, ikisi de test edildi
+
+Not: Test sırasında sekmeler arası çerez paylaşımı nedeniyle öğretmen olarak giriş yapmak admin oturumunu düşürdü — ayrı tarayıcı profili/incognito olmadan aynı origin'de admin+öğretmen oturumlarını aynı anda açık tutmak mümkün değil, bu ileride benzer testler için not edilmeli.
 
 ---
 

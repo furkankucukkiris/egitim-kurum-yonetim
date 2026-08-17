@@ -1,7 +1,7 @@
 # Production Hazırlık Raporu
 
 **İncelenen commit:** `5936936` (`main`, PR [#13](https://github.com/furkankucukkiris/egitim-kurum-yonetim/pull/13) merge sonrası)
-**Rapor tarihi:** 2026-08-15 (ilk sürüm) / 2026-08-16 (CI + gerçek production deployment sonrası tamamen güncellendi) / 2026-08-17 (ilk admin hesabı, MFA, production smoke testi, GitHub güvenlik ayarları, Free plan kapasite analizi ve staging smoke testi (21/21) eklendi)
+**Rapor tarihi:** 2026-08-15 (ilk sürüm) / 2026-08-16 (CI + gerçek production deployment sonrası tamamen güncellendi) / 2026-08-17 (ilk admin hesabı, MFA, production smoke testi, GitHub güvenlik ayarları, Free plan kapasite analizi, staging smoke testi (21/21) ve restore tatbikatı eklendi — bloklayıcı liste artık tam işaretli)
 **Hazırlayan:** Claude (bu oturum) — kod/CI tarafı bağımsız çalışıldı; Supabase Cloud/Vercel/GitHub adımları kullanıcının kendi tarayıcı oturumunda (Claude in Chrome), kullanıcı gözetiminde yapıldı.
 
 ---
@@ -90,9 +90,15 @@ GitHub Settings → Branches'ten `main` için classic branch protection rule olu
 
 **Sonuç: Free plan'da kalma kararı artık rakamsal temelli** — 200 öğrenci ölçeğinde yıllarca kapasite sorunu beklenmiyor. Ama bu, günlük otomatik yedek/PITR eksikliğini (veri kaybı riski, kapasite değil) telafi etmiyor — bu hâlâ raporun en büyük tekil riski, bkz. bölüm 14. Kod/prosedür seviyesinde `docs/yedekleme-ve-geri-yukleme.md` hâlâ geçerli (haftalık şifreli `db dump` prosedürü) ama bu, Supabase'in kendi günlük otomatik yedeğinin **yerine geçmez** — yalnızca ek bir katman olarak tasarlanmıştı.
 
-## 11. Restore testi sonucu
+## 11. Restore testi sonucu — yapıldı (2026-08-17), gerçek bulgularla
 
-**Yapılmadı.** `docs/yedekleme-ve-geri-yukleme.md`'deki "Test kaydı" tablosu hâlâ boş.
+Tam detay: [`yedekleme-ve-geri-yukleme.md`](./yedekleme-ve-geri-yukleme.md) "2026-08-17 tatbikatı" bölümü. Özet:
+
+- Bu ortamda Docker/`pg_dump` olmadığı için dokümante edilen ikili yedek/geri yükleme prosedürü **olduğu gibi çalıştırılamadı** — SQL tabanlı bir eşdeğer uygulandı (veriyi JSON olarak yakala → tüm iş verisini FK-sırasına uygun sil → `jsonb_populate_recordset` ile geri yükle).
+- 3. bir test projesi açılamadı (**Free plan organizasyon başına 2 proje limiti** — gerçek, önceden bilinmeyen bir platform kısıtı, `-dev`+`-prod` limiti zaten dolduruyor) — kullanıcı onayıyla tatbikat `-dev`'in kendi üzerinde (disposable/test projesi zaten) yapıldı.
+- **Sonuç: başarılı.** 27 tablo / 32 satır iş verisi (organizasyon, profil, öğrenci, veli, enrollment, tahakkuk, ödeme, kasa/banka hareketleri, gider, hakediş vb.) silinip SQL'den geri yüklendi; referanslar (FK'ler) bozulmadan geri geldi; hem SQL join'iyle hem **gerçek uygulamada** (`localhost`, admin oturumuyla) doğrulandı — Genel Bakış aynı rakamları (₺1.000 tahakkuk/tahsilat) gösterdi.
+- **Yan bulgu:** `db push --dry-run`, restore'un kendisiyle ilgisiz, önceden var olan gerçek bir sapma ortaya çıkardı — `20260815150000_grant_has_any_organization_to_service_role.sql` migration'ı `-dev`'e hiç uygulanmamıştı (production'da uygulanmıştı). Canlıda düzeltildi.
+- **Kapsam dışı, dokümante edilmiş gerçek bir sınır:** `auth.users`/`auth.mfa_factors` bu tatbikatta hiç dokunulmadı/test edilmedi — SQL-seviyeli bu yöntemle **kimlik doğrulama verisi birebir kurtarılamaz** (parola hash'i, MFA sırrı gibi alanlar). Gerçek bir felakette bu, Supabase'in kendi (yalnızca ücretli planda olan) yedeğini gerektirir. Bu, bölüm 14 madde 3'teki riski azaltmıyor, tam tersine **somut olarak doğruluyor**.
 
 ## 12. Production smoke testi sonucu (`docs/production-cloud-checklist.md` bölüm 5)
 
@@ -138,8 +144,8 @@ Temiz bir staging (`-dev`) veritabanından başlanarak, admin oturumu kullanıc�
 
 1. **CSP `script-src 'unsafe-inline'`** — nonce tabanlı bir CSP daha sıkı olurdu ama Next.js App Router hydration'ını bozma riski taşıyor; bilinçli olarak uygulanmadı. Mevcut CSP CI'da otomatik doğrulanıyor. Telafi edici kontrol: `default-src 'self'` + `frame-ancestors 'none'`.
 2. **`httpOnly:false` oturum cookie'si** — bilinçli mimari tercih, CSP'ye bağımlı bir telafi.
-3. **Production Free plan'da, günlük yedek/PITR yok** — raporun en büyük tekil riski, artık kapasite değil veri kaybı riski (bkz. bölüm 10). Gerçek veri girilmeden önce mutlaka gözden geçirilmeli.
-4. **Restore tatbikatı hiç yapılmadı.**
+3. **Production Free plan'da, günlük yedek/PITR yok — VE şu anda kimse düzenli manuel yedek de almıyor.** Bölüm 11'deki tatbikat restore *mekanizmasının* çalıştığını kanıtladı, ama bu yalnızca elde güncel bir yedek varsa işe yarar; `docs/yedekleme-ve-geri-yukleme.md`'deki "en az haftalık dump" alışkanlığı henüz fiilen başlamadı (otomatik değil, elle yapılması gerekiyor). Bu hâlâ raporun en büyük tekil riski — artık "restore çalışır mı bilmiyoruz" değil, "bugün veri kaybedilirse geri yüklenecek güncel bir yedek yok" riski. Gerçek veri girilmeden önce ya Pro'ya geçilmeli ya da düzenli manuel dump alışkanlığı gerçekten başlatılmalı.
+4. **Kimlik doğrulama verisi (`auth.users`/MFA) SQL-seviyeli yöntemle birebir kurtarılamıyor** — bölüm 11'de somut olarak doğrulandı; yalnızca Supabase'in kendi (ücretli) yedeği bunu çözer.
 5. **pgTAP suite'inde bulunan sınıf hatası** (bkz. bölüm 1) yalnızca iki yerde vardı, ikisi de düzeltildi — ama "gerçek zamana bağlı, timezone-duyarsız fixture" kalıbının başka yeni pgTAP dosyalarında tekrarlanmaması için not düşülmeli.
 
 ## 15. Bloklayıcı maddeler (gerçek öğrenci/veli verisi girmeden önce)
@@ -153,14 +159,16 @@ Temiz bir staging (`-dev`) veritabanından başlanarak, admin oturumu kullanıc�
 - [x] ~~Staging smoke testi (bölüm 3, 21 madde) en az bir kez gerçek ortamda koşulup sonuçlanmalı~~ — 21/21 tamamlandı (bölüm 13).
 - [x] ~~Branch protection + Dependabot/secret scanning Dashboard ayarları açılmalı~~ — tamamlandı (bölüm 8-9).
 - [x] ~~Vercel hesap 2FA'sı teyit edilmeli~~ — zaten aktifti, teyit edildi.
-- [ ] En az bir staging restore tatbikatı yapılıp `yedekleme-ve-geri-yukleme.md`'ye gerçek sonuçla yazılmalı.
+- [x] ~~En az bir staging restore tatbikatı yapılıp `yedekleme-ve-geri-yukleme.md`'ye gerçek sonuçla yazılmalı~~ — yapıldı, başarılı (bölüm 11).
+
+**Bu listedeki her madde artık işaretli.** Kalan tek şey bir kontrol listesi maddesi değil, bölüm 14 madde 3'teki **duran bir operasyonel karar**: Free plan'da kalınacaksa, düzenli bir yedek alma alışkanlığının gerçekten başlaması gerekiyor (aksi halde bugün ispatlanan restore mekanizmasının besleyeceği güncel bir yedek olmaz).
 
 ## 16. Karar: **CONDITIONAL GO**
 
-Gerekçe — **dördüncü kez güncellendi:** kod/CI tarafı tam kanıtlı (bölüm 1-2); production Supabase + Vercel hosting canlı ve doğrulanmış (bölüm 3-7); GitHub güvenlik ayarları (branch protection, Dependabot, Vercel 2FA) tamamlandı (bölüm 8-9); ilk admin hesabı gerçekten oluşturuldu, MFA kuruldu, production smoke testinin büyük kısmı (8/10) gerçek production'da koşuldu ve geçti (bölüm 12); **staging smoke testinin tamamı (21/21) temiz bir veritabanında uçtan uca gerçek tarayıcıda koşulup geçti** — öğretmen/öğrenci yaşam döngüsü, yoklama, tahakkuk, ödeme, hakediş, deneme dersi, bekleme listesi ve rol kısıtları dahil (bölüm 13); Free plan'da kalma kararı artık gerçek ölçümle rakamsal temelli (bölüm 10).
+Gerekçe — **beşinci kez güncellendi:** kod/CI tarafı tam kanıtlı (bölüm 1-2); production Supabase + Vercel hosting canlı ve doğrulanmış (bölüm 3-7); GitHub güvenlik ayarları (branch protection, Dependabot, Vercel 2FA) tamamlandı (bölüm 8-9); ilk admin hesabı gerçekten oluşturuldu, MFA kuruldu, production smoke testinin büyük kısmı (8/10) gerçek production'da koşuldu ve geçti (bölüm 12); staging smoke testinin tamamı (21/21) uçtan uca gerçek tarayıcıda koşulup geçti (bölüm 13); **restore tatbikatı yapıldı ve iş verisi tarafında başarılı oldu** (bölüm 11); Free plan'da kalma kararı gerçek ölçümle rakamsal temelli (bölüm 10). **Bölüm 15'teki bloklayıcı listesinin tamamı artık işaretli.**
 
-Karar hâlâ **GO değil**, çünkü: (a) production Supabase **Free plan'da, günlük yedek/PITR yok** — kapasite sorunu değil ama gerçek veri kaybı riskine karşı hâlâ korumasız; (b) restore tatbikatı hiç yapılmadı; (c) production smoke testinin 2 maddesi (signed URL foto görüntüleme, teacher-hesabıyla canlı erişim testi) kullanıcı kararıyla ertelendi — ancak bu ikisi artık staging'de dolaylı olarak kanıtlanmış durumda (bölüm 5, 13).
+Karar yine de **GO değil**, çünkü: (a) restore *mekanizması* kanıtlanmış olsa da, Free plan'da **hâlâ otomatik günlük yedek yok ve şu an düzenli manuel yedek de alınmıyor** — bugün gerçek veri kaybedilirse geri yüklenecek güncel bir kopya olmaz; (b) kimlik doğrulama/MFA verisinin bu yöntemle birebir kurtarılamadığı bölüm 11'de somut olarak doğrulandı; (c) production smoke testinin 2 maddesi (signed URL foto görüntüleme, teacher-hesabıyla canlı erişim testi) kullanıcı kararıyla ertelendi — ancak bu ikisi artık staging'de dolaylı olarak kanıtlanmış durumda (bölüm 5, 13).
 
-Karar **NO-GO değil** çünkü RLS/service-role/signup/migration/MFA/private Storage/branch güvenliğinde doğrulanmamış KRİTİK bir risk yok — bunların hepsi hem CI'da hem gerçek production projesinde hem de artık uçtan uca staging akışında fiilen test edildi; kalan riskin merkezi artık tek bir madde: **backup planı**.
+Karar **NO-GO değil** çünkü RLS/service-role/signup/migration/MFA/private Storage/branch güvenliğinde doğrulanmamış KRİTİK bir risk yok — bunların hepsi hem CI'da hem gerçek production projesinde hem de artık uçtan uca staging akışında (restore dahil) fiilen test edildi; kalan risk artık bir *bilinmeyen* değil, açık bir *operasyonel karar*: Pro'ya geçmek mi, yoksa düzenli manuel yedek alışkanlığını gerçekten başlatmak mı.
 
-**Sonuç: CONDITIONAL GO** — bölüm 15'teki tek açık madde (restore tatbikatı) ve özellikle **backup planı** (bölüm 14.3) tamamlanmadan/gözden geçirilmeden gerçek öğrenci/veli/finans verisi girilmemesi önerilir; kullanıcı bilinçli olarak bu riskle ilerlemeyi tercih ederse karar kendisine aittir.
+**Sonuç: CONDITIONAL GO** — gerçek öğrenci/veli/finans verisi girilmeden önce, kullanıcının **bilinçli olarak** şu ikisinden birini seçmesi önerilir: (1) Pro plana geçip günlük otomatik yedek/PITR'ı açmak, veya (2) `docs/yedekleme-ve-geri-yukleme.md`'deki haftalık manuel dump alışkanlığını gerçekten (örn. takvime not düşerek veya basit bir zamanlanmış görevle) başlatmak. Bu seçim yapılmadan ilerlemek, kullanıcının bilinçli olarak üstlendiği bir risktir.

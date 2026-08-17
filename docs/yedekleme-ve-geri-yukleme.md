@@ -8,17 +8,37 @@ Supabase, ücretli planlarda (Pro ve üzeri) veritabanının **günlük otomatik
 
 ## Ek periyodik dışa aktarma (bağımsız kopya)
 
-Supabase'in kendi yedeğine ek olarak, kurumun kontrolünde bağımsız bir kopya tutmak için `supabase` CLI ile düzenli `db dump` alınmalı:
+Supabase'in kendi yedeğine ek olarak, kurumun kontrolünde bağımsız bir kopya tutulmalı.
+
+**Docker/yerel `pg_dump` varsa** (bu makinede yok, ama Docker kurulu başka bir makineden çalıştırılabilir):
 
 ```bash
 supabase db dump --linked -f yedek-$(date +%Y%m%d).sql
 ```
 
+**Docker yoksa (bu makinenin gerçek durumu) — `scripts/backup-data.sql` kullanın:**
+
+Bu betik `public` şemasındaki tüm tabloları (yapı değişse bile otomatik keşfederek) tek bir JSON belgesi olarak dışa aktarır, Docker/`pg_dump` gerektirmez:
+
+```bash
+supabase db query --linked --file scripts/backup-data.sql > yedek-$(date +%Y%m%d).json
+```
+
+**İki yöntem de:**
+
 - **Sıklık:** En az haftalık; finansal kapanış günlerinde (ay sonu) ek bir yedek alınması önerilir.
-- **Şifreleme:** Dump dosyası düz metin SQL'dir ve öğrenci/veli PII'si içerir — diskte veya bulutta saklamadan önce şifrelenmelidir (örn. `gpg --symmetric --cipher-algo AES256 yedek-20260814.sql` veya bulut sağlayıcının sunucu taraflı şifrelemesi + erişim kısıtlı bir bucket).
-- **Saklama yeri:** Kurumun kendi Supabase projesinden **fiziksel olarak ayrı** bir konum (farklı bulut sağlayıcı hesabı veya şifreli harici depolama) — tek nokta arızasını önlemek için.
+- **Şifreleme:** Dosya düz metin (SQL veya JSON) olarak çıkar ve öğrenci/veli PII'si içerir — diskte veya bulutta saklamadan önce şifrelenmelidir: `gpg --symmetric --cipher-algo AES256 yedek-20260817.json` (parolayı bir parola yöneticisinde saklayın).
+- **Saklama yeri:** Kurumun kendi Supabase projesinden **fiziksel olarak ayrı** bir konum (farklı bulut sağlayıcı hesabı veya şifreli harici depolama) — tek nokta arızasını önlemek için. Bu makinede geçici olarak `C:\Users\label\Yedekler\egitim-kurum-yonetim\` içinde tutuluyor — **bu, "fiziksel olarak ayrı" şartını karşılamıyor**, düzenli olarak harici bir konuma (bulut sürücü, harici disk) da kopyalanmalı.
 - **Saklama süresi:** Bkz. [`veri-saklama-politikasi.md`](./veri-saklama-politikasi.md) — finansal kayıtlarla aynı süre (varsayılan 5 yıl) referans alınabilir; daha eski dump'lar güvenli şekilde imha edilmelidir.
 - **Erişim:** Yalnızca kurum yöneticisi (ve varsa yedekleme sorumlusu) erişebilmeli; parola/anahtar başka bir kanaldan (örn. parola yöneticisi) saklanmalı.
+- **Kapsam notu:** `scripts/backup-data.sql` yalnızca `public` şemasını (iş verisini) yedekler — `auth.*` (kullanıcı/MFA) ve `storage.*` (dosya blob'ları) kapsam dışıdır. Bkz. aşağıdaki "2026-08-17 tatbikatı" notu.
+
+### Gerçek yedek kaydı
+
+| Tarih | Proje | Yöntem | Boyut (şifreli) | Kim |
+|---|---|---|---|---|
+| 2026-08-17 | `-dev` (`qhvezujyuckxkvietlyi`) | `scripts/backup-data.sql` | 4,7 KB | Claude (kullanıcı gözetiminde) |
+| 2026-08-17 | `-prod` (`kdykfuiedtsztxbpnnns`) | `scripts/backup-data.sql` | 2,3 KB | Claude (kullanıcı gözetiminde) |
 
 ## Geri yükleme prosedürü (test edilebilir adımlar)
 
@@ -34,7 +54,7 @@ Bu prosedür **düzenli olarak** (örn. 6 ayda bir) gerçek bir felaket senaryos
    gpg --decrypt yedek-20260814.sql.gpg > yedek-20260814.sql
    psql "$(supabase db url --linked)" -f yedek-20260814.sql
    ```
-   (Alternatif: `supabase db dump` yerine Supabase Dashboard'daki "Restore" özelliğini kullanıyorsanız, o akışı izleyin — dump formatı Dashboard'un beklediğiyle uyumlu olmalı.)
+   (Alternatif: `supabase db dump` yerine Supabase Dashboard'daki "Restore" özelliğini kullanıyorsanız, o akışı izleyin — dump formatı Dashboard'un beklediğiyle uyumlu olmalı. Docker yoksa ve `scripts/backup-data.sql` ile alınmış bir JSON yedeğiniz varsa, 2026-08-17 tatbikatındaki `jsonb_populate_recordset`-tabanlı geri yükleme yöntemini kullanın — bkz. aşağıdaki "2026-08-17 tatbikatı" bölümü.)
 4. Repo'daki `supabase/migrations/` klasöründeki tüm migration'ların dump içeriğiyle senkron olduğunu doğrulayın:
    ```bash
    supabase db push --dry-run

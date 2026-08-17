@@ -34,3 +34,9 @@ Thumbs.db
 
 # stray patch files
 *.patch
+
+# veritabani yedekleri — asla repoya girmemeli (PII icerir)
+yedek-*.json
+yedek-*.json.gpg
+yedek-*.sql
+yedek-*.sql.gpg

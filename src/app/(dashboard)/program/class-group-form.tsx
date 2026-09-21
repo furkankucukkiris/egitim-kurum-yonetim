@@ -122,7 +122,7 @@ export function ClassGroupForm({ mode, courses, teachers, group }: ClassGroupFor
         </div>
       )}
 
-      <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <section className="rounded-2xl border border-border bg-surface p-6">
         <h2 className="text-lg font-bold">Ders ve seans bilgileri</h2>
 
         <div className="mt-6 grid gap-5 md:grid-cols-2">
@@ -149,9 +149,7 @@ export function ClassGroupForm({ mode, courses, teachers, group }: ClassGroupFor
               <input type="hidden" name="courseId" value={group?.courseId} />
 
               <div className="rounded-xl bg-surface-muted p-4 md:col-span-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                  Ders
-                </p>
+                <p className="text-xs font-semibold text-text-secondary">Ders</p>
 
                 <p className="mt-1 font-bold">{group?.courseName}</p>
               </div>
@@ -284,7 +282,7 @@ export function ClassGroupForm({ mode, courses, teachers, group }: ClassGroupFor
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary disabled:opacity-60"
+          className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary disabled:opacity-60 transition active:scale-[0.98]"
         >
           {isPending
             ? "Kaydediliyor..."

@@ -751,13 +751,13 @@ async function AccrualReportView({
         </h3>
         <a
           href={`/raporlar/export?type=accrual&${exportQuery.toString()}`}
-          className="rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-surface-muted text-primary"
+          className="rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-surface-muted"
         >
           CSV olarak dışa aktar
         </a>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface">
         {byCourse.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-text-secondary">
             Seçili aralık ve filtrelerde tahakkuk kaydı yok.
@@ -935,13 +935,13 @@ async function CashFlowReportView({
         <h3 className="font-semibold text-text-primary">Ödeme yöntemi bazlı nakit akışı</h3>
         <a
           href={`/raporlar/export?type=cash&${exportQuery.toString()}`}
-          className="rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-surface-muted text-primary"
+          className="rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-surface-muted"
         >
           CSV olarak dışa aktar
         </a>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface">
         {byMethod.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-text-secondary">
             Seçili aralık ve filtrelerde nakit hareketi yok.

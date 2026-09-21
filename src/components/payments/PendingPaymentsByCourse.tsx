@@ -13,7 +13,7 @@ export function PendingPaymentsByCourse({
 }) {
   if (groups.length === 0) {
     return (
-      <div className="rounded-2xl border border-border bg-surface px-6 py-16 text-center shadow-sm">
+      <div className="rounded-2xl border border-border bg-surface px-6 py-16 text-center">
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-surface-muted text-2xl">
           ₺
         </div>

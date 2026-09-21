@@ -124,7 +124,7 @@ export function MfaEnrollForm() {
           type="button"
           onClick={startEnroll}
           disabled={isPending}
-          className="w-full rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary transition hover:bg-primary-hover disabled:opacity-60"
+          className="w-full rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary transition hover:bg-primary-hover disabled:opacity-60 active:scale-[0.98]"
         >
           {isPending ? "Hazırlanıyor..." : "Kuruluma başla"}
         </button>
@@ -187,7 +187,7 @@ export function MfaEnrollForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="w-full rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary transition hover:bg-primary-hover disabled:opacity-60"
+          className="w-full rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary transition hover:bg-primary-hover disabled:opacity-60 active:scale-[0.98]"
         >
           {isPending ? "Doğrulanıyor..." : "Doğrula ve etkinleştir"}
         </button>
@@ -230,7 +230,7 @@ export function MfaEnrollForm() {
         type="button"
         onClick={finish}
         disabled={!copied}
-        className="w-full rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary transition hover:bg-primary-hover disabled:opacity-60"
+        className="w-full rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary transition hover:bg-primary-hover disabled:opacity-60 active:scale-[0.98]"
       >
         Panele geç
       </button>

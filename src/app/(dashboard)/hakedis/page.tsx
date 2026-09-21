@@ -140,7 +140,7 @@ export default async function CompensationPage({ searchParams }: CompensationPag
 
             <button
               type="submit"
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
             >
               Bu ayın hakedişini oluştur
             </button>

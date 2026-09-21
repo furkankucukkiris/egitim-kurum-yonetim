@@ -197,7 +197,7 @@ export default async function MebManagementPage({ searchParams }: PageProps) {
 
       <MebDeficiencyList rows={deficiencies} />
 
-      <section className="mb-8 rounded-2xl border border-border bg-surface p-5 shadow-sm">
+      <section className="mb-8 rounded-2xl border border-border bg-surface p-5">
         <h2 className="text-xl font-bold">Öğretmen MEB izni politikası</h2>
 
         <p className="mt-1 text-sm text-text-secondary">
@@ -220,7 +220,7 @@ export default async function MebManagementPage({ searchParams }: PageProps) {
 
           <button
             type="submit"
-            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover"
+            className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
           >
             Kaydet
           </button>
@@ -241,7 +241,7 @@ export default async function MebManagementPage({ searchParams }: PageProps) {
             id={`course-${course.id}`}
             key={course.id}
             action={updateCourseMebInfo}
-            className="rounded-2xl border border-border bg-surface p-5 shadow-sm"
+            className="rounded-2xl border border-border bg-surface p-5"
           >
             <input type="hidden" name="courseId" value={course.id} />
 
@@ -314,7 +314,7 @@ export default async function MebManagementPage({ searchParams }: PageProps) {
             <div className="mt-4 flex justify-end">
               <button
                 type="submit"
-                className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary"
+                className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
               >
                 Ders MEB bilgisini kaydet
               </button>
@@ -347,7 +347,7 @@ export default async function MebManagementPage({ searchParams }: PageProps) {
                 id={`teacher_course-${pair.teacher_profile_id}-${pair.course_id}`}
                 key={`${pair.teacher_profile_id}:${pair.course_id}`}
                 action={updateTeacherCourseMeb}
-                className="rounded-2xl border border-border bg-surface p-5 shadow-sm"
+                className="rounded-2xl border border-border bg-surface p-5"
               >
                 <input type="hidden" name="teacherProfileId" value={pair.teacher_profile_id} />
 
@@ -418,7 +418,7 @@ export default async function MebManagementPage({ searchParams }: PageProps) {
                 <div className="mt-4 flex justify-end">
                   <button
                     type="submit"
-                    className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary"
+                    className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
                   >
                     Öğretmen MEB bilgisini kaydet
                   </button>

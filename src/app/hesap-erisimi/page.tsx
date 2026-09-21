@@ -12,12 +12,10 @@ export default async function AccountAccessPage() {
 
   return (
     <main className="grid min-h-screen place-items-center bg-surface px-4 py-10">
-      <div className="w-full max-w-md rounded-3xl border border-border bg-surface p-7 shadow-sm">
+      <div className="w-full max-w-md rounded-3xl border border-border bg-surface p-7">
         <AuthBrandHeader />
 
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-strong">
-          Hesap erişimi
-        </p>
+        <p className="text-sm font-semibold text-accent-strong">Hesap erişimi</p>
 
         <h1 className="mt-3 text-2xl font-bold">Aktif kurum profili bulunamadı</h1>
 
@@ -30,7 +28,7 @@ export default async function AccountAccessPage() {
           <form action={logout} className="mt-6">
             <button
               type="submit"
-              className="w-full rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary transition hover:bg-primary-hover"
+              className="w-full rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
             >
               Oturumu kapat
             </button>
@@ -38,7 +36,7 @@ export default async function AccountAccessPage() {
         ) : (
           <Link
             href="/giris"
-            className="mt-6 block w-full rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-center font-semibold text-on-primary transition hover:bg-primary-hover"
+            className="mt-6 block w-full rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-center font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
           >
             Giriş ekranına dön
           </Link>

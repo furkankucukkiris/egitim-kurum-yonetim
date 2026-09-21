@@ -78,7 +78,7 @@ export function MebDeficiencyList({ rows }: { rows: DeficiencyRow[] }) {
   }, [rows, onlyDeficient, onlyExpiringSoon, entityFilter, search]);
 
   return (
-    <section className="mb-8 rounded-2xl border border-border bg-surface p-5 shadow-sm">
+    <section className="mb-8 rounded-2xl border border-border bg-surface p-5">
       <h2 className="text-xl font-bold">Eksik &amp; Süre Takibi</h2>
 
       <p className="mt-1 text-sm text-text-secondary">

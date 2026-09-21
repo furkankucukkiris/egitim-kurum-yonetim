@@ -95,7 +95,7 @@ export default async function MebRosterPage({ searchParams }: PageProps) {
 
         <button
           type="submit"
-          className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary"
+          className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
         >
           Ayı kontrol et
         </button>
@@ -157,7 +157,7 @@ export default async function MebRosterPage({ searchParams }: PageProps) {
 
 function RosterTable({ rows, included }: { rows: RosterRow[]; included: boolean }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-border bg-surface">
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead className="bg-surface-muted">

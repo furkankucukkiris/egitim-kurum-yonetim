@@ -172,7 +172,7 @@ export function StudentEnrollmentManagement({
   }
 
   return (
-    <section className="mt-8 rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <section className="mt-8 rounded-2xl border border-border bg-surface p-6">
       <div className="flex flex-col gap-4 border-b border-primary-soft pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-bold">Ders kayıtları</h2>
@@ -186,7 +186,7 @@ export function StudentEnrollmentManagement({
           <button
             type="button"
             onClick={() => setFormOpen((current) => !current)}
-            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary"
+            className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
           >
             {formOpen ? "Formu kapat" : "+ Derse kaydet"}
           </button>
@@ -318,7 +318,7 @@ export function StudentEnrollmentManagement({
                     <div className="md:col-span-2 flex justify-end">
                       <button
                         type="submit"
-                        className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary"
+                        className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
                       >
                         MEB durumunu kaydet
                       </button>
@@ -549,7 +549,7 @@ export function StudentEnrollmentManagement({
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary disabled:opacity-60"
+              className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary disabled:opacity-60 transition active:scale-[0.98]"
             >
               {isPending ? "Ders kaydı oluşturuluyor..." : "Öğrenciyi derse kaydet"}
             </button>

@@ -23,12 +23,10 @@ export default async function MfaSetupPage() {
 
   return (
     <main className="grid min-h-screen place-items-center bg-surface px-4 py-10">
-      <div className="w-full max-w-md rounded-3xl border border-border bg-surface p-7 shadow-sm">
+      <div className="w-full max-w-md rounded-3xl border border-border bg-surface p-7">
         <AuthBrandHeader />
 
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-strong">
-          Zorunlu güvenlik adımı
-        </p>
+        <p className="text-sm font-semibold text-accent-strong">Zorunlu güvenlik adımı</p>
 
         <h1 className="mt-3 text-2xl font-bold">İki adımlı doğrulama kurulumu</h1>
 

@@ -98,7 +98,7 @@ export function SessionComments({
 
               <button
                 type="submit"
-                className="self-end rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                className="self-end rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring active:scale-[0.98]"
               >
                 Gönder
               </button>

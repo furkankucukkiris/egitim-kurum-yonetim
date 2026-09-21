@@ -52,7 +52,7 @@ export function PasswordForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary transition hover:bg-primary-hover disabled:opacity-60"
+        className="w-full rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary transition hover:bg-primary-hover disabled:opacity-60 active:scale-[0.98]"
       >
         {isPending ? "Kaydediliyor..." : "Parolamı belirle"}
       </button>

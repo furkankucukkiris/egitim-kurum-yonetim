@@ -12,7 +12,7 @@ export function TeacherAccountForm() {
   const [state, formAction, isPending] = useActionState(createTeacherAccount, initialState);
 
   return (
-    <section className="mb-6 rounded-2xl border border-border bg-surface p-5 shadow-sm md:p-6">
+    <section className="mb-6 rounded-2xl border border-border bg-surface p-5 md:p-6">
       <div className="max-w-2xl">
         <h2 className="text-lg font-bold">Yeni öğretmen hesabı</h2>
 
@@ -99,7 +99,7 @@ export function TeacherAccountForm() {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover disabled:opacity-60 md:w-auto"
+            className="w-full rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover disabled:opacity-60 md:w-auto active:scale-[0.98]"
           >
             {isPending ? "Hesap oluşturuluyor..." : "Öğretmen hesabı oluştur"}
           </button>

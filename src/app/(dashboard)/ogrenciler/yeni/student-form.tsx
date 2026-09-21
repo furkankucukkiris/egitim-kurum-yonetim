@@ -70,7 +70,7 @@ export function StudentForm({ initialRegistrationDate }: StudentFormProps) {
         </div>
       )}
 
-      <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm md:p-7">
+      <section className="rounded-2xl border border-border bg-surface p-5 md:p-7">
         <div className="border-b border-primary-soft pb-4">
           <h2 className="text-lg font-bold">Öğrenci bilgileri</h2>
 
@@ -153,7 +153,7 @@ export function StudentForm({ initialRegistrationDate }: StudentFormProps) {
         </label>
       </section>
 
-      <section className="rounded-2xl border border-border bg-surface p-5 shadow-sm md:p-7">
+      <section className="rounded-2xl border border-border bg-surface p-5 md:p-7">
         <div className="border-b border-primary-soft pb-4">
           <h2 className="text-lg font-bold">Birincil veli bilgileri</h2>
 
@@ -258,7 +258,7 @@ export function StudentForm({ initialRegistrationDate }: StudentFormProps) {
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.98]"
         >
           {isPending ? "Öğrenci kaydediliyor..." : "Öğrenciyi kaydet"}
         </button>

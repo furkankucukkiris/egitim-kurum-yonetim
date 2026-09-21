@@ -62,7 +62,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
         action={
           <Link
             href="/dersler/yeni"
-            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary"
+            className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
           >
             + Ders ekle
           </Link>
@@ -88,7 +88,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
       )}
 
       {courses.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-surface px-6 py-16 text-center shadow-sm">
+        <div className="rounded-2xl border border-border bg-surface px-6 py-16 text-center">
           <h2 className="text-lg font-bold">Henüz ders tanımı yok</h2>
 
           <p className="mt-2 text-sm text-text-secondary">
@@ -97,7 +97,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
 
           <Link
             href="/dersler/yeni"
-            className="mt-6 inline-block rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary"
+            className="mt-6 inline-block rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
           >
             İlk dersi oluştur
           </Link>
@@ -107,7 +107,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
           {courses.map((course) => (
             <article
               key={course.id}
-              className={`rounded-2xl border bg-surface p-5 shadow-sm ${
+              className={`rounded-2xl border bg-surface p-5 ${
                 course.is_active ? "border-border" : "border-border opacity-65"
               }`}
             >

@@ -44,15 +44,15 @@ export function ReportFilters({
   const hasActiveFilter = courseId || studentStatus || (showMethodFilter && method);
 
   return (
-    <div className="mb-6 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+    <div className="mb-6 rounded-2xl border border-border bg-surface p-4">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-medium text-text-secondary">Aralık:</span>
 
         <Link
           href={`/raporlar?view=${view}&range=last6`}
-          className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+          className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition active:scale-[0.98] ${
             range === "last6"
-              ? "bg-primary text-on-primary shadow-sm"
+              ? "bg-primary text-on-primary"
               : "border border-border text-text-primary hover:bg-surface-muted"
           }`}
         >
@@ -61,9 +61,9 @@ export function ReportFilters({
 
         <Link
           href={`/raporlar?view=${view}&range=last12`}
-          className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+          className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition active:scale-[0.98] ${
             range === "last12"
-              ? "bg-primary text-on-primary shadow-sm"
+              ? "bg-primary text-on-primary"
               : "border border-border text-text-primary hover:bg-surface-muted"
           }`}
         >
@@ -71,7 +71,7 @@ export function ReportFilters({
         </Link>
 
         {range === "custom" && (
-          <span className="rounded-lg bg-accent-soft px-3 py-1.5 text-sm font-semibold text-accent-strong bg-accent-soft">
+          <span className="rounded-lg bg-accent-soft px-3 py-1.5 text-sm font-semibold text-accent-strong">
             Özel aralık
           </span>
         )}
@@ -159,7 +159,7 @@ export function ReportFilters({
         <div className="flex items-end gap-2">
           <button
             type="submit"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
           >
             Filtrele
           </button>

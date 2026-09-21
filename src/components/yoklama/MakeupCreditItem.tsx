@@ -118,7 +118,7 @@ export function MakeupCreditItem({
           <button
             type="submit"
             disabled={sessionsForCourse.length === 0}
-            className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-on-primary shadow-sm hover:bg-primary-hover disabled:opacity-50"
+            className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-on-primary hover:bg-primary-hover disabled:opacity-50 transition active:scale-[0.98]"
           >
             Ekle
           </button>
@@ -191,7 +191,7 @@ export function MakeupCreditItem({
 
           <button
             type="submit"
-            className="self-end rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-on-primary shadow-sm hover:bg-primary-hover sm:col-span-2 sm:w-fit sm:justify-self-end"
+            className="self-end rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-on-primary hover:bg-primary-hover sm:col-span-2 sm:w-fit sm:justify-self-end transition active:scale-[0.98]"
           >
             Telafi oturumu oluştur
           </button>

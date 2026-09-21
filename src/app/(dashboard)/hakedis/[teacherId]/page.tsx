@@ -299,7 +299,7 @@ export default async function TeacherCompensationPage({ params, searchParams }: 
 
                 <button
                   type="submit"
-                  className="justify-self-start rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
+                  className="justify-self-start rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
                 >
                   Kuralı ekle
                 </button>

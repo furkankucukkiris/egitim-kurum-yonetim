@@ -205,14 +205,14 @@ export default async function TeacherPanelPage() {
           <div className="flex gap-2">
             <Link
               href="/ogretmen-paneli/hakedisim"
-              className="rounded-xl border border-border bg-surface shadow-sm px-4 py-3 text-center text-sm font-semibold text-text-primary transition hover:bg-surface-muted"
+              className="rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-semibold text-text-primary transition hover:bg-surface-muted"
             >
               Hakedişim
             </Link>
 
             <Link
               href="/meb-yoklama"
-              className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-center text-sm font-semibold text-on-primary"
+              className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-center text-sm font-semibold text-on-primary transition active:scale-[0.98]"
             >
               Aylık MEB listem
             </Link>
@@ -264,7 +264,7 @@ export default async function TeacherPanelPage() {
             {trialLessons.map((lesson) => (
               <article
                 key={lesson.lesson_session_id}
-                className="rounded-2xl border border-accent/40 bg-accent-soft border-accent/40 bg-accent-soft p-5 shadow-sm"
+                className="rounded-2xl border border-accent/40 bg-accent-soft p-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -317,7 +317,7 @@ export default async function TeacherPanelPage() {
             {groups.map((group) => (
               <article
                 key={group.id}
-                className="rounded-2xl border border-border bg-surface p-5 shadow-sm"
+                className="rounded-2xl border border-border bg-surface p-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -406,7 +406,7 @@ function EnrollmentTable({
   mebOnly?: boolean;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-border bg-surface">
       <div className="overflow-x-auto">
         <table className="min-w-full text-left text-sm">
           <thead className="bg-surface-muted text-xs uppercase tracking-wide text-text-secondary">
@@ -498,7 +498,7 @@ function MebBadge({ status }: { status: string }) {
 
 function EmptyState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-8 text-center text-sm text-text-secondary shadow-sm">
+    <div className="rounded-2xl border border-border bg-surface p-8 text-center text-sm text-text-secondary">
       {children}
     </div>
   );

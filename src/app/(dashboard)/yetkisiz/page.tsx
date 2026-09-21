@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function UnauthorizedPage() {
   return (
     <div className="mx-auto max-w-xl py-12">
-      <div className="rounded-3xl border border-border bg-surface p-8 text-center shadow-sm">
+      <div className="rounded-3xl border border-border bg-surface p-8 text-center">
         <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-danger-soft text-2xl text-danger">
           !
         </div>
@@ -16,7 +16,7 @@ export default function UnauthorizedPage() {
 
         <Link
           href="/"
-          className="mt-6 inline-block rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary"
+          className="mt-6 inline-block rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
         >
           Ana sayfaya dön
         </Link>

@@ -57,7 +57,7 @@ export function StudentBalanceTable({
   const rangeStart = totalCount > 0 ? (page - 1) * pageSize + 1 : 0;
   const rangeEnd = totalCount > 0 ? Math.min(page * pageSize, totalCount) : 0;
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-border bg-surface">
       <form
         method="get"
         action="/odemeler"
@@ -109,7 +109,7 @@ export function StudentBalanceTable({
         <div className="flex items-end gap-2">
           <button
             type="submit"
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
           >
             Filtrele
           </button>

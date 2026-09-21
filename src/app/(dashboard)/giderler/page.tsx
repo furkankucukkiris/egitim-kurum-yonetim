@@ -168,7 +168,7 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
 
         <Link
           href="/giderler/yeni"
-          className="ml-auto rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
+          className="ml-auto rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
         >
           Yeni masraf
         </Link>
@@ -300,7 +300,7 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
 
             <button
               type="submit"
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
             >
               Ekle
             </button>
@@ -443,7 +443,7 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
             <div className="sm:col-span-2">
               <button
                 type="submit"
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
               >
                 Şablon ekle
               </button>

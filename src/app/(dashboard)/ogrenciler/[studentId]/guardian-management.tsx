@@ -53,7 +53,7 @@ export function GuardianManagement({ studentId, guardians, isArchived }: Guardia
   }
 
   return (
-    <section className="mt-8 rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <section className="mt-8 rounded-2xl border border-border bg-surface p-6">
       <div className="flex flex-col gap-4 border-b border-primary-soft pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-bold">Veli bağlantıları</h2>
@@ -67,7 +67,7 @@ export function GuardianManagement({ studentId, guardians, isArchived }: Guardia
           <button
             type="button"
             onClick={() => setAddFormOpen((current) => !current)}
-            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary"
+            className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
           >
             {addFormOpen ? "Formu kapat" : "+ Veli ekle"}
           </button>
@@ -293,7 +293,7 @@ export function GuardianManagement({ studentId, guardians, isArchived }: Guardia
             <button
               type="submit"
               disabled={isPending}
-              className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary disabled:opacity-60"
+              className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary disabled:opacity-60 transition active:scale-[0.98]"
             >
               {isPending ? "Veli ekleniyor..." : "Veliyi kaydet"}
             </button>

@@ -430,7 +430,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
         action={
           <a
             href={`/odemeler/export?month=${selectedMonth}`}
-            className="rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-primary shadow-sm transition hover:bg-surface-muted text-primary"
+            className="rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-primary transition hover:bg-surface-muted"
           >
             CSV olarak dışa aktar
           </a>
@@ -455,7 +455,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
         </div>
       )}
 
-      <section className="mb-6 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <section className="mb-6 rounded-2xl border border-border bg-surface p-4">
         <div className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-center">
           <Link
             href={`/odemeler?month=${previousMonth}`}
@@ -465,7 +465,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
           </Link>
 
           <div className="text-center">
-            <p className="text-xs uppercase tracking-wide text-text-secondary">Görüntülenen ay</p>
+            <p className="text-sm text-text-secondary">Görüntülenen ay</p>
             <h2 className="text-lg font-bold text-text-primary">
               {formatMonthYearFromKey(selectedMonth)}
             </h2>
@@ -499,7 +499,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
           </p>
           <button
             type="submit"
-            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover"
+            className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
           >
             Bu ayın tahakkuklarını oluştur
           </button>
@@ -585,7 +585,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
 
       <h3 className="mb-3 mt-8 font-semibold text-text-primary">Bu ayki tahsilat hareketleri</h3>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface">
         {payments.length === 0 ? (
           <p className="px-5 py-10 text-center text-sm text-text-secondary">
             {formatMonthYearFromKey(selectedMonth)} içinde kayıtlı bir tahsilat yok.

@@ -210,7 +210,7 @@ export function AttendanceRoster({
                 <div className="flex gap-2">
                   <button
                     type="submit"
-                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary shadow-sm hover:bg-primary-hover"
+                    className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary hover:bg-primary-hover transition active:scale-[0.98]"
                   >
                     Kilidi aç
                   </button>
@@ -372,7 +372,7 @@ export function AttendanceRoster({
             type="button"
             disabled={isPending}
             onClick={handleSave}
-            className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover disabled:opacity-60"
+            className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover disabled:opacity-60 active:scale-[0.98]"
           >
             {isPending ? "Kaydediliyor…" : "Yoklamayı kaydet"}
           </button>
@@ -398,7 +398,7 @@ export function AttendanceRoster({
 
 function MakeupBadge() {
   return (
-    <span className="ml-2 rounded-full bg-info-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-info bg-info-soft text-info">
+    <span className="ml-2 rounded-full bg-info-soft px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-info">
       Telafi
     </span>
   );

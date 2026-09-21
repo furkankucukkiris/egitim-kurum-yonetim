@@ -469,7 +469,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
       )}
 
       {profile.role === "admin" && unmarkedSessions.length > 0 && (
-        <section className="mb-6 rounded-2xl border border-accent/30 bg-accent-soft p-5 shadow-sm border-accent/40 bg-accent-soft">
+        <section className="mb-6 rounded-2xl border border-accent/30 bg-accent-soft p-5 border-accent/40">
           <h2 className="font-bold text-accent-strong">
             Yoklaması alınmamış geçmiş dersler
           </h2>
@@ -483,7 +483,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
               <li key={session.lesson_session_id}>
                 <Link
                   href={`/yoklama?date=${session.starts_at.slice(0, 10)}`}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface px-4 py-2.5 text-sm shadow-sm hover:bg-surface-muted"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface px-4 py-2.5 text-sm hover:bg-surface-muted"
                 >
                   <span className="font-semibold text-text-primary">
                     {session.course_name}
@@ -502,12 +502,12 @@ export default async function AttendancePage({ searchParams }: PageProps) {
       )}
 
       {profile.role === "admin" && pendingRequests.length > 0 && (
-        <section className="mb-6 rounded-2xl border border-info/30 bg-info-soft p-5 shadow-sm border-info/30 bg-info-soft">
+        <section className="mb-6 rounded-2xl border border-info/30 bg-info-soft p-5">
           <h2 className="font-bold text-info text-info">Bekleyen iptal/değişiklik talepleri</h2>
 
           <ul className="mt-3 space-y-3">
             {pendingRequests.map((request) => (
-              <li key={request.request_id} className="rounded-xl bg-surface p-3 shadow-sm">
+              <li key={request.request_id} className="rounded-xl bg-surface p-3">
                 <p className="text-sm font-semibold text-text-primary">
                   {request.requested_by_name} —{" "}
                   {request.request_type === "cancel" ? "İptal talebi" : "Yeniden planlama talebi"}
@@ -536,7 +536,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
 
                     <button
                       type="submit"
-                      className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary shadow-sm hover:bg-primary-hover"
+                      className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary hover:bg-primary-hover transition active:scale-[0.98]"
                     >
                       Onayla
                     </button>
@@ -562,7 +562,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
       )}
 
       {profile.role === "admin" && pendingCredits.length > 0 && (
-        <section className="mb-6 rounded-2xl border border-border bg-surface p-5 shadow-sm">
+        <section className="mb-6 rounded-2xl border border-border bg-surface p-5">
           <h2 className="font-bold text-text-primary">Bekleyen telafi hakları</h2>
 
           <p className="mt-1 text-sm text-text-secondary">
@@ -585,7 +585,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
       )}
 
       {profile.role === "admin" && (
-        <section className="mb-6 rounded-2xl border border-border bg-surface p-5 shadow-sm">
+        <section className="mb-6 rounded-2xl border border-border bg-surface p-5">
           <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <h2 className="font-bold">Aylık oturumları oluştur</h2>
@@ -613,7 +613,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
 
               <button
                 type="submit"
-                className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary"
+                className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
               >
                 Ayın oturumlarını oluştur
               </button>
@@ -629,7 +629,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
         </div>
       )}
 
-      <section className="mb-6 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <section className="mb-6 rounded-2xl border border-border bg-surface p-4">
         <form method="get" className="grid gap-3 sm:grid-cols-[auto_1fr_auto] sm:items-end">
           <Link
             href={`/yoklama?date=${previousDate}`}
@@ -651,7 +651,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
 
           <button
             type="submit"
-            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary"
+            className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
           >
             Tarihe git
           </button>
@@ -699,7 +699,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
       )}
 
       {sessions.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-surface px-6 py-16 text-center shadow-sm">
+        <div className="rounded-2xl border border-border bg-surface px-6 py-16 text-center">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-surface-muted text-2xl">
             ◫
           </div>
@@ -722,7 +722,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
             return (
               <article
                 key={session.id}
-                className={`rounded-2xl border bg-surface p-5 shadow-sm ${
+                className={`rounded-2xl border bg-surface p-5 ${
                   session.cancelled_at ? "border-danger/30 bg-danger-soft/30" : "border-border"
                 }`}
               >
@@ -819,7 +819,7 @@ export default async function AttendancePage({ searchParams }: PageProps) {
 
 function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+    <div className="rounded-2xl border border-border bg-surface p-4">
       <p className="text-sm text-text-secondary">{label}</p>
 
       <p className="mt-2 text-2xl font-bold">{value}</p>

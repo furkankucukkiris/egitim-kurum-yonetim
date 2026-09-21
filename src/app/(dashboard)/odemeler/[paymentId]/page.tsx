@@ -373,7 +373,7 @@ export default async function PaymentDetailPage({ params, searchParams }: PagePr
 
                   <button
                     type="submit"
-                    className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
+                    className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
                   >
                     Avansı uygula
                   </button>

@@ -125,7 +125,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
         action={
           <Link
             href="/ogrenciler/yeni"
-            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-center text-sm font-semibold text-on-primary transition hover:bg-primary-hover"
+            className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-center text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
           >
             + Öğrenci ekle
           </Link>
@@ -172,7 +172,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
         </button>
       </form>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface">
         {students.length === 0 ? (
           <div className="px-6 py-16 text-center">
             <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-surface-muted text-2xl">
@@ -187,7 +187,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
 
             <Link
               href="/ogrenciler/yeni"
-              className="mt-6 inline-block rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary"
+              className="mt-6 inline-block rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
             >
               İlk öğrenciyi ekle
             </Link>

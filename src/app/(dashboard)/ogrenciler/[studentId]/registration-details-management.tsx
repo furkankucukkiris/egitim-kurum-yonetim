@@ -52,7 +52,7 @@ export function RegistrationDetailsManagement({
     <form action={formAction} className="mt-8">
       <input type="hidden" name="studentId" value={studentId} />
 
-      <section className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <section className="rounded-2xl border border-border bg-surface p-6">
         <h2 className="text-lg font-bold">Resmî kayıt formu bilgileri</h2>
 
         <p className="mt-1 text-sm text-text-secondary">
@@ -177,7 +177,7 @@ export function RegistrationDetailsManagement({
           <button
             type="submit"
             disabled={isPending}
-            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary disabled:opacity-60"
+            className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary disabled:opacity-60 transition active:scale-[0.98]"
           >
             {isPending ? "Kaydediliyor..." : "Kaydet"}
           </button>

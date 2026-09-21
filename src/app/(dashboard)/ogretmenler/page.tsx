@@ -123,7 +123,7 @@ export default async function TeachersPage({ searchParams }: PageProps) {
       <TeacherAccountForm />
 
       {teachers.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-surface px-6 py-16 text-center shadow-sm">
+        <div className="rounded-2xl border border-border bg-surface px-6 py-16 text-center">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-surface-muted text-2xl">
             ◇
           </div>
@@ -167,7 +167,7 @@ export default async function TeachersPage({ searchParams }: PageProps) {
             return (
               <article
                 key={teacher.id}
-                className={`rounded-2xl border bg-surface p-5 shadow-sm ${
+                className={`rounded-2xl border bg-surface p-5 ${
                   teacher.is_active ? "border-border" : "border-border opacity-65"
                 }`}
               >

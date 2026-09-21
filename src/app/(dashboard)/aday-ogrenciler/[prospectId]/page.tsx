@@ -311,7 +311,7 @@ export default async function ProspectDetailPage({
 
             <button
               type="submit"
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
             >
               Kaydet
             </button>
@@ -500,7 +500,7 @@ export default async function ProspectDetailPage({
                 <div className="sm:col-span-2">
                   <button
                     type="submit"
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
                   >
                     {hasActiveTrial ? "Yeniden planla" : "Planla"}
                   </button>
@@ -591,7 +591,7 @@ export default async function ProspectDetailPage({
                 <div className="sm:col-span-2">
                   <button
                     type="submit"
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover"
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
                   >
                     Öğrenciye dönüştür
                   </button>

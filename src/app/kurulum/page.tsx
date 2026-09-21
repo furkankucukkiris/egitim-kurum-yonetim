@@ -45,12 +45,10 @@ export default async function SetupPage({ searchParams }: SetupPageProps) {
 
   return (
     <div className="mx-auto max-w-xl py-10">
-      <div className="rounded-3xl border border-border bg-surface p-7 shadow-sm">
+      <div className="rounded-3xl border border-border bg-surface p-7">
         <AuthBrandHeader />
 
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent-strong">
-          İlk kurulum
-        </p>
+        <p className="text-sm font-semibold text-accent-strong">İlk kurulum</p>
 
         <h2 className="mt-3 text-2xl font-bold">Kurum hesabını oluşturun</h2>
 
@@ -92,7 +90,7 @@ export default async function SetupPage({ searchParams }: SetupPageProps) {
 
           <button
             type="submit"
-            className="w-full rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary hover:bg-primary-hover"
+            className="w-full rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 font-semibold text-on-primary hover:bg-primary-hover transition active:scale-[0.98]"
           >
             Kurulumu tamamla
           </button>

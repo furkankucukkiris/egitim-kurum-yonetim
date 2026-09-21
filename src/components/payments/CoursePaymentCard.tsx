@@ -70,7 +70,7 @@ export function CoursePaymentCard({
   const pendingCount = group.rows.filter((row) => row.status !== "paid").length;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+    <div className="overflow-hidden rounded-2xl border border-border bg-surface">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
@@ -318,7 +318,7 @@ function StudentRow({
 
               <button
                 type="submit"
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring active:scale-[0.98]"
               >
                 Ödemeyi kaydet
               </button>

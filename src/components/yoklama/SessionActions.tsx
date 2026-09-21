@@ -181,7 +181,7 @@ function RescheduleForm({
 
       <button
         type="submit"
-        className="self-end rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary shadow-sm hover:bg-primary-hover sm:col-span-2 sm:w-fit sm:justify-self-end"
+        className="self-end rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary hover:bg-primary-hover sm:col-span-2 sm:w-fit sm:justify-self-end transition active:scale-[0.98]"
       >
         {submitLabel}
       </button>
@@ -260,7 +260,7 @@ function RequestForm({ sessionId, date }: { sessionId: string; date: string }) {
 
       <button
         type="submit"
-        className="self-end rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary shadow-sm hover:bg-primary-hover"
+        className="self-end rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-on-primary hover:bg-primary-hover transition active:scale-[0.98]"
       >
         Talebi gönder
       </button>

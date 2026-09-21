@@ -258,7 +258,7 @@ export default async function DashboardPage() {
         action={
           <Link
             href="/ogrenciler/yeni"
-            className="rounded-xl bg-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover"
+            className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-on-primary transition-[background-color,transform] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-primary-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
           >
             + Yeni öğrenci
           </Link>

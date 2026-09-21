@@ -185,7 +185,7 @@ export function AppShell({
         <header className="print:hidden sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-surface/95 px-4 backdrop-blur md:px-8">
           <button
             type="button"
-            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
+            className="rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-text-primary transition-[background-color,transform] duration-150 hover:bg-surface-hover active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
             onClick={() => setOpen(true)}
           >
             Menü
@@ -206,21 +206,21 @@ export function AppShell({
 
 function Brand({ institution, logoUrl }: { institution: string; logoUrl: string | null }) {
   return (
-    <div className="border-b border-white/10 p-6">
+    <div className="flex items-center gap-3 border-b border-white/10 p-6">
       {logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={logoUrl} alt={institution} className="mb-3 h-11 w-11 rounded-2xl object-cover" />
+        <img
+          src={logoUrl}
+          alt={institution}
+          className="h-11 w-11 shrink-0 rounded-2xl object-cover"
+        />
       ) : (
-        <div className="mb-3 grid h-11 w-11 place-items-center rounded-2xl bg-accent font-black text-on-accent">
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-accent font-black text-on-accent">
           {getInitials(institution)}
         </div>
       )}
 
-      <p className="text-xs font-medium uppercase tracking-[0.2em] text-sidebar-muted">
-        Yönetim Paneli
-      </p>
-
-      <h1 className="mt-2 text-base font-semibold leading-snug">{institution}</h1>
+      <h1 className="text-base font-semibold leading-snug tracking-[-0.01em]">{institution}</h1>
     </div>
   );
 }
@@ -259,14 +259,14 @@ function Navigation({
             href={item.href}
             onClick={onSelect}
             className={cn(
-              "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+              "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
               active
                 ? "bg-sidebar-active text-on-sidebar-active"
                 : "text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-text",
             )}
             aria-current={active ? "page" : undefined}
           >
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-current/10 text-base">
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-current/10 text-base transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5">
               {item.icon}
             </span>
 
@@ -294,7 +294,7 @@ function AccountSection({ userName, userRole }: { userName: string; userRole: Ap
       <form action={logout}>
         <button
           type="submit"
-          className="w-full rounded-xl bg-sidebar-hover px-4 py-3 text-left text-sm font-medium text-sidebar-text transition-colors hover:bg-sidebar-hover/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
+          className="w-full rounded-xl bg-sidebar-hover px-4 py-3 text-left text-sm font-medium text-sidebar-text transition-[background-color,transform] duration-150 hover:bg-sidebar-hover/70 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
         >
           Çıkış yap
         </button>

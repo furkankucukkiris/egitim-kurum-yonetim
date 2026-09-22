@@ -1,22 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { RosterTable, type RosterRow } from "./roster-table";
 
-type RosterRow = {
-  enrollment_id: string;
-  student_full_name: string;
-  course_name: string;
-  teacher_full_name: string | null;
-  compliance_reason: string | null;
-};
-
-export function ExcludedRosterFilter<T extends RosterRow>({
-  rows,
-  children,
-}: {
-  rows: T[];
-  children: (filteredRows: T[]) => React.ReactNode;
-}) {
+export function ExcludedRosterFilter({ rows }: { rows: RosterRow[] }) {
   const [search, setSearch] = useState("");
 
   const filteredRows = useMemo(() => {
@@ -48,7 +35,7 @@ export function ExcludedRosterFilter<T extends RosterRow>({
         />
       </label>
 
-      {children(filteredRows)}
+      <RosterTable rows={filteredRows} included={false} />
     </>
   );
 }

@@ -16,7 +16,7 @@ const orbitron = Orbitron({
 });
 
 export const metadata: Metadata = {
-  title: "Eğitim Kurumu Yönetim Sistemi",
+  title: "Efsu Yönetim",
   description: "Öğrenci, ödeme, yoklama ve raporlama yönetimi",
 };
 

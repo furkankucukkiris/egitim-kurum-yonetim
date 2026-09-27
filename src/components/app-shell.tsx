@@ -78,6 +78,12 @@ const navigation: NavigationItem[] = [
     roles: ["admin", "teacher"],
   },
   {
+    href: "/ogretmen-paneli/hakedisim",
+    label: "Hakedişim",
+    icon: "◆",
+    roles: ["teacher"],
+  },
+  {
     href: "/ogretmenler",
     label: "Öğretmenler",
     icon: "◇",
@@ -248,10 +254,17 @@ function Navigation({
   pathname: string;
   onSelect: () => void;
 }) {
+  // Birden fazla nav öğesi aynı yolun öneki olabiliyor (ör. /ogretmen-paneli
+  // ve /ogretmen-paneli/hakedisim). Yalnızca en uzun eşleşen href'i aktif
+  // işaretleyerek üst ve alt öğelerin aynı anda vurgulanmasını önlüyoruz.
+  const activeHref = items
+    .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+
   return (
     <nav className="scrollbar-hidden min-h-0 flex-1 space-y-1 overflow-y-auto p-4">
       {items.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active = item.href === activeHref;
 
         return (
           <Link

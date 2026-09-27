@@ -41,7 +41,7 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
-      className={`${inter.variable} ${orbitron.variable}`}
+      className={`${inter.variable} ${orbitron.variable} scroll-smooth`}
       suppressHydrationWarning
     >
       <body>

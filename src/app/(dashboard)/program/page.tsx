@@ -15,6 +15,7 @@ type GroupRow = {
   starts_on: string;
   ends_on: string | null;
   is_active: boolean;
+  course_id: string;
 
   course: {
     name: string;
@@ -31,11 +32,18 @@ type EnrollmentRow = {
   status: "active" | "frozen" | "cancelled" | "completed";
 };
 
+type CourseOption = {
+  id: string;
+  name: string;
+};
+
 type ProgramPageProps = {
   searchParams: Promise<{
     success?: string;
     error?: string;
     warning?: string;
+    weekday?: string;
+    courseId?: string;
   }>;
 };
 
@@ -55,53 +63,72 @@ export default async function ProgramPage({ searchParams }: ProgramPageProps) {
   const messages = await searchParams;
   const supabase = await createClient();
 
-  const [groupsResult, enrollmentsResult, waitlistOpportunitiesResult] = await Promise.all([
-    supabase
-      .from("class_groups")
-      .select(
-        `
-          id,
+  const selectedWeekday =
+    messages.weekday && /^[1-7]$/.test(messages.weekday) ? Number(messages.weekday) : null;
+
+  const selectedCourseId = messages.courseId || null;
+
+  let groupsQuery = supabase
+    .from("class_groups")
+    .select(
+      `
+        id,
+        name,
+        room_name,
+        capacity,
+        weekday,
+        start_time,
+        duration_minutes,
+        starts_on,
+        ends_on,
+        is_active,
+        course_id,
+        course:courses (
           name,
-          room_name,
-          capacity,
-          weekday,
-          start_time,
-          duration_minutes,
-          starts_on,
-          ends_on,
-          is_active,
-          course:courses (
-            name,
-            course_type
-          ),
-          teacher:profiles (
-            full_name
-          )
-        `,
-      )
-      .order("is_active", {
-        ascending: false,
-      })
-      .order("weekday", {
-        ascending: true,
-      })
-      .order("start_time", {
-        ascending: true,
-      }),
+          course_type
+        ),
+        teacher:profiles (
+          full_name
+        )
+      `,
+    )
+    .order("is_active", {
+      ascending: false,
+    })
+    .order("weekday", {
+      ascending: true,
+    })
+    .order("start_time", {
+      ascending: true,
+    });
 
-    supabase
-      .from("enrollments")
-      .select(
-        `
-          class_group_id,
-          status
-        `,
-      )
-      .in("status", ["active", "frozen"])
-      .not("class_group_id", "is", null),
+  if (selectedWeekday !== null) {
+    groupsQuery = groupsQuery.eq("weekday", selectedWeekday);
+  }
 
-    supabase.rpc("get_waitlist_opportunities"),
-  ]);
+  if (selectedCourseId) {
+    groupsQuery = groupsQuery.eq("course_id", selectedCourseId);
+  }
+
+  const [groupsResult, enrollmentsResult, waitlistOpportunitiesResult, coursesResult] =
+    await Promise.all([
+      groupsQuery,
+
+      supabase
+        .from("enrollments")
+        .select(
+          `
+            class_group_id,
+            status
+          `,
+        )
+        .in("status", ["active", "frozen"])
+        .not("class_group_id", "is", null),
+
+      supabase.rpc("get_waitlist_opportunities"),
+
+      supabase.from("courses").select("id, name").order("name"),
+    ]);
 
   if (groupsResult.error) {
     console.error("Program alınamadı:", groupsResult.error);
@@ -115,7 +142,15 @@ export default async function ProgramPage({ searchParams }: ProgramPageProps) {
     console.error("Bekleme listesi sayıları alınamadı:", waitlistOpportunitiesResult.error);
   }
 
+  if (coursesResult.error) {
+    console.error("Ders listesi alınamadı:", coursesResult.error);
+  }
+
   const groups = (groupsResult.data ?? []) as unknown as GroupRow[];
+
+  const courseOptions = (coursesResult.data ?? []) as CourseOption[];
+
+  const hasActiveFilters = selectedWeekday !== null || Boolean(selectedCourseId);
 
   const enrollments = (enrollmentsResult.data ?? []) as EnrollmentRow[];
 
@@ -174,20 +209,87 @@ export default async function ProgramPage({ searchParams }: ProgramPageProps) {
         </div>
       )}
 
+      <section className="mb-6 rounded-2xl border border-border bg-surface p-4">
+        <form method="get" className="grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto] sm:items-end">
+          <label className="block text-sm font-medium">
+            Gün
+            <select
+              name="weekday"
+              defaultValue={selectedWeekday !== null ? String(selectedWeekday) : ""}
+              className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm"
+            >
+              <option value="">Tüm günler</option>
+
+              {Object.entries(weekdayLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block text-sm font-medium">
+            Ders
+            <select
+              name="courseId"
+              defaultValue={selectedCourseId ?? ""}
+              className="mt-2 w-full rounded-xl border border-border px-4 py-3 text-sm"
+            >
+              <option value="">Tüm dersler</option>
+
+              {courseOptions.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button
+            type="submit"
+            className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
+          >
+            Filtrele
+          </button>
+
+          {hasActiveFilters && (
+            <Link
+              href="/program"
+              className="rounded-xl border border-border bg-surface px-5 py-3 text-center text-sm font-semibold text-primary transition hover:bg-surface-muted"
+            >
+              Filtreyi temizle
+            </Link>
+          )}
+        </form>
+      </section>
+
       {groups.length === 0 ? (
         <div className="rounded-2xl border border-border bg-surface px-6 py-16 text-center">
-          <h2 className="text-lg font-bold">Henüz ders seansı yok</h2>
+          <h2 className="text-lg font-bold">
+            {hasActiveFilters ? "Bu filtrelere uygun ders seansı yok" : "Henüz ders seansı yok"}
+          </h2>
 
           <p className="mt-2 text-sm text-text-secondary">
-            Haftalık ders günlerini ve saatlerini oluşturarak programı başlatın.
+            {hasActiveFilters
+              ? "Farklı bir gün veya ders seçerek tekrar deneyin."
+              : "Haftalık ders günlerini ve saatlerini oluşturarak programı başlatın."}
           </p>
 
-          <Link
-            href="/program/yeni"
-            className="mt-6 inline-block rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
-          >
-            İlk seansı oluştur
-          </Link>
+          {hasActiveFilters ? (
+            <Link
+              href="/program"
+              className="mt-6 inline-block rounded-xl border border-border px-5 py-3 text-sm font-semibold text-primary"
+            >
+              Filtreyi temizle
+            </Link>
+          ) : (
+            <Link
+              href="/program/yeni"
+              className="mt-6 inline-block rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-5 py-3 text-sm font-semibold text-on-primary transition active:scale-[0.98]"
+            >
+              İlk seansı oluştur
+            </Link>
+          )}
         </div>
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">

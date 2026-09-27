@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { requireRole } from "@/lib/auth";
@@ -196,28 +195,25 @@ export default async function TeacherPanelPage() {
     );
   }
 
+  const groupsByWeekday = new Map<number, GroupRow[]>();
+
+  for (const group of groups) {
+    if ((enrollmentCountByGroup.get(group.id) ?? 0) === 0) {
+      continue;
+    }
+
+    const dayGroups = groupsByWeekday.get(group.weekday) ?? [];
+    dayGroups.push(group);
+    groupsByWeekday.set(group.weekday, dayGroups);
+  }
+
+  const scheduledWeekdays = Array.from(groupsByWeekday.keys()).sort((a, b) => a - b);
+
   return (
     <>
       <PageHeader
         title={`Merhaba, ${getFirstName(profile.fullName)}`}
         description="Yalnızca size atanmış haftalık programı ve bu programlardaki öğrencileri görüntülüyorsunuz."
-        action={
-          <div className="flex gap-2">
-            <Link
-              href="/ogretmen-paneli/hakedisim"
-              className="rounded-xl border border-border bg-surface px-4 py-3 text-center text-sm font-semibold text-text-primary transition hover:bg-surface-muted"
-            >
-              Hakedişim
-            </Link>
-
-            <Link
-              href="/meb-yoklama"
-              className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-center text-sm font-semibold text-on-primary transition active:scale-[0.98]"
-            >
-              Aylık MEB listem
-            </Link>
-          </div>
-        }
       />
 
       {(groupsResult.error || enrollmentsResult.error || trialLessonsResult.error) && (
@@ -237,8 +233,9 @@ export default async function TeacherPanelPage() {
         <StatCard
           label="Öğrencim"
           value={String(uniqueStudentCount)}
-          detail="Aktif ve dondurulmuş kayıt"
+          detail="Aktif ve dondurulmuş kayıt — listeyi görmek için tıklayın"
           icon="◎"
+          href="#ogrencilerim"
         />
 
         <StatCard
@@ -306,63 +303,73 @@ export default async function TeacherPanelPage() {
           <h2 className="text-xl font-bold">Haftalık programım</h2>
 
           <p className="mt-1 text-sm text-text-secondary">
-            Ders günleri, saatleri ve kalıcı öğrenci sayıları.
+            Aktif öğrencisi olan seanslar, günlere göre ayrılmış olarak listelenir.
           </p>
         </div>
 
-        {groups.length === 0 ? (
-          <EmptyState>Henüz size atanmış aktif bir ders seansı bulunmuyor.</EmptyState>
+        {scheduledWeekdays.length === 0 ? (
+          <EmptyState>Aktif öğrencisi olan bir ders seansınız bulunmuyor.</EmptyState>
         ) : (
-          <div className="grid gap-4 xl:grid-cols-2">
-            {groups.map((group) => (
-              <article
-                key={group.id}
-                className="rounded-2xl border border-border bg-surface p-5"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-bold">{group.name}</h3>
+          <div className="space-y-8">
+            {scheduledWeekdays.map((weekday) => (
+              <div key={weekday}>
+                <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-text-secondary">
+                  {weekdayLabels[weekday]}
+                </h3>
 
-                    <p className="mt-1 text-sm text-text-secondary">
-                      {group.course?.name ?? "Ders bilgisi yok"}
-                    </p>
-                  </div>
+                <div className="grid gap-4 xl:grid-cols-2">
+                  {(groupsByWeekday.get(weekday) ?? []).map((group) => (
+                    <article
+                      key={group.id}
+                      className="rounded-2xl border border-border bg-surface p-5"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className="text-lg font-bold">{group.name}</h3>
 
-                  <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-bold text-accent-strong">
-                    {weekdayLabels[group.weekday]}
-                  </span>
+                          <p className="mt-1 text-sm text-text-secondary">
+                            {group.course?.name ?? "Ders bilgisi yok"}
+                          </p>
+                        </div>
+
+                        <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-bold text-accent-strong">
+                          {group.course?.course_type === "individual" ? "Birebir" : "Grup"}
+                        </span>
+                      </div>
+
+                      <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                        <div className="rounded-xl bg-surface-muted p-3">
+                          <dt className="text-text-secondary">Saat</dt>
+                          <dd className="mt-1 font-bold">{group.start_time.slice(0, 5)}</dd>
+                        </div>
+
+                        <div className="rounded-xl bg-surface-muted p-3">
+                          <dt className="text-text-secondary">Süre</dt>
+                          <dd className="mt-1 font-bold">{group.duration_minutes} dakika</dd>
+                        </div>
+
+                        <div className="rounded-xl bg-surface-muted p-3">
+                          <dt className="text-text-secondary">Öğrenci</dt>
+                          <dd className="mt-1 font-bold">
+                            {enrollmentCountByGroup.get(group.id) ?? 0}/{group.capacity}
+                          </dd>
+                        </div>
+
+                        <div className="rounded-xl bg-surface-muted p-3">
+                          <dt className="text-text-secondary">Derslik</dt>
+                          <dd className="mt-1 font-bold">{group.room_name ?? "Belirtilmedi"}</dd>
+                        </div>
+                      </dl>
+                    </article>
+                  ))}
                 </div>
-
-                <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                  <div className="rounded-xl bg-surface-muted p-3">
-                    <dt className="text-text-secondary">Saat</dt>
-                    <dd className="mt-1 font-bold">{group.start_time.slice(0, 5)}</dd>
-                  </div>
-
-                  <div className="rounded-xl bg-surface-muted p-3">
-                    <dt className="text-text-secondary">Süre</dt>
-                    <dd className="mt-1 font-bold">{group.duration_minutes} dakika</dd>
-                  </div>
-
-                  <div className="rounded-xl bg-surface-muted p-3">
-                    <dt className="text-text-secondary">Öğrenci</dt>
-                    <dd className="mt-1 font-bold">
-                      {enrollmentCountByGroup.get(group.id) ?? 0}/{group.capacity}
-                    </dd>
-                  </div>
-
-                  <div className="rounded-xl bg-surface-muted p-3">
-                    <dt className="text-text-secondary">Derslik</dt>
-                    <dd className="mt-1 font-bold">{group.room_name ?? "Belirtilmedi"}</dd>
-                  </div>
-                </dl>
-              </article>
+              </div>
             ))}
           </div>
         )}
       </section>
 
-      <section className="mt-10">
+      <section id="ogrencilerim" className="mt-10 scroll-mt-24">
         <div className="mb-4">
           <h2 className="text-xl font-bold">Öğrencilerim</h2>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { resizeImageFile } from "@/lib/image-resize";
+import { processStudentPhotoFile } from "@/lib/student-photo-processing";
 
 type Status = "idle" | "processing" | "ready" | "error";
 
@@ -23,31 +23,14 @@ export function StudentPhotoField() {
     setStatus("processing");
     setErrorMessage(null);
 
-    // Telefon kameraları birkaç MB'lık dosyalar üretebiliyor; hem yükleme
-    // hem arka plan kaldırma işlemi bundan çok etkileniyor. Önce küçültüyoruz.
-    let resized: File;
+    const { file: processedFile, backgroundRemoved } = await processStudentPhotoFile(file);
 
-    try {
-      resized = await resizeImageFile(file, 1024, "image/jpeg", 0.85);
-    } catch (error) {
-      console.error("Fotoğraf küçültülemedi:", error);
-      resized = file;
-    }
+    setPhotoFile(processedFile);
+    setPreviewUrl(URL.createObjectURL(processedFile));
 
-    try {
-      const { removeBackground } = await import("@imgly/background-removal");
-      const resultBlob = await removeBackground(resized);
-      const processedFile = new File([resultBlob], "ogrenci-fotografi.png", { type: "image/png" });
-
-      setPhotoFile(processedFile);
-      setPreviewUrl(URL.createObjectURL(processedFile));
+    if (backgroundRemoved) {
       setStatus("ready");
-    } catch (error) {
-      console.error("Arka plan kaldırılamadı:", error);
-
-      // Arka plan kaldırma başarısız olursa küçültülmüş orijinal fotoğrafı kullan.
-      setPhotoFile(resized);
-      setPreviewUrl(URL.createObjectURL(resized));
+    } else {
       setStatus("error");
       setErrorMessage("Arka plan otomatik kaldırılamadı, fotoğraf olduğu gibi eklendi.");
     }

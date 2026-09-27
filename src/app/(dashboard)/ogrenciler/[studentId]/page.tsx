@@ -11,6 +11,7 @@ import { KvkkActions } from "./kvkk-actions";
 import { RegistrationDetailsManagement } from "./registration-details-management";
 import { StudentEditForm } from "./student-edit-form";
 import { StudentEnrollmentManagement } from "./student-enrollment-management";
+import { StudentPhotoManagement } from "./student-photo-management";
 
 type GuardianRow = {
   id: string;
@@ -45,6 +46,7 @@ type StudentRow = {
   emergency_contact_name: string | null;
   emergency_contact_phone: string | null;
   health_notes: string | null;
+  photo_path: string | null;
   photo_video_consent: "izinli" | "sadece_kurum_ici" | "izinsiz";
   kvkk_consent_accepted: boolean;
   institution_rules_accepted: boolean;
@@ -183,6 +185,7 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
         emergency_contact_name,
         emergency_contact_phone,
         health_notes,
+        photo_path,
         photo_video_consent,
         kvkk_consent_accepted,
         institution_rules_accepted,
@@ -215,6 +218,16 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
   }
 
   const student = studentResult.data as unknown as StudentRow;
+
+  let photoUrl: string | null = null;
+
+  if (student.photo_path) {
+    const { data: signed } = await supabase.storage
+      .from("student-photos")
+      .createSignedUrl(student.photo_path, 60 * 10);
+
+    photoUrl = signed?.signedUrl ?? null;
+  }
 
   const primaryRelationship =
     student.student_guardians.find((item) => item.is_primary) ?? student.student_guardians[0];
@@ -468,6 +481,8 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
           mayReceiveFinancialMessages: primaryRelationship.may_receive_financial_messages,
         }}
       />
+
+      <StudentPhotoManagement studentId={student.id} photoUrl={photoUrl} />
 
       <StudentEnrollmentManagement
         studentId={student.id}

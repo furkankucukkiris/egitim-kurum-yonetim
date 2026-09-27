@@ -117,6 +117,112 @@ export async function updateStudent(
   );
 }
 
+type UpdateStudentPhotoState = {
+  error: string | null;
+};
+
+export async function updateStudentPhoto(
+  _previousState: UpdateStudentPhotoState,
+  formData: FormData,
+): Promise<UpdateStudentPhotoState> {
+  const profile = await requireRole(["admin"]);
+
+  const studentId = readText(formData, "studentId");
+  const studentPhoto = formData.get("studentPhoto");
+
+  if (!studentId) {
+    return {
+      error: "Öğrenci kimliği bulunamadı.",
+    };
+  }
+
+  if (!(studentPhoto instanceof File) || studentPhoto.size === 0) {
+    return {
+      error: "Yüklenecek bir fotoğraf seçin.",
+    };
+  }
+
+  const supabase = await createClient();
+
+  const path = `${profile.organizationId}/${studentId}/photo.png`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("student-photos")
+    .upload(path, studentPhoto, { upsert: true, contentType: "image/png" });
+
+  if (uploadError) {
+    console.error("Öğrenci fotoğrafı yüklenemedi:", uploadError);
+
+    return {
+      error: "Öğrenci fotoğrafı yüklenemedi.",
+    };
+  }
+
+  const { error: linkError } = await supabase.rpc("set_student_photo", {
+    p_student_id: studentId,
+    p_photo_path: path,
+  });
+
+  if (linkError) {
+    console.error("Öğrenci fotoğrafı kaydına bağlanamadı:", linkError);
+
+    return {
+      error: "Öğrenci fotoğrafı kaydedilemedi.",
+    };
+  }
+
+  revalidatePath(`/ogrenciler/${studentId}`);
+
+  redirect(
+    `/ogrenciler/${studentId}?success=${encodeURIComponent("Öğrenci fotoğrafı güncellendi.")}`,
+  );
+}
+
+export async function removeStudentPhoto(formData: FormData) {
+  await requireRole(["admin"]);
+
+  const studentId = readText(formData, "studentId");
+
+  if (!studentId) {
+    redirect("/ogrenciler");
+  }
+
+  const supabase = await createClient();
+
+  const { data: current } = await supabase
+    .from("students")
+    .select("photo_path")
+    .eq("id", studentId)
+    .maybeSingle();
+
+  const { error } = await supabase.rpc("set_student_photo", {
+    p_student_id: studentId,
+    p_photo_path: null,
+  });
+
+  if (error) {
+    console.error("Öğrenci fotoğrafı kaldırılamadı:", error);
+
+    redirect(
+      `/ogrenciler/${studentId}?error=${encodeURIComponent("Öğrenci fotoğrafı kaldırılamadı.")}`,
+    );
+  }
+
+  if (current?.photo_path) {
+    const { error: storageError } = await supabase.storage
+      .from("student-photos")
+      .remove([current.photo_path]);
+
+    if (storageError) {
+      console.error("Öğrenci fotoğrafı depodan silinemedi:", storageError);
+    }
+  }
+
+  revalidatePath(`/ogrenciler/${studentId}`);
+
+  redirect(`/ogrenciler/${studentId}?success=${encodeURIComponent("Öğrenci fotoğrafı kaldırıldı.")}`);
+}
+
 export async function archiveStudent(formData: FormData) {
   await requireRole(["admin"]);
 

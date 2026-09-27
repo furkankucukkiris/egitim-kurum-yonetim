@@ -21,6 +21,7 @@ Bu liste, sistem gerçek öğrenci/veli/finans verisi taşımaya başlamadan ön
 
 - [x] `next.config.ts`'de production-only: `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, ve ölçülü bir `Content-Security-Policy`.
 - [ ] **Bilinen sınırlama:** CSP `script-src`'de `'unsafe-inline'` var — Next.js App Router'ın nonce'suz hydration bootstrap script'i buna ihtiyaç duyuyor. Daha sıkı bir CSP için middleware üzerinden nonce enjeksiyonu gerekir (mevcut `src/lib/supabase/proxy.ts`'e eklenebilir) — bu, "uygulamayı bozmama" önceliğiyle şimdilik bir sonraki adım olarak not edildi, yapılmadı.
+- [x] `script-src`'e `blob:`, `connect-src`'e `https://staticimgly.com` eklendi — öğrenci fotoğrafı arka plan kaldırma (`@imgly/background-removal`) ONNX model/wasm dosyalarını bu CDN'den fetch edip bir blob: modül olarak import ediyor; eklenmeden önce bu fetch üretimde (yalnızca üretimde CSP başlığı gönderildiği için) sessizce CSP tarafından engelleniyor ve arka plan asla kaldırılmıyordu (yerel doğrulama: Playwright ile aynı CSP'yi taklit eden statik bir sayfada tekrarlandı ve giderildi). Fotoğrafın kendisi bu CDN'e hiç gönderilmiyor, yalnızca genel model dosyaları indiriliyor.
 - [ ] Barındırma sağlayıcınız (Vercel/vb.) HSTS'i genelde otomatik ekler — HTTPS zorunluluğunu Dashboard/hosting ayarlarından teyit edin.
 
 ## 4. Storage

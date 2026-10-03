@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
-import { isIsoDate, parseMoney } from "@/lib/format";
+import { isIsoDate, isMonthValue, parseMoney } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
 type EnrollmentActionState = {
@@ -266,6 +266,78 @@ export async function updateEnrollmentMeb(formData: FormData) {
       "Öğrencinin ders bazlı MEB durumu güncellendi.",
     )}`,
   );
+}
+
+export async function updateEnrollmentFee(formData: FormData) {
+  await requireRole(["admin"]);
+
+  const studentId = readText(formData, "studentId");
+  const enrollmentId = readText(formData, "enrollmentId");
+  const effectiveMonth = readText(formData, "effectiveMonth");
+  const listMonthlyFee = parseMoney(readText(formData, "listMonthlyFee"));
+  const discountType = readText(formData, "discountType");
+  const discountValue =
+    discountType === "none" ? 0 : parseMoney(readText(formData, "discountValue"));
+  const note = readText(formData, "note");
+
+  if (!studentId || !enrollmentId) {
+    redirect("/ogrenciler");
+  }
+
+  const fail = (message: string) =>
+    redirect(`/ogrenciler/${studentId}?error=${encodeURIComponent(message)}`);
+
+  if (!isMonthValue(effectiveMonth)) {
+    fail("Ücretin geçerli olacağı ayı seçin.");
+  }
+
+  if (listMonthlyFee === null || listMonthlyFee < 0) {
+    fail("Geçerli bir aylık ücret girin.");
+  }
+
+  if (!["none", "percent", "fixed"].includes(discountType)) {
+    fail("Geçerli bir indirim türü seçin.");
+  }
+
+  if (discountValue === null || discountValue < 0) {
+    fail("Geçerli bir indirim değeri girin.");
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("set_enrollment_fee", {
+    p_enrollment_id: enrollmentId,
+    p_effective_from: `${effectiveMonth}-01`,
+    p_list_monthly_fee: listMonthlyFee,
+    p_discount_type: discountType,
+    p_discount_value: discountValue,
+    p_note: note || null,
+  });
+
+  if (error) {
+    console.error("Ücret güncellenemedi:", error);
+
+    fail(error.code === "P0001" ? error.message : "Ücret güncellenemedi.");
+  }
+
+  const result = (data ?? [])[0] as { repriced_count: number; skipped_count: number } | undefined;
+
+  const messageParts = ["Ücret güncellendi."];
+
+  if (result && result.repriced_count > 0) {
+    messageParts.push(`${result.repriced_count} açık dönemin borcu yeni ücrete göre düzeltildi.`);
+  }
+
+  if (result && result.skipped_count > 0) {
+    messageParts.push(
+      `${result.skipped_count} dönemde zaten yeni ücretten fazla tahsilat alındığı için o dönem değiştirilmedi.`,
+    );
+  }
+
+  revalidatePath(`/ogrenciler/${studentId}`);
+  revalidatePath("/odemeler");
+
+  redirect(`/ogrenciler/${studentId}?success=${encodeURIComponent(messageParts.join(" "))}`);
 }
 
 function readText(formData: FormData, name: string) {

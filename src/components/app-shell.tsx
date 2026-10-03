@@ -61,7 +61,7 @@ const navigation: NavigationItem[] = [
   },
   {
     href: "/odemeler",
-    label: "Ödemeler",
+    label: "Tahsilatlar",
     icon: "₺",
     roles: ["admin"],
   },

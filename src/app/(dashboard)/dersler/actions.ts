@@ -122,6 +122,72 @@ export async function setCourseActive(formData: FormData) {
   );
 }
 
+export async function bulkAdjustCourseFees(formData: FormData) {
+  await requireRole(["admin"]);
+
+  const courseId = readText(formData, "courseId");
+  const effectiveMonth = readText(formData, "effectiveMonth");
+  const adjustType = readText(formData, "adjustType");
+  const adjustValue = parseMoney(readText(formData, "adjustValue"));
+  const note = readText(formData, "note");
+
+  if (!courseId) {
+    redirect("/dersler");
+  }
+
+  const fail = (message: string) =>
+    redirect(`/dersler/${courseId}?error=${encodeURIComponent(message)}`);
+
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(effectiveMonth)) {
+    fail("Zammın geçerli olacağı ayı seçin.");
+  }
+
+  if (!["percent", "fixed"].includes(adjustType)) {
+    fail("Geçerli bir artış türü seçin.");
+  }
+
+  if (adjustValue === null || adjustValue <= 0) {
+    fail("Geçerli bir artış değeri girin.");
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.rpc("bulk_adjust_course_fees", {
+    p_course_id: courseId,
+    p_effective_from: `${effectiveMonth}-01`,
+    p_adjust_type: adjustType,
+    p_adjust_value: adjustValue,
+    p_note: note || null,
+  });
+
+  if (error) {
+    console.error("Toplu ücret güncellenemedi:", error);
+
+    fail(error.code === "P0001" ? error.message : "Toplu ücret güncellemesi yapılamadı.");
+  }
+
+  const result = (data ?? [])[0] as
+    | { enrollment_count: number; repriced_count: number; skipped_count: number }
+    | undefined;
+
+  const messageParts = [`${result?.enrollment_count ?? 0} öğrencinin ücreti güncellendi.`];
+
+  if (result && result.repriced_count > 0) {
+    messageParts.push(`${result.repriced_count} açık dönem borcu yeni ücrete göre düzeltildi.`);
+  }
+
+  if (result && result.skipped_count > 0) {
+    messageParts.push(
+      `${result.skipped_count} dönemde yeni ücretten fazla tahsilat olduğu için borç değiştirilmedi.`,
+    );
+  }
+
+  revalidatePath("/dersler");
+  revalidatePath("/odemeler");
+
+  redirect(`/dersler/${courseId}?success=${encodeURIComponent(messageParts.join(" "))}`);
+}
+
 function readAndValidateCourse(formData: FormData):
   | {
       name: string;

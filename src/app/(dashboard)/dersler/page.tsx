@@ -152,7 +152,7 @@ export default async function CoursesPage({ searchParams }: CoursesPageProps) {
                 </div>
 
                 <div className="col-span-2">
-                  <dt className="text-text-secondary">Varsayılan aylık ücret</dt>
+                  <dt className="text-text-secondary">MEB ilan ücreti</dt>
 
                   <dd className="mt-1 text-lg font-bold">
                     {formatTry(Number(course.default_monthly_fee))}

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth";
+import { isIsoDate, isMonthValue, parseMoney } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMonthlyAccruals(formData: FormData) {
@@ -25,7 +26,7 @@ export async function generateMonthlyAccruals(formData: FormData) {
 
     redirect(
       `/odemeler?month=${month}&error=${encodeURIComponent(
-        getDatabaseErrorMessage(error.message),
+        getDatabaseErrorMessage(error),
       )}`,
     );
   }
@@ -43,19 +44,24 @@ export async function generateMonthlyAccruals(formData: FormData) {
   redirect(`/odemeler?month=${month}&success=${encodeURIComponent(messageParts.join(" "))}`);
 }
 
+// Kurumda hiç kasa hesabı yoksa ilk nakit tahsilatta varsayılan bir
+// "Ana Kasa" açılır — aksi halde nakit tahsilat hiç kaydedilemiyordu.
+const DEFAULT_CASH_ACCOUNT_NAME = "Ana Kasa";
+
 export async function recordPayment(formData: FormData) {
-  await requireRole(["admin"]);
+  const profile = await requireRole(["admin"]);
 
   const studentId = readText(formData, "studentId");
   const courseId = readText(formData, "courseId");
   const month = readText(formData, "month");
   const method = readText(formData, "method");
   const note = readText(formData, "note");
-  const cashAccountId = readText(formData, "cashAccountId");
+  const receivedOn = readText(formData, "receivedOn");
+  let cashAccountId = readText(formData, "cashAccountId");
 
   const amount = parseMoney(readText(formData, "amount"));
 
-  const redirectBase = isMonthValue(month) ? `/odemeler?month=${month}` : "/odemeler";
+  const redirectBase = isMonthValue(month) ? `/odemeler?month=${month}` : "/odemeler?";
 
   if (!studentId || !courseId) {
     redirect(
@@ -73,13 +79,43 @@ export async function recordPayment(formData: FormData) {
     redirect(`${redirectBase}&error=${encodeURIComponent("Geçerli bir ödeme yöntemi seçin.")}`);
   }
 
-  if (method === "cash" && !cashAccountId) {
-    redirect(
-      `${redirectBase}&error=${encodeURIComponent("Nakit ödeme için bir kasa hesabı seçin.")}`,
-    );
+  if (receivedOn && !isIsoDate(receivedOn)) {
+    redirect(`${redirectBase}&error=${encodeURIComponent("Geçerli bir tahsilat tarihi girin.")}`);
   }
 
   const supabase = await createClient();
+
+  if (method === "cash" && !cashAccountId) {
+    const { data: accounts } = await supabase
+      .from("cash_accounts")
+      .select("id")
+      .eq("organization_id", profile.organizationId)
+      .eq("is_active", true);
+
+    if ((accounts ?? []).length > 0) {
+      redirect(
+        `${redirectBase}&error=${encodeURIComponent("Nakit ödeme için bir kasa hesabı seçin.")}`,
+      );
+    }
+
+    const { data: created, error: createError } = await supabase
+      .from("cash_accounts")
+      .insert({ organization_id: profile.organizationId, name: DEFAULT_CASH_ACCOUNT_NAME })
+      .select("id")
+      .single();
+
+    if (createError || !created) {
+      console.error("Varsayılan kasa hesabı açılamadı:", createError);
+
+      redirect(
+        `${redirectBase}&error=${encodeURIComponent(
+          "Kasa hesabı bulunamadı. Kurum Ayarları → Kasa & Banka'dan bir kasa hesabı ekleyin.",
+        )}`,
+      );
+    }
+
+    cashAccountId = created.id;
+  }
 
   const { error } = await supabase.rpc("record_payment_for_course", {
     p_student_id: studentId,
@@ -88,40 +124,34 @@ export async function recordPayment(formData: FormData) {
     p_method: method,
     p_note: note || null,
     p_cash_account_id: method === "cash" ? cashAccountId : null,
+    p_received_on: receivedOn || null,
   });
 
   if (error) {
     console.error("Ödeme kaydedilemedi:", error);
 
-    redirect(`${redirectBase}&error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
+    redirect(`${redirectBase}&error=${encodeURIComponent(getDatabaseErrorMessage(error))}`);
   }
 
   revalidatePath("/odemeler");
+  revalidatePath("/");
 
-  redirect(`${redirectBase}&success=${encodeURIComponent("Ödeme kaydedildi.")}`);
-}
-
-function parseMoney(value: string) {
-  const normalized = value.replace(/\s/g, "").replace(",", ".");
-
-  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
-    return null;
-  }
-
-  const amount = Number(normalized);
-
-  return Number.isFinite(amount) ? amount : null;
-}
-
-function isMonthValue(value: string) {
-  return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+  redirect(`${redirectBase}&success=${encodeURIComponent("Tahsilat kaydedildi.")}`);
 }
 
 function readText(formData: FormData, name: string) {
   return String(formData.get(name) ?? "").trim();
 }
 
-function getDatabaseErrorMessage(message: string) {
+// P0001 = plpgsql `raise exception` — RPC'lerimiz yalnızca kendi Türkçe
+// mesajlarını bu kodla fırlatır (bkz. enrollment-actions.ts).
+function getDatabaseErrorMessage(error: { message: string; code?: string | null }) {
+  if (error.code === "P0001") {
+    return error.message;
+  }
+
+  const message = error.message;
+
   const safeMessages = [
     "Aylık tahakkuk oluşturma yetkiniz bulunmuyor.",
     "Tahakkukların oluşturulacağı ay seçilmelidir.",

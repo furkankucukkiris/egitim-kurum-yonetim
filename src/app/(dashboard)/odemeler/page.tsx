@@ -3,6 +3,8 @@ import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { PendingPaymentsByCourse } from "@/components/payments/PendingPaymentsByCourse";
 import { StudentBalanceTable } from "@/components/payments/StudentBalanceTable";
+import { CollectionsWorkspace } from "@/components/payments/CollectionsWorkspace";
+import type { CollectibleStudent } from "@/components/payments/CollectionsWorkspace";
 import type { StudentBalanceRow, CourseOption } from "@/components/payments/StudentBalanceTable";
 import type {
   CoursePaymentGroup,
@@ -61,6 +63,10 @@ type OpenAccrualRow = {
 
 type EnrollmentRow = {
   student_id: string;
+  course_id: string;
+  status: string;
+  net_monthly_fee: number | string;
+  student: { first_name: string; last_name: string } | null;
   course: { name: string } | null;
 };
 
@@ -70,7 +76,9 @@ type PaymentRow = {
   method: string;
   received_at: string;
   note: string | null;
+  receipt_number: string | null;
   student: { first_name: string; last_name: string } | null;
+  course: { name: string } | null;
 };
 
 const methodLabels: Record<string, string> = {
@@ -163,15 +171,22 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
       .order("period_start", { ascending: true }),
     supabase
       .from("enrollments")
-      .select(`student_id, course:courses ( name )`)
+      .select(
+        `
+          student_id, course_id, status, net_monthly_fee,
+          student:students ( first_name, last_name ),
+          course:courses ( name )
+        `,
+      )
       .eq("organization_id", profile.organizationId)
-      .eq("status", "active"),
+      .in("status", ["active", "frozen"]),
     supabase
       .from("payments")
       .select(
         `
-          id, amount, method, received_at, note,
-          student:students ( first_name, last_name )
+          id, amount, method, received_at, note, receipt_number,
+          student:students ( first_name, last_name ),
+          course:courses ( name )
         `,
       )
       .eq("organization_id", profile.organizationId)
@@ -257,10 +272,13 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
   const balanceRows = (balancesResult.data ?? []) as unknown as StudentBalanceRow[];
   const balanceTotalCount = balanceRows[0]?.total_count ?? 0;
 
+  const today = getTodayInIstanbul();
+  const monthEnd = addDays(nextMonthStart, -1);
+
   const otherCoursesByStudent = new Map<string, Set<string>>();
 
   for (const enrollment of enrollments) {
-    if (!enrollment.course) {
+    if (!enrollment.course || enrollment.status !== "active") {
       continue;
     }
 
@@ -287,13 +305,48 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
 
     list.push({
       accrualId: accrual.id,
+      periodStart: accrual.period_start,
       periodLabel: formatMonthYear(accrual.period_start),
+      net: Number(accrual.net_amount),
+      allocated: Number(accrual.allocated_amount),
       pending: Math.max(0, Number(accrual.net_amount) - Number(accrual.allocated_amount)),
-      overdue: accrual.due_date < getTodayInIstanbul(),
+      overdue: accrual.due_date < today,
     });
 
     openAccrualsByStudentCourse.set(key, list);
   }
+
+  // "Tahsilat al" formu ve "Bekleyen tahsilatlar" listesi: aktif veya
+  // dondurulmuş her kayıt + o derste hâlâ açık tüm dönemler.
+  const collectibleMap = new Map<string, CollectibleStudent>();
+
+  for (const enrollment of enrollments) {
+    if (!enrollment.student || !enrollment.course) {
+      continue;
+    }
+
+    const student = collectibleMap.get(enrollment.student_id) ?? {
+      studentId: enrollment.student_id,
+      studentName: `${enrollment.student.first_name} ${enrollment.student.last_name}`,
+      courses: [],
+    };
+
+    student.courses.push({
+      courseId: enrollment.course_id,
+      courseName: enrollment.course.name,
+      netMonthlyFee: Number(enrollment.net_monthly_fee),
+      openAccruals:
+        openAccrualsByStudentCourse.get(`${enrollment.student_id}:${enrollment.course_id}`) ?? [],
+    });
+
+    collectibleMap.set(enrollment.student_id, student);
+  }
+
+  const collectibleStudents = Array.from(collectibleMap.values()).sort((a, b) =>
+    a.studentName.localeCompare(b.studentName, "tr-TR"),
+  );
+
+  const monthPaymentsTotal = payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
 
   type CourseAccumulator = {
     courseId: string;
@@ -425,15 +478,23 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
   return (
     <>
       <PageHeader
-        title="Ödemeler"
-        description="Seçili ayın tahakkuku ve geçmiş dönem borcu ayrı gösterilir."
+        title="Tahsilatlar"
+        description="Tahsilat girin, bu ay alınanları ve bekleyen tahsilatları takip edin."
         action={
-          <a
-            href={`/odemeler/export?month=${selectedMonth}`}
-            className="rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-primary transition hover:bg-surface-muted"
-          >
-            CSV olarak dışa aktar
-          </a>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href="#tahsilat-al"
+              className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover"
+            >
+              + Tahsilat al
+            </a>
+            <a
+              href={`/odemeler/export?month=${selectedMonth}`}
+              className="rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-primary transition hover:bg-surface-muted"
+            >
+              CSV olarak dışa aktar
+            </a>
+          </div>
         }
       />
 
@@ -488,72 +549,143 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
           </Link>
         )}
 
-        <form
-          action={generateMonthlyAccruals}
-          className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4"
-        >
-          <input type="hidden" name="month" value={selectedMonth} />
-          <p className="flex-1 text-sm text-text-secondary">
-            Aktif kayıtlı öğrenciler için {formatMonthYearFromKey(selectedMonth)} tahakkuklarını
-            oluşturun. Zaten oluşturulmuş olanlar tekrar oluşturulmaz.
-          </p>
-          <button
-            type="submit"
-            className="rounded-xl bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring px-4 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
-          >
-            Bu ayın tahakkuklarını oluştur
-          </button>
-        </form>
+        <details className="mt-4 border-t border-border pt-3">
+          <summary className="cursor-pointer text-sm font-medium text-text-secondary">
+            Aylık borç kayıtları (tahakkuk) her ay otomatik oluşturulur — elle oluşturmak için
+            tıklayın
+          </summary>
+          <form action={generateMonthlyAccruals} className="mt-3 flex flex-wrap items-center gap-3">
+            <input type="hidden" name="month" value={selectedMonth} />
+            <p className="flex-1 text-sm text-text-secondary">
+              Aktif kayıtlı öğrenciler için {formatMonthYearFromKey(selectedMonth)} borç kayıtlarını
+              her öğrencinin o aydaki kendi ücretiyle oluşturur. Zaten oluşturulmuş olanlar tekrar
+              oluşturulmaz.
+            </p>
+            <button
+              type="submit"
+              className="rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-primary transition hover:bg-surface-muted"
+            >
+              {formatMonthYearFromKey(selectedMonth)} borçlarını oluştur
+            </button>
+          </form>
+        </details>
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Seçili Ay Tahakkuku"
-          value={summary ? formatTry(summary.monthlyAccrued) : "—"}
-          detail={`${groups.length} ders`}
+          label="Bu Ay Alınan Tahsilat"
+          value={formatTry(summary ? summary.monthlyCashReceived : monthPaymentsTotal)}
+          detail={`${payments.length} tahsilat işlemi`}
         />
 
         <StatCard
-          label="Seçili Ay Tahsil Edilen"
-          value={summary ? formatTry(summary.monthlyCollected) : "—"}
+          label="Bu Ayın Borcu"
+          value={summary ? formatTry(summary.monthlyAccrued) : "—"}
           detail={
             summary && summary.monthlyAccrued > 0
-              ? `%${Math.round((summary.monthlyCollected / summary.monthlyAccrued) * 100)} tahsilat oranı`
+              ? `%${Math.round((summary.monthlyCollected / summary.monthlyAccrued) * 100)} tahsil edildi`
               : "Veri yok"
           }
         />
 
         <StatCard
-          label="Bu Ay Alınan Gerçek Ödeme"
-          value={summary ? formatTry(summary.monthlyCashReceived) : "—"}
-          detail="Ödeme tarihi bu ay olan tüm tahsilat"
+          label="Bu Aydan Bekleyen"
+          value={
+            summary
+              ? formatTry(Math.max(0, summary.monthlyAccrued - summary.monthlyCollected))
+              : "—"
+          }
+          detail="Bu ayın henüz alınmamış kısmı"
         />
 
         <StatCard
-          label="Önceki Dönem Borcu"
-          value={summary ? formatTry(summary.priorPeriodCarryover) : "—"}
-          detail={summary ? `${summary.priorPeriodCarryoverCount} bekleyen dönem` : "Veri yok"}
-        />
-
-        <StatCard
-          label="Toplam Açık Alacak"
+          label="Toplam Bekleyen"
           value={summary ? formatTry(summary.totalOpenReceivable) : "—"}
           detail={
             summary
-              ? `${summary.totalOpenReceivableCount} bekleyen dönem (devreden dahil)`
+              ? `Önceki aylardan devreden: ${formatTry(summary.priorPeriodCarryover)}`
               : "Veri yok"
           }
         />
+      </div>
 
-        <StatCard
-          label="Bu Ayki Tahsilat Hareketi"
-          value={String(payments.length)}
-          detail="Ödeme tarihi bu ay olan işlem"
+      <div className="mt-6">
+        <CollectionsWorkspace
+          students={collectibleStudents}
+          cashAccounts={cashAccounts}
+          month={selectedMonth}
+          monthLabel={formatMonthYearFromKey(selectedMonth)}
+          monthEnd={monthEnd}
+          today={today}
         />
       </div>
 
-      <h3 className="mb-3 mt-6 font-semibold text-text-primary">
-        Ders bazlı gelir ve tahsilat oranı — {formatMonthYearFromKey(selectedMonth)}
+      <div className="mb-3 mt-8 flex flex-wrap items-baseline justify-between gap-2">
+        <h3 className="font-semibold text-text-primary">
+          {formatMonthYearFromKey(selectedMonth)} içinde alınan tahsilatlar
+        </h3>
+        <p className="text-sm text-text-secondary">
+          Toplam <span className="font-semibold text-success">{formatTry(monthPaymentsTotal)}</span>
+        </p>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+        {payments.length === 0 ? (
+          <p className="px-5 py-10 text-center text-sm text-text-secondary">
+            {formatMonthYearFromKey(selectedMonth)} içinde kayıtlı bir tahsilat yok.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left text-sm">
+              <thead className="bg-surface-muted text-xs uppercase text-text-secondary">
+                <tr>
+                  <th className="px-5 py-3">Tarih</th>
+                  <th className="px-5 py-3">Öğrenci</th>
+                  <th className="px-5 py-3">Ders</th>
+                  <th className="px-5 py-3">Yöntem</th>
+                  <th className="px-5 py-3">Açıklama</th>
+                  <th className="px-5 py-3 text-right">Tutar</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-line">
+                {payments.map((payment) => (
+                  <tr key={payment.id} className="hover:bg-surface-muted">
+                    <td className="px-5 py-3 text-text-secondary">
+                      {formatDate(payment.received_at)}
+                    </td>
+                    <td className="px-5 py-3 font-semibold text-text-primary">
+                      <Link href={`/odemeler/${payment.id}`} className="hover:underline">
+                        {payment.student
+                          ? `${payment.student.first_name} ${payment.student.last_name}`
+                          : "Bilinmiyor"}
+                      </Link>
+                      {payment.receipt_number && (
+                        <span className="block text-xs font-normal text-text-secondary">
+                          Makbuz {payment.receipt_number}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-5 py-3 text-text-secondary">{payment.course?.name ?? "—"}</td>
+                    <td className="px-5 py-3 text-text-secondary">
+                      {methodLabels[payment.method] ?? payment.method}
+                    </td>
+                    <td className="max-w-[220px] truncate px-5 py-3 text-text-secondary">
+                      {payment.note ?? "—"}
+                    </td>
+                    <td className="px-5 py-3 text-right font-semibold text-text-primary">
+                      {formatTry(Number(payment.amount))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <h3 className="mb-3 mt-10 font-semibold text-text-primary">
+        Ders bazlı özet — {formatMonthYearFromKey(selectedMonth)}
       </h3>
 
       <PendingPaymentsByCourse groups={groups} month={selectedMonth} cashAccounts={cashAccounts} />
@@ -583,51 +715,6 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
         buildQuery={balanceFilterQuery}
       />
 
-      <h3 className="mb-3 mt-8 font-semibold text-text-primary">Bu ayki tahsilat hareketleri</h3>
-
-      <div className="overflow-hidden rounded-2xl border border-border bg-surface">
-        {payments.length === 0 ? (
-          <p className="px-5 py-10 text-center text-sm text-text-secondary">
-            {formatMonthYearFromKey(selectedMonth)} içinde kayıtlı bir tahsilat yok.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px] text-left text-sm">
-              <thead className="bg-surface-muted text-xs uppercase text-text-secondary">
-                <tr>
-                  <th className="px-5 py-3">Öğrenci</th>
-                  <th className="px-5 py-3">Tarih</th>
-                  <th className="px-5 py-3">Yöntem</th>
-                  <th className="px-5 py-3">Tutar</th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y divide-line">
-                {payments.map((payment) => (
-                  <tr key={payment.id} className="hover:bg-surface-muted">
-                    <td className="px-5 py-4 font-semibold text-text-primary">
-                      <Link href={`/odemeler/${payment.id}`} className="hover:underline">
-                        {payment.student
-                          ? `${payment.student.first_name} ${payment.student.last_name}`
-                          : "Bilinmiyor"}
-                      </Link>
-                    </td>
-                    <td className="px-5 py-4 text-text-secondary">
-                      {formatDate(payment.received_at)}
-                    </td>
-                    <td className="px-5 py-4 text-text-secondary">
-                      {methodLabels[payment.method] ?? payment.method}
-                    </td>
-                    <td className="px-5 py-4 font-semibold text-text-primary">
-                      {formatTry(payment.amount)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
     </>
   );
 }
@@ -668,6 +755,12 @@ function getCurrentMonthInIstanbul() {
 
 function isMonthValue(value: string | undefined): value is string {
   return !!value && /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+}
+
+function addDays(isoDate: string, days: number) {
+  const date = new Date(`${isoDate}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
 function addMonths(monthKey: string, amount: number) {

@@ -130,7 +130,7 @@ export function CourseForm({ mode, course }: CourseFormProps) {
 
           <div className="md:col-span-2">
             <label className="block text-sm font-medium">
-              Varsayılan aylık ücret
+              MEB onaylı aylık ücret (ücret ilanı)
               <span className="ml-1 text-danger text-danger">*</span>
               <div className="mt-2 flex rounded-xl border border-border bg-surface focus-within:border-primary-soft">
                 <span className="grid place-items-center border-r border-border px-4 text-sm font-semibold text-text-secondary">
@@ -148,7 +148,8 @@ export function CourseForm({ mode, course }: CourseFormProps) {
                 />
               </div>
               <span className="mt-2 block text-xs text-text-secondary">
-                4400 veya 4400,00 biçiminde girin. Binlik ayırıcı kullanmayın.
+                Yalnızca bilgi amaçlıdır ve yeni kayıtta öneri olarak gelir; her öğrencinin gerçek
+                ücreti öğrenci sayfasından ayrı belirlenir. 4400 veya 4400,00 biçiminde girin.
               </span>
             </label>
           </div>

@@ -2,7 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 
-import { createEnrollment, updateEnrollmentMeb } from "./enrollment-actions";
+import { createEnrollment, updateEnrollmentFee, updateEnrollmentMeb } from "./enrollment-actions";
 
 type CourseOption = {
   id: string;
@@ -40,6 +40,11 @@ type EnrollmentItem = {
   dueDay: number;
   notes: string;
 
+  /** Dersin MEB onaylı ücret ilanı — yalnızca bilgi amaçlı. */
+  courseListedFee: number;
+  /** En yeni değişiklik başta. */
+  feeHistory: FeeChange[];
+
   mebStatus: string;
   mebRegistrationNumber: string;
   mebValidFrom: string;
@@ -47,6 +52,15 @@ type EnrollmentItem = {
   mebNonRegistrationReason: string;
   mebNote: string;
   responsibleProfileId: string;
+};
+
+type FeeChange = {
+  effectiveFrom: string;
+  listMonthlyFee: number;
+  discountType: string;
+  discountValue: number;
+  netMonthlyFee: number;
+  note: string;
 };
 
 type ProfileOption = {
@@ -227,7 +241,10 @@ export function StudentEnrollmentManagement({
 
                 <Info label="Ödeme günü" value={`Her ayın ${enrollment.dueDay}. günü`} />
 
-                <Info label="Liste ücreti" value={formatMoney(enrollment.listMonthlyFee)} />
+                <Info
+                  label="Aylık ücret (indirim öncesi)"
+                  value={formatMoney(enrollment.listMonthlyFee)}
+                />
 
                 <Info
                   label="Net aylık ücret"
@@ -235,6 +252,12 @@ export function StudentEnrollmentManagement({
                   emphasized
                 />
               </dl>
+
+              <EnrollmentFeeEditor
+                studentId={studentId}
+                enrollment={enrollment}
+                disabled={isArchived}
+              />
 
               <div className="mt-5 border-t border-primary-soft pt-4">
                 <div className="flex flex-wrap items-center gap-2">
@@ -414,11 +437,16 @@ export function StudentEnrollmentManagement({
             />
 
             <ControlledField
-              label="Liste aylık ücreti"
+              label="Bu öğrencinin aylık ücreti"
               name="listMonthlyFee"
               required
               inputMode="decimal"
               value={values.listMonthlyFee}
+              helperText={
+                selectedCourse
+                  ? `Dersin MEB ilan ücreti ${formatMoney(selectedCourse.defaultMonthlyFee)} (yalnızca bilgi). Öğrenciye özel ücret girin; sonradan kayıt kartından değiştirilebilir.`
+                  : undefined
+              }
               onChange={(value) => updateValue("listMonthlyFee", value)}
             />
 
@@ -558,6 +586,157 @@ export function StudentEnrollmentManagement({
       )}
     </section>
   );
+}
+
+function EnrollmentFeeEditor({
+  studentId,
+  enrollment,
+  disabled,
+}: {
+  studentId: string;
+  enrollment: EnrollmentItem;
+  disabled: boolean;
+}) {
+  const [values, setValues] = useState({
+    effectiveMonth: getTodayInIstanbul().slice(0, 7),
+    listMonthlyFee: String(enrollment.listMonthlyFee),
+    discountType: enrollment.discountType,
+    discountValue: String(enrollment.discountValue),
+  });
+
+  const currentMonthStart = `${getTodayInIstanbul().slice(0, 7)}-01`;
+
+  const net = calculateNetFee(values.listMonthlyFee, values.discountType, values.discountValue);
+
+  const update = (field: keyof typeof values, value: string) =>
+    setValues((current) => ({ ...current, [field]: value }));
+
+  return (
+    <details className="mt-4 rounded-xl bg-surface-muted">
+      <summary className="cursor-pointer px-4 py-3 text-sm font-semibold">
+        Ücreti değiştir (zam / indirim)
+      </summary>
+
+      <div className="border-t border-border p-4">
+        <p className="text-xs text-text-secondary">
+          Dersin MEB ilan ücreti: {formatMoney(enrollment.courseListedFee)} (yalnızca bilgi). Yeni
+          ücret seçilen aydan itibaren geçerli olur; o aydan sonraki henüz ödenmemiş borçlar da yeni
+          ücrete göre düzeltilir. Önceki aylar değişmez.
+        </p>
+
+        {!disabled && (
+          <form action={updateEnrollmentFee} className="mt-4 grid gap-4 md:grid-cols-2">
+            <input type="hidden" name="studentId" value={studentId} />
+            <input type="hidden" name="enrollmentId" value={enrollment.id} />
+
+            <ControlledField
+              label="Geçerli olacağı ay"
+              name="effectiveMonth"
+              type="month"
+              required
+              value={values.effectiveMonth}
+              onChange={(value) => update("effectiveMonth", value)}
+            />
+
+            <ControlledField
+              label="Aylık ücret (indirim öncesi)"
+              name="listMonthlyFee"
+              required
+              inputMode="decimal"
+              value={values.listMonthlyFee}
+              onChange={(value) => update("listMonthlyFee", value)}
+            />
+
+            <label className="block text-sm font-medium">
+              İndirim türü
+              <select
+                name="discountType"
+                value={values.discountType}
+                onChange={(event) => update("discountType", event.target.value)}
+                className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm"
+              >
+                <option value="none">İndirim yok</option>
+                <option value="percent">Yüzde indirim</option>
+                <option value="fixed">Sabit tutar indirimi</option>
+              </select>
+            </label>
+
+            <ControlledField
+              label={values.discountType === "percent" ? "İndirim yüzdesi" : "İndirim tutarı"}
+              name="discountValue"
+              inputMode="decimal"
+              readOnly={values.discountType === "none"}
+              value={values.discountType === "none" ? "0" : values.discountValue}
+              onChange={(value) => update("discountValue", value)}
+            />
+
+            <div className="md:col-span-2">
+              <Field label="Açıklama (örn. Ocak zammı, kardeş indirimi)" name="note" defaultValue="" />
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 md:col-span-2">
+              <p className="text-sm">
+                Yeni net aylık ücret:{" "}
+                <span className="font-bold text-success">{formatMoney(net)}</span>
+              </p>
+
+              <button
+                type="submit"
+                className="rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring active:scale-[0.98]"
+              >
+                Ücreti kaydet
+              </button>
+            </div>
+          </form>
+        )}
+
+        {enrollment.feeHistory.length > 0 && (
+          <div className="mt-5">
+            <p className="text-xs font-semibold uppercase text-text-secondary">Ücret geçmişi</p>
+
+            <ul className="mt-2 divide-y divide-line rounded-xl border border-border bg-surface text-sm">
+              {enrollment.feeHistory.map((change) => (
+                <li
+                  key={change.effectiveFrom}
+                  className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-2.5"
+                >
+                  <span className="text-text-secondary">
+                    {formatMonth(change.effectiveFrom)} itibarıyla
+                    {change.effectiveFrom > currentMonthStart && (
+                      <span className="ml-2 rounded-full bg-info-soft px-2 py-0.5 text-xs font-semibold text-info">
+                        Planlandı
+                      </span>
+                    )}
+                    {change.note ? ` — ${change.note}` : ""}
+                  </span>
+                  <span className="font-semibold">
+                    {formatMoney(change.netMonthlyFee)}
+                    {change.discountType !== "none" && (
+                      <span className="ml-1 text-xs font-normal text-text-secondary">
+                        ({formatMoney(change.listMonthlyFee)} −{" "}
+                        {change.discountType === "percent"
+                          ? `%${change.discountValue}`
+                          : formatMoney(change.discountValue)}
+                        )
+                      </span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </details>
+  );
+}
+
+function formatMonth(value: string) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00.000Z`));
 }
 
 function ControlledField({

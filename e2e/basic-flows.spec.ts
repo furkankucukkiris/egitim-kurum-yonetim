@@ -109,7 +109,7 @@ test.describe("Öğretmen temel akışı", () => {
     // bkz. supabase/tests/database/role_data_minimization.test.sql).
     await expect(page.getByRole("link", { name: "Programım" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Öğrenciler" })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "Ödemeler" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Tahsilatlar" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "MEB Yönetimi" })).toHaveCount(0);
   });
 });

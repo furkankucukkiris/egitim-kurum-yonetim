@@ -8,7 +8,10 @@ export type StudentPaymentStatus = "paid" | "partial" | "pending";
 
 export type OpenAccrualItem = {
   accrualId: string;
+  periodStart: string;
   periodLabel: string;
+  net: number;
+  allocated: number;
   pending: number;
   overdue: boolean;
 };
@@ -284,7 +287,7 @@ function StudentRow({
                   <select
                     name="cashAccountId"
                     required
-                    defaultValue=""
+                    defaultValue={cashAccounts.length === 1 ? cashAccounts[0].id : ""}
                     className="mt-1 block w-40 rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
                   >
                     <option value="" disabled>
@@ -300,9 +303,8 @@ function StudentRow({
               )}
 
               {method === "cash" && cashAccounts.length === 0 && (
-                <p className="text-xs text-danger">
-                  Nakit ödeme için önce Kurum Ayarları → Kasa &amp; Banka&apos;dan bir kasa hesabı
-                  ekleyin.
+                <p className="text-xs text-text-secondary">
+                  İlk nakit tahsilatta &ldquo;Ana Kasa&rdquo; otomatik açılır.
                 </p>
               )}
 

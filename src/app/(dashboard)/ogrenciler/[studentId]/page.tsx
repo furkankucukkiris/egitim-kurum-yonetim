@@ -120,8 +120,18 @@ type EnrollmentRow = {
   due_day: number;
   notes: string | null;
 
+  enrollment_fee_changes: {
+    effective_from: string;
+    list_monthly_fee: number | string;
+    discount_type: string;
+    discount_value: number | string;
+    net_monthly_fee: number | string;
+    note: string | null;
+  }[];
+
   course: {
     name: string;
+    default_monthly_fee: number | string;
   } | null;
 
   class_group: {
@@ -316,8 +326,18 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
             due_day,
             notes,
 
+            enrollment_fee_changes (
+              effective_from,
+              list_monthly_fee,
+              discount_type,
+              discount_value,
+              net_monthly_fee,
+              note
+            ),
+
             course:courses (
-              name
+              name,
+              default_monthly_fee
             ),
 
             class_group:class_groups (
@@ -546,6 +566,19 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
             dueDay: enrollment.due_day,
 
             notes: enrollment.notes ?? "",
+
+            courseListedFee: Number(enrollment.course?.default_monthly_fee ?? 0),
+
+            feeHistory: [...(enrollment.enrollment_fee_changes ?? [])]
+              .sort((a, b) => b.effective_from.localeCompare(a.effective_from))
+              .map((change) => ({
+                effectiveFrom: change.effective_from,
+                listMonthlyFee: Number(change.list_monthly_fee),
+                discountType: change.discount_type,
+                discountValue: Number(change.discount_value),
+                netMonthlyFee: Number(change.net_monthly_fee),
+                note: change.note ?? "",
+              })),
 
             mebStatus: mebRegistration?.status ?? "unchecked",
 

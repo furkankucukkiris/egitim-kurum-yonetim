@@ -23,10 +23,12 @@ type StudentRow = {
   birth_date: string | null;
   registration_date: string;
   status: StudentStatus;
+  gender: "female" | "male" | null;
   photo_path: string | null;
   student_guardians: StudentGuardianRow[];
   enrollments: {
     status: string;
+    course_id: string;
     course: { name: string } | null;
   }[];
 };
@@ -52,6 +54,27 @@ const statusClasses: Record<StudentStatus, string> = {
   left: "bg-danger-soft text-danger",
   archived: "bg-surface-muted text-text-secondary",
 };
+
+// Satır rengi: kız öğrenci hafif pembe, erkek öğrenci hafif mavi.
+const genderRowClasses: Record<"female" | "male", string> = {
+  female: "bg-pink-50/70 hover:bg-pink-100/70 dark:bg-pink-950/25 dark:hover:bg-pink-950/40",
+  male: "bg-sky-50/70 hover:bg-sky-100/70 dark:bg-sky-950/25 dark:hover:bg-sky-950/40",
+};
+
+// Ders etiketleri; her derse oluşturulma sırasına göre sabit bir renk
+// düşer, böylece yeni ders eklenince mevcut derslerin rengi kaymaz.
+const coursePinClasses = [
+  "bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-200",
+  "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-200",
+  "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200",
+  "bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-200",
+  "bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-200",
+  "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-200",
+  "bg-lime-100 text-lime-800 dark:bg-lime-950/60 dark:text-lime-200",
+  "bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-950/60 dark:text-fuchsia-200",
+  "bg-cyan-100 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-200",
+  "bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-200",
+];
 
 const validStatuses: StudentStatus[] = ["active", "frozen", "left", "archived"];
 
@@ -79,9 +102,11 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
         birth_date,
         registration_date,
         status,
+        gender,
         photo_path,
         enrollments (
           status,
+          course_id,
           course:courses ( name )
         ),
         student_guardians (
@@ -101,7 +126,21 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
     query = query.eq("status", selectedStatus);
   }
 
-  const { data, error } = await query;
+  const [{ data, error }, { data: courseRows }] = await Promise.all([
+    query,
+    supabase
+      .from("courses")
+      .select("id")
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true }),
+  ]);
+
+  const coursePinById = new Map(
+    (courseRows ?? []).map((course, index) => [
+      course.id as string,
+      coursePinClasses[index % coursePinClasses.length],
+    ]),
+  );
 
   if (error) {
     console.error("Öğrenci listesi alınamadı:", error);
@@ -246,13 +285,18 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
                   const photoUrl = student.photo_path ? photoUrls.get(student.photo_path) : null;
 
                   const currentCourses = Array.from(
-                    new Set(
+                    new Map(
                       student.enrollments
-                        .filter((item) => item.status === "active" || item.status === "frozen")
-                        .map((item) => item.course?.name)
-                        .filter((name): name is string => Boolean(name)),
-                    ),
-                  ).sort((a, b) => a.localeCompare(b, "tr-TR"));
+                        .filter(
+                          (item) =>
+                            item.course && (item.status === "active" || item.status === "frozen"),
+                        )
+                        .map((item) => [
+                          item.course_id,
+                          { id: item.course_id, name: item.course?.name ?? "" },
+                        ]),
+                    ).values(),
+                  ).sort((a, b) => a.name.localeCompare(b.name, "tr-TR"));
 
                   const primaryGuardian =
                     student.student_guardians.find((item) => item.is_primary) ??
@@ -260,7 +304,12 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
                     null;
 
                   return (
-                    <tr key={student.id} className="hover:bg-surface-muted">
+                    <tr
+                      key={student.id}
+                      className={
+                        student.gender ? genderRowClasses[student.gender] : "hover:bg-surface-muted"
+                      }
+                    >
                       <td className="px-5 py-4 text-right tabular-nums text-text-secondary">
                         {index + 1}
                       </td>
@@ -303,12 +352,14 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
                           <span className="text-text-secondary">—</span>
                         ) : (
                           <div className="flex flex-wrap gap-1.5">
-                            {currentCourses.map((name) => (
+                            {currentCourses.map((course) => (
                               <span
-                                key={name}
-                                className="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-medium text-primary"
+                                key={course.id}
+                                className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                  coursePinById.get(course.id) ?? coursePinClasses[0]
+                                }`}
                               >
-                                {name}
+                                {course.name}
                               </span>
                             ))}
                           </div>

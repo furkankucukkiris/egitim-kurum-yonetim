@@ -34,6 +34,7 @@ type StudentRow = {
   first_name: string;
   last_name: string;
   birth_date: string | null;
+  gender: "female" | "male" | null;
   registration_date: string;
 
   status: "active" | "frozen" | "left" | "archived";
@@ -185,6 +186,7 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
         first_name,
         last_name,
         birth_date,
+        gender,
         registration_date,
         status,
         exit_date,
@@ -479,6 +481,7 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
 
           lastName: student.last_name,
 
+          gender: student.gender ?? "",
           birthDate: student.birth_date ?? "",
 
           registrationDate: student.registration_date,

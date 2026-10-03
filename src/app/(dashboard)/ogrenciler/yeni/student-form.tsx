@@ -21,6 +21,7 @@ type FormValues = {
   studentIdentityNumber: string;
   studentFirstName: string;
   studentLastName: string;
+  gender: string;
   birthDate: string;
   registrationDate: string;
   studentNotes: string;
@@ -40,6 +41,7 @@ export function StudentForm({ initialRegistrationDate }: StudentFormProps) {
     studentIdentityNumber: "",
     studentFirstName: "",
     studentLastName: "",
+    gender: "",
     birthDate: "",
     registrationDate: initialRegistrationDate,
     studentNotes: "",
@@ -121,6 +123,24 @@ export function StudentForm({ initialRegistrationDate }: StudentFormProps) {
             value={values.studentLastName}
             onChange={(value) => updateValue("studentLastName", value)}
           />
+
+          <label className="block text-sm font-medium">
+            Cinsiyet
+            <span className="ml-1 text-danger">*</span>
+            <select
+              name="gender"
+              required
+              value={values.gender}
+              onChange={(event) => updateValue("gender", event.target.value)}
+              className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none transition focus:border-primary"
+            >
+              <option value="" disabled>
+                Seçin
+              </option>
+              <option value="female">Kız</option>
+              <option value="male">Erkek</option>
+            </select>
+          </label>
 
           <FormField
             label="Doğum tarihi"

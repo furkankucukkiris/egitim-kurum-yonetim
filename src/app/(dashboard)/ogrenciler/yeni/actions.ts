@@ -29,6 +29,8 @@ export async function createStudent(
 
   const studentLastName = readText(formData, "studentLastName");
 
+  const gender = readText(formData, "gender");
+
   const birthDate = readText(formData, "birthDate");
 
   const registrationDate = readText(formData, "registrationDate");
@@ -76,6 +78,12 @@ export async function createStudent(
   if (studentLastName.length < 2) {
     return {
       error: "Öğrenci soyadı en az 2 karakter olmalıdır.",
+    };
+  }
+
+  if (gender !== "female" && gender !== "male") {
+    return {
+      error: "Öğrencinin cinsiyetini seçin.",
     };
   }
 
@@ -150,6 +158,19 @@ export async function createStudent(
     return {
       error: getDatabaseErrorMessage(error),
     };
+  }
+
+  // create_student_with_guardian() imzasına dokunmamak için cinsiyet ayrı
+  // RPC ile yazılır; başarısız olursa öğrenci sayfasından düzeltilebilir.
+  if (studentId) {
+    const { error: genderError } = await supabase.rpc("set_student_gender", {
+      p_student_id: studentId,
+      p_gender: gender,
+    });
+
+    if (genderError) {
+      console.error("Öğrenci cinsiyeti kaydedilemedi:", genderError);
+    }
   }
 
   if (studentPhoto instanceof File && studentPhoto.size > 0 && studentId) {

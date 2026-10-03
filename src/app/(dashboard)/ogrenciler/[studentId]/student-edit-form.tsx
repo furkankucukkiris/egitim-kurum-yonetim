@@ -16,6 +16,7 @@ type StudentEditFormProps = {
     id: string;
     firstName: string;
     lastName: string;
+    gender: string;
     birthDate: string;
     registrationDate: string;
     notes: string;
@@ -38,6 +39,7 @@ export function StudentEditForm({ student, guardian }: StudentEditFormProps) {
   const [values, setValues] = useState({
     studentFirstName: student.firstName,
     studentLastName: student.lastName,
+    gender: student.gender,
     birthDate: student.birthDate,
     registrationDate: student.registrationDate,
     studentNotes: student.notes,
@@ -96,6 +98,20 @@ export function StudentEditForm({ student, guardian }: StudentEditFormProps) {
             required
             onChange={(value) => updateValue("studentLastName", value)}
           />
+
+          <label className="block text-sm font-medium">
+            Cinsiyet
+            <select
+              name="gender"
+              value={values.gender}
+              onChange={(event) => updateValue("gender", event.target.value)}
+              className="mt-2 w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm outline-none transition focus:border-primary"
+            >
+              <option value="">Belirtilmedi</option>
+              <option value="female">Kız</option>
+              <option value="male">Erkek</option>
+            </select>
+          </label>
 
           <Field
             label="Doğum tarihi"

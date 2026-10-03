@@ -23,7 +23,12 @@ type StudentRow = {
   birth_date: string | null;
   registration_date: string;
   status: StudentStatus;
+  photo_path: string | null;
   student_guardians: StudentGuardianRow[];
+  enrollments: {
+    status: string;
+    course: { name: string } | null;
+  }[];
 };
 
 type StudentsPageProps = {
@@ -74,6 +79,11 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
         birth_date,
         registration_date,
         status,
+        photo_path,
+        enrollments (
+          status,
+          course:courses ( name )
+        ),
         student_guardians (
           relationship,
           is_primary,
@@ -116,6 +126,29 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
 
     return searchableText.includes(normalizedSearch);
   });
+
+  // Fotoğraflar özel bucket'ta; liste için tek istekte imzalı URL alınır.
+  const photoPaths = students
+    .map((student) => student.photo_path)
+    .filter((path): path is string => Boolean(path));
+
+  const photoUrls = new Map<string, string>();
+
+  if (photoPaths.length > 0) {
+    const { data: signed, error: signError } = await supabase.storage
+      .from("student-photos")
+      .createSignedUrls(photoPaths, 60 * 10);
+
+    if (signError) {
+      console.error("Öğrenci fotoğrafları alınamadı:", signError);
+    }
+
+    for (const item of signed ?? []) {
+      if (item.path && item.signedUrl) {
+        photoUrls.set(item.path, item.signedUrl);
+      }
+    }
+  }
 
   return (
     <>
@@ -194,10 +227,13 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
+            <table className="w-full min-w-[980px] text-left text-sm">
               <thead className="bg-surface-muted text-xs uppercase tracking-wide text-text-secondary">
                 <tr>
+                  <th className="w-12 px-5 py-3 text-right">#</th>
+                  <th className="w-16 px-2 py-3">Fotoğraf</th>
                   <th className="px-5 py-3">Öğrenci</th>
+                  <th className="px-5 py-3">Aldığı dersler</th>
                   <th className="px-5 py-3">Birincil veli</th>
                   <th className="px-5 py-3">Telefon</th>
                   <th className="px-5 py-3">Kayıt tarihi</th>
@@ -206,7 +242,18 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
               </thead>
 
               <tbody className="divide-y divide-primary-soft">
-                {students.map((student) => {
+                {students.map((student, index) => {
+                  const photoUrl = student.photo_path ? photoUrls.get(student.photo_path) : null;
+
+                  const currentCourses = Array.from(
+                    new Set(
+                      student.enrollments
+                        .filter((item) => item.status === "active" || item.status === "frozen")
+                        .map((item) => item.course?.name)
+                        .filter((name): name is string => Boolean(name)),
+                    ),
+                  ).sort((a, b) => a.localeCompare(b, "tr-TR"));
+
                   const primaryGuardian =
                     student.student_guardians.find((item) => item.is_primary) ??
                     student.student_guardians[0] ??
@@ -214,6 +261,28 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
 
                   return (
                     <tr key={student.id} className="hover:bg-surface-muted">
+                      <td className="px-5 py-4 text-right tabular-nums text-text-secondary">
+                        {index + 1}
+                      </td>
+
+                      <td className="px-2 py-3">
+                        <Link href={`/ogrenciler/${student.id}`} className="block w-fit">
+                          {photoUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={photoUrl}
+                              alt={`${student.first_name} ${student.last_name}`}
+                              loading="lazy"
+                              className="h-11 w-11 rounded-full border border-border bg-surface-muted object-cover"
+                            />
+                          ) : (
+                            <span className="grid h-11 w-11 place-items-center rounded-full bg-surface-muted text-xs font-semibold text-text-secondary">
+                              {getInitials(student.first_name, student.last_name)}
+                            </span>
+                          )}
+                        </Link>
+                      </td>
+
                       <td className="px-5 py-4">
                         <Link
                           href={`/ogrenciler/${student.id}`}
@@ -226,6 +295,23 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
                           <p className="mt-1 text-xs text-text-secondary">
                             Doğum: {formatDate(student.birth_date)}
                           </p>
+                        )}
+                      </td>
+
+                      <td className="px-5 py-4">
+                        {currentCourses.length === 0 ? (
+                          <span className="text-text-secondary">—</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-1.5">
+                            {currentCourses.map((name) => (
+                              <span
+                                key={name}
+                                className="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-medium text-primary"
+                              >
+                                {name}
+                              </span>
+                            ))}
+                          </div>
                         )}
                       </td>
 
@@ -275,4 +361,8 @@ function formatDate(value: string) {
     month: "2-digit",
     year: "numeric",
   }).format(new Date(`${value}T00:00:00.000Z`));
+}
+
+function getInitials(firstName: string, lastName: string) {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toLocaleUpperCase("tr-TR");
 }

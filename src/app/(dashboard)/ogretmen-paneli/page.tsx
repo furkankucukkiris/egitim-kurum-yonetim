@@ -1,5 +1,10 @@
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
+import {
+  type GuardianContact,
+  GuardianContactList,
+  groupContactsByStudent,
+} from "@/components/teacher/guardian-contact";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -125,7 +130,7 @@ export default async function TeacherPanelPage() {
 
   const today = getTodayInIstanbul();
 
-  const [groupsResult, enrollmentsResult, trialLessonsResult] = await Promise.all([
+  const [groupsResult, enrollmentsResult, trialLessonsResult, contactsResult] = await Promise.all([
     supabase
       .from("class_groups")
       .select(
@@ -154,6 +159,8 @@ export default async function TeacherPanelPage() {
       p_from: today,
       p_to: today,
     }),
+
+    supabase.rpc("get_teacher_student_contacts"),
   ]);
 
   if (groupsResult.error) {
@@ -167,6 +174,14 @@ export default async function TeacherPanelPage() {
   if (trialLessonsResult.error) {
     console.error("Bugünkü deneme dersleri alınamadı:", trialLessonsResult.error);
   }
+
+  if (contactsResult.error) {
+    console.error("Veli iletişim bilgileri alınamadı:", contactsResult.error);
+  }
+
+  const contactsByStudent = groupContactsByStudent(
+    (contactsResult.data ?? []) as GuardianContact[],
+  );
 
   const trialLessons = (trialLessonsResult.data ?? []) as unknown as TrialLessonRow[];
 
@@ -182,23 +197,26 @@ export default async function TeacherPanelPage() {
     (enrollment) => getMebRegistration(enrollment)?.status === "registered",
   );
 
-  const enrollmentCountByGroup = new Map<string, number>();
+  const enrollmentsByGroup = new Map<string, EnrollmentRow[]>();
 
   for (const enrollment of enrollments) {
     if (!enrollment.class_group_id) {
       continue;
     }
 
-    enrollmentCountByGroup.set(
-      enrollment.class_group_id,
-      (enrollmentCountByGroup.get(enrollment.class_group_id) ?? 0) + 1,
-    );
+    const groupEnrollments = enrollmentsByGroup.get(enrollment.class_group_id) ?? [];
+    groupEnrollments.push(enrollment);
+    enrollmentsByGroup.set(enrollment.class_group_id, groupEnrollments);
+  }
+
+  for (const groupEnrollments of enrollmentsByGroup.values()) {
+    groupEnrollments.sort((a, b) => getStudentName(a).localeCompare(getStudentName(b), "tr-TR"));
   }
 
   const groupsByWeekday = new Map<number, GroupRow[]>();
 
   for (const group of groups) {
-    if ((enrollmentCountByGroup.get(group.id) ?? 0) === 0) {
+    if ((enrollmentsByGroup.get(group.id)?.length ?? 0) === 0) {
       continue;
     }
 
@@ -216,7 +234,10 @@ export default async function TeacherPanelPage() {
         description="Yalnızca size atanmış haftalık programı ve bu programlardaki öğrencileri görüntülüyorsunuz."
       />
 
-      {(groupsResult.error || enrollmentsResult.error || trialLessonsResult.error) && (
+      {(groupsResult.error ||
+        enrollmentsResult.error ||
+        trialLessonsResult.error ||
+        contactsResult.error) && (
         <div className="mb-5 rounded-2xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
           Öğretmen paneli verilerinin bir kısmı alınamadı.
         </div>
@@ -235,7 +256,7 @@ export default async function TeacherPanelPage() {
           value={String(uniqueStudentCount)}
           detail="Aktif ve dondurulmuş kayıt — listeyi görmek için tıklayın"
           icon="◎"
-          href="#ogrencilerim"
+          href="/ogretmen-paneli/ogrencilerim"
         />
 
         <StatCard
@@ -303,7 +324,8 @@ export default async function TeacherPanelPage() {
           <h2 className="text-xl font-bold">Haftalık programım</h2>
 
           <p className="mt-1 text-sm text-text-secondary">
-            Aktif öğrencisi olan seanslar, günlere göre ayrılmış olarak listelenir.
+            Aktif öğrencisi olan seanslar, günlere göre ayrılmış olarak ve seanstaki öğrenciler veli
+            telefonlarıyla birlikte listelenir.
           </p>
         </div>
 
@@ -351,7 +373,7 @@ export default async function TeacherPanelPage() {
                         <div className="rounded-xl bg-surface-muted p-3">
                           <dt className="text-text-secondary">Öğrenci</dt>
                           <dd className="mt-1 font-bold">
-                            {enrollmentCountByGroup.get(group.id) ?? 0}/{group.capacity}
+                            {enrollmentsByGroup.get(group.id)?.length ?? 0}/{group.capacity}
                           </dd>
                         </div>
 
@@ -360,29 +382,38 @@ export default async function TeacherPanelPage() {
                           <dd className="mt-1 font-bold">{group.room_name ?? "Belirtilmedi"}</dd>
                         </div>
                       </dl>
+
+                      <ul className="mt-4 divide-y divide-border rounded-xl border border-border">
+                        {(enrollmentsByGroup.get(group.id) ?? []).map((enrollment) => (
+                          <li
+                            key={enrollment.id}
+                            className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 px-4 py-3"
+                          >
+                            <div>
+                              <p className="font-semibold">{getStudentName(enrollment)}</p>
+
+                              {enrollment.status === "frozen" && (
+                                <span className="mt-1 inline-block rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent-strong">
+                                  Donduruldu
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="text-right">
+                              <GuardianContactList
+                                contacts={contactsByStudent.get(enrollment.student_id)}
+                                compact
+                              />
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
                     </article>
                   ))}
                 </div>
               </div>
             ))}
           </div>
-        )}
-      </section>
-
-      <section id="ogrencilerim" className="mt-10 scroll-mt-24">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold">Öğrencilerim</h2>
-
-          <p className="mt-1 text-sm text-text-secondary">
-            Öğrenciler ders kayıtlarıyla birlikte gösterilir; ücret ve veli bilgileri bu ekranda yer
-            almaz.
-          </p>
-        </div>
-
-        {enrollments.length === 0 ? (
-          <EmptyState>Size atanmış aktif bir öğrenci kaydı bulunmuyor.</EmptyState>
-        ) : (
-          <EnrollmentTable enrollments={enrollments} />
         )}
       </section>
 
@@ -509,6 +540,12 @@ function EmptyState({ children }: { children: React.ReactNode }) {
       {children}
     </div>
   );
+}
+
+function getStudentName(enrollment: EnrollmentRow) {
+  return enrollment.student
+    ? `${enrollment.student.first_name} ${enrollment.student.last_name}`
+    : "Öğrenci bilgisi yok";
 }
 
 function getMebRegistration(enrollment: EnrollmentRow) {

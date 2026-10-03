@@ -30,6 +30,12 @@ const navigation: NavigationItem[] = [
     roles: ["teacher"],
   },
   {
+    href: "/ogretmen-paneli/ogrencilerim",
+    label: "Öğrencilerim",
+    icon: "◎",
+    roles: ["teacher"],
+  },
+  {
     href: "/ogrenciler",
     label: "Öğrenciler",
     icon: "◎",

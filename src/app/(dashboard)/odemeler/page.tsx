@@ -583,7 +583,7 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
           value={summary ? formatTry(summary.monthlyAccrued) : "—"}
           detail={
             summary && summary.monthlyAccrued > 0
-              ? `%${Math.round((summary.monthlyCollected / summary.monthlyAccrued) * 100)} tahsil edildi`
+              ? `%${Math.round((summary.monthlyCollected / summary.monthlyAccrued) * 100)} ödendi (ön ödemeler dahil)`
               : "Veri yok"
           }
         />

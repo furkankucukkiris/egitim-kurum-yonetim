@@ -288,16 +288,20 @@ export default async function DashboardPage() {
         />
 
         <StatCard
-          label="Bu Ay Tahsil Edilen"
+          label="Bu Ayın Borcundan Ödenen"
           value={summary ? formatTry(summary.monthlyCollected) : "—"}
-          detail={summary ? `%${overallCollectionRate} tahsilat oranı` : "Veri alınamadı"}
+          detail={
+            summary
+              ? `%${overallCollectionRate} — önceki aylarda alınan ön ödemeler dahil`
+              : "Veri alınamadı"
+          }
           icon="✓"
         />
 
         <StatCard
-          label="Bu Ay Kasaya Giren"
+          label="Bu Ay Alınan Tahsilat"
           value={summary ? formatTry(summary.monthlyCashReceived) : "—"}
-          detail="Ödeme tarihi bu ay olan tüm tahsilat"
+          detail="Tahsilat tarihi bu ay olan ödemeler"
           icon="↓"
         />
 

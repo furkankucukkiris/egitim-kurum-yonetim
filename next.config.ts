@@ -18,13 +18,17 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 // ve kütüphane hiçbir zaman arka planı kaldırmadan orijinal fotoğrafa
 // geri dönüyordu. Fotoğrafın kendisi tarayıcıdan hiçbir zaman bu CDN'e
 // gönderilmiyor — yalnızca genel/anonim model dosyaları indiriliyor.
+// 'wasm-unsafe-eval' de aynı özellik için şart: model ONNX Runtime'ın
+// WebAssembly'siyle çalışıyor ve bu olmadan WebAssembly.compile() CSP
+// tarafından reddediliyor. Genel 'unsafe-eval' (JS eval) açılmıyor.
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' blob:",
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:",
   "style-src 'self' 'unsafe-inline'",
   `connect-src 'self' https://staticimgly.com ${supabaseUrl}`.trim(),
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
+  "worker-src 'self' blob:",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

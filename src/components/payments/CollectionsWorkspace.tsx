@@ -405,7 +405,7 @@ export function CollectionsWorkspace({
                   <th className="px-5 py-3">Öğrenci</th>
                   <th className="px-5 py-3">Ders</th>
                   <th className="px-5 py-3">Dönem</th>
-                  <th className="px-5 py-3">Alınan</th>
+                  <th className="px-5 py-3">Ödenen kısım</th>
                   <th className="px-5 py-3">Kalan</th>
                   <th className="px-5 py-3" />
                 </tr>

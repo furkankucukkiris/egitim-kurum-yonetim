@@ -13,6 +13,7 @@ export type NavIconName =
   | "collections"
   | "expenses"
   | "attendance"
+  | "requests"
   | "earnings"
   | "teachers"
   | "reports"
@@ -107,10 +108,7 @@ const icons: Record<NavIconName, { className?: string; content: ReactNode }> = {
     content: (
       <>
         <path d="M12 6.5C10.5 5.2 8.3 4.5 6 4.5H3v13h3c2.3 0 4.5.7 6 2" />
-        <path
-          className="nav-page"
-          d="M12 6.5c1.5-1.3 3.7-2 6-2h3v13h-3c-2.3 0-4.5.7-6 2"
-        />
+        <path className="nav-page" d="M12 6.5c1.5-1.3 3.7-2 6-2h3v13h-3c-2.3 0-4.5.7-6 2" />
         <path d="M12 6.5v13" />
       </>
     ),
@@ -140,13 +138,7 @@ const icons: Record<NavIconName, { className?: string; content: ReactNode }> = {
       <>
         <path d="M5.5 3.5h13v17l-2.2-1.5-2.1 1.5-2.2-1.5-2.2 1.5-2.1-1.5-2.2 1.5z" />
         {["M9 8.5h6", "M9 12h6", "M9 15.5h3.5"].map((d, index) => (
-          <path
-            key={d}
-            className="nav-draw"
-            style={delay(index * 90)}
-            pathLength={1}
-            d={d}
-          />
+          <path key={d} className="nav-draw" style={delay(index * 90)} pathLength={1} d={d} />
         ))}
       </>
     ),
@@ -157,6 +149,25 @@ const icons: Record<NavIconName, { className?: string; content: ReactNode }> = {
         <circle cx="9" cy="8" r="3.5" />
         <path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5" />
         <path className="nav-draw" pathLength={1} d="M15.5 11.5l2 2 4-4.5" />
+      </>
+    ),
+  },
+  requests: {
+    content: (
+      <>
+        <path d="M4 5.5h16a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5h-9l-5 3.5v-3.5H4A1.5 1.5 0 0 1 2.5 16V7A1.5 1.5 0 0 1 4 5.5z" />
+        {[8, 12, 16].map((cx, index) => (
+          <circle
+            key={cx}
+            className="nav-bob"
+            style={delay(index * 120)}
+            cx={cx}
+            cy="11.5"
+            r="1.1"
+            fill="currentColor"
+            stroke="none"
+          />
+        ))}
       </>
     ),
   },

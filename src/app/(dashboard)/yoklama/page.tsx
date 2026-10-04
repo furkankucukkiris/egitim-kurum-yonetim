@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
-import { SessionComments, type SessionComment } from "@/components/yoklama/SessionComments";
+import {
+  SessionRequests,
+  type SessionRequestSummary,
+} from "@/components/yoklama/SessionRequests";
 import { AttendanceRoster, type RosterStudent } from "@/components/yoklama/AttendanceRoster";
 import { SessionActions } from "@/components/yoklama/SessionActions";
 import {
@@ -112,12 +115,9 @@ type EnrollmentRow = {
   ends_on: string | null;
 };
 
-type CommentRow = {
-  id: string;
+type RequestRow = {
   lesson_session_id: string;
-  body: string;
-  created_at: string;
-  author: { full_name: string; role: string } | null;
+  status: "open" | "resolved";
 };
 
 export default async function AttendancePage({ searchParams }: PageProps) {
@@ -232,41 +232,23 @@ export default async function AttendancePage({ searchParams }: PageProps) {
   }
 
   const sessionIds = sessions.map((session) => session.id);
-  const commentsBySession = new Map<string, SessionComment[]>();
+  const requestsBySession = new Map<string, SessionRequestSummary>();
 
   if (sessionIds.length > 0) {
-    const commentsResult = await supabase
-      .from("lesson_session_comments")
-      .select(
-        `
-          id,
-          lesson_session_id,
-          body,
-          created_at,
-          author:profiles ( full_name, role )
-        `,
-      )
-      .in("lesson_session_id", sessionIds)
-      .order("created_at", { ascending: true });
+    const requestsResult = await supabase
+      .from("teacher_requests")
+      .select("lesson_session_id, status")
+      .in("lesson_session_id", sessionIds);
 
-    if (commentsResult.error) {
-      console.error("Oturum yorumları alınamadı:", commentsResult.error);
+    if (requestsResult.error) {
+      console.error("Oturum notları alınamadı:", requestsResult.error);
     }
 
-    const comments = (commentsResult.data ?? []) as unknown as CommentRow[];
+    for (const request of (requestsResult.data ?? []) as RequestRow[]) {
+      const summary = requestsBySession.get(request.lesson_session_id) ?? { open: 0, resolved: 0 };
 
-    for (const comment of comments) {
-      const list = commentsBySession.get(comment.lesson_session_id) ?? [];
-
-      list.push({
-        id: comment.id,
-        body: comment.body,
-        createdAt: comment.created_at,
-        authorName: comment.author?.full_name ?? "Bilinmiyor",
-        authorRole: comment.author?.role ?? "",
-      });
-
-      commentsBySession.set(comment.lesson_session_id, list);
+      summary[request.status] += 1;
+      requestsBySession.set(request.lesson_session_id, summary);
     }
   }
 
@@ -801,12 +783,12 @@ export default async function AttendancePage({ searchParams }: PageProps) {
                   />
                 )}
 
-                <SessionComments
+                <SessionRequests
                   sessionId={session.id}
-                  date={selectedDate}
-                  comments={commentsBySession.get(session.id) ?? []}
-                  canComment={profile.role === "admin" || session.teacher_profile_id === profile.id}
-                  canDelete={profile.role === "admin"}
+                  summary={requestsBySession.get(session.id) ?? { open: 0, resolved: 0 }}
+                  canWrite={
+                    profile.role === "teacher" && session.teacher_profile_id === profile.id
+                  }
                 />
               </article>
             );

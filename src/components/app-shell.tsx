@@ -85,6 +85,12 @@ const navigation: NavigationItem[] = [
     roles: ["admin", "teacher"],
   },
   {
+    href: "/talepler",
+    label: "Notlar & Talepler",
+    icon: "requests",
+    roles: ["admin", "teacher"],
+  },
+  {
     href: "/ogretmen-paneli/hakedisim",
     label: "Hakedişim",
     icon: "earnings",
@@ -139,6 +145,8 @@ type AppShellProps = {
   institutionLogoUrl: string | null;
   userName: string;
   userRole: AppRole;
+  // Menüde href yanında gösterilecek sayaçlar (ör. açık talep sayısı).
+  badges?: Record<string, number>;
 };
 
 export function AppShell({
@@ -147,6 +155,7 @@ export function AppShell({
   institutionLogoUrl,
   userName,
   userRole,
+  badges = {},
 }: AppShellProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -158,7 +167,12 @@ export function AppShell({
       <aside className="print:hidden fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-sidebar-hover bg-sidebar text-sidebar-text lg:flex lg:flex-col">
         <Brand institution={institution} logoUrl={institutionLogoUrl} />
 
-        <Navigation items={visibleNavigation} pathname={pathname} onSelect={() => undefined} />
+        <Navigation
+          items={visibleNavigation}
+          pathname={pathname}
+          badges={badges}
+          onSelect={() => undefined}
+        />
 
         <AccountSection userName={userName} userRole={userRole} />
 
@@ -182,6 +196,7 @@ export function AppShell({
             <Navigation
               items={visibleNavigation}
               pathname={pathname}
+              badges={badges}
               onSelect={() => setOpen(false)}
             />
 
@@ -255,10 +270,12 @@ function getInitials(name: string) {
 function Navigation({
   items,
   pathname,
+  badges,
   onSelect,
 }: {
   items: NavigationItem[];
   pathname: string;
+  badges: Record<string, number>;
   onSelect: () => void;
 }) {
   // Birden fazla nav öğesi aynı yolun öneki olabiliyor (ör. /ogretmen-paneli
@@ -272,6 +289,7 @@ function Navigation({
     <nav className="scrollbar-hidden min-h-0 flex-1 space-y-1 overflow-y-auto p-4">
       {items.map((item) => {
         const active = item.href === activeHref;
+        const badge = badges[item.href] ?? 0;
 
         return (
           <Link
@@ -291,6 +309,15 @@ function Navigation({
             </span>
 
             {item.label}
+
+            {badge > 0 && (
+              <span
+                className="ml-auto min-w-5 rounded-full bg-accent px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums text-on-accent"
+                aria-label={`${badge} yeni`}
+              >
+                {badge > 99 ? "99+" : badge}
+              </span>
+            )}
           </Link>
         );
       })}

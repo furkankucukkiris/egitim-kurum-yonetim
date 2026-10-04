@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { requireRole } from "@/lib/auth";
+import { dispatchPendingNotifications } from "@/lib/notifications/dispatch";
 import { createClient } from "@/lib/supabase/server";
 
 function readText(formData: FormData, key: string) {
@@ -20,6 +22,18 @@ function back(formData: FormData, kind: "success" | "error", message: string): n
   params.set(kind, message);
 
   redirect(`/talepler?${params.toString()}`);
+}
+
+// Tetikleyicilerin kuyruğa eklediği bildirimleri yanıt beklemeden gönder;
+// burada gönderilemezse pg_cron bir dakika içinde tekrar dener.
+function sendNotificationsAfterResponse() {
+  after(async () => {
+    try {
+      await dispatchPendingNotifications();
+    } catch (error) {
+      console.error("Bildirimler gönderilemedi:", error);
+    }
+  });
 }
 
 // Veritabanı fonksiyonlarının raise ettiği Türkçe mesajlar (P0001)
@@ -53,6 +67,7 @@ export async function createTeacherRequest(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
+  sendNotificationsAfterResponse();
   back(formData, "success", "Notunuz yöneticiye iletildi.");
 }
 
@@ -85,6 +100,7 @@ export async function replyTeacherRequest(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
+  sendNotificationsAfterResponse();
   back(formData, "success", resolve ? "Yanıt gönderildi, konu kapatıldı." : "Yanıt gönderildi.");
 }
 
@@ -111,5 +127,6 @@ export async function setTeacherRequestStatus(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
+  sendNotificationsAfterResponse();
   back(formData, "success", status === "resolved" ? "Konu kapatıldı." : "Konu yeniden açıldı.");
 }

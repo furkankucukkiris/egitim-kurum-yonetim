@@ -63,6 +63,11 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers,
       },
+      {
+        // Bildirim servis çalışanı: güncellemeler telefonlara hemen ulaşsın.
+        source: "/sw.js",
+        headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }],
+      },
     ];
   },
 };

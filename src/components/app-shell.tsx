@@ -127,6 +127,12 @@ const navigation: NavigationItem[] = [
     roles: ["admin"],
   },
   {
+    href: "/bildirimler",
+    label: "Bildirimler",
+    icon: "notifications",
+    roles: ["admin", "teacher"],
+  },
+  {
     href: "/kurum-ayarlari",
     label: "Kurum Ayarları",
     icon: "settings",

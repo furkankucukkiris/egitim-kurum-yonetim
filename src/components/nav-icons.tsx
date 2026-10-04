@@ -14,6 +14,7 @@ export type NavIconName =
   | "expenses"
   | "attendance"
   | "requests"
+  | "notifications"
   | "earnings"
   | "teachers"
   | "reports"
@@ -168,6 +169,14 @@ const icons: Record<NavIconName, { className?: string; content: ReactNode }> = {
             stroke="none"
           />
         ))}
+      </>
+    ),
+  },
+  notifications: {
+    content: (
+      <>
+        <path className="nav-ring" d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15zM12 3v2" />
+        <path className="nav-clapper" d="M10 20.5a2 2 0 0 0 4 0" />
       </>
     ),
   },

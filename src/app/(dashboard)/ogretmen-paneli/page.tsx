@@ -1,3 +1,4 @@
+import { PushDeviceControl } from "@/components/notifications/PushDeviceControl";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import {
@@ -233,6 +234,8 @@ export default async function TeacherPanelPage() {
         title={`Merhaba, ${getFirstName(profile.fullName)}`}
         description="Yalnızca size atanmış haftalık programı ve bu programlardaki öğrencileri görüntülüyorsunuz."
       />
+
+      <PushDeviceControl compact />
 
       {(groupsResult.error ||
         enrollmentsResult.error ||

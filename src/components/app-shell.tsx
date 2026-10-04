@@ -8,11 +8,12 @@ import type { AppRole } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { Avatar } from "@/components/ui/Avatar";
 import { Signature } from "@/components/branding/signature";
+import { NavIcon, type NavIconName } from "@/components/nav-icons";
 
 type NavigationItem = {
   href: string;
   label: string;
-  icon: string;
+  icon: NavIconName;
   roles: AppRole[];
 };
 
@@ -20,109 +21,109 @@ const navigation: NavigationItem[] = [
   {
     href: "/",
     label: "Genel Bakış",
-    icon: "⌂",
+    icon: "overview",
     roles: ["admin"],
   },
   {
     href: "/ogretmen-paneli",
     label: "Programım",
-    icon: "◫",
+    icon: "calendar",
     roles: ["teacher"],
   },
   {
     href: "/ogretmen-paneli/ogrencilerim",
     label: "Öğrencilerim",
-    icon: "◎",
+    icon: "students",
     roles: ["teacher"],
   },
   {
     href: "/ogrenciler",
     label: "Öğrenciler",
-    icon: "◎",
+    icon: "students",
     roles: ["admin"],
   },
   {
     href: "/aday-ogrenciler",
     label: "Aday Öğrenciler",
-    icon: "☆",
+    icon: "candidates",
     roles: ["admin"],
   },
   {
     href: "/dersler",
     label: "Dersler",
-    icon: "▦",
+    icon: "courses",
     roles: ["admin"],
   },
   {
     href: "/program",
     label: "Ders Programı",
-    icon: "◫",
+    icon: "calendar",
     roles: ["admin"],
   },
   {
     href: "/bekleme-listesi",
     label: "Bekleme Listesi",
-    icon: "◷",
+    icon: "waitlist",
     roles: ["admin"],
   },
   {
     href: "/odemeler",
     label: "Tahsilatlar",
-    icon: "₺",
+    icon: "collections",
     roles: ["admin"],
   },
   {
     href: "/giderler",
     label: "Giderler",
-    icon: "▾",
+    icon: "expenses",
     roles: ["admin"],
   },
   {
     href: "/yoklama",
     label: "Yoklama",
-    icon: "✓",
+    icon: "attendance",
     roles: ["admin", "teacher"],
   },
   {
     href: "/ogretmen-paneli/hakedisim",
     label: "Hakedişim",
-    icon: "◆",
+    icon: "earnings",
     roles: ["teacher"],
   },
   {
     href: "/ogretmenler",
     label: "Öğretmenler",
-    icon: "◇",
+    icon: "teachers",
     roles: ["admin"],
   },
   {
     href: "/hakedis",
     label: "Hakediş",
-    icon: "◆",
+    icon: "earnings",
     roles: ["admin"],
   },
   {
     href: "/raporlar",
     label: "Raporlar",
-    icon: "↗",
+    icon: "reports",
     roles: ["admin"],
   },
   {
     href: "/meb-yoklama",
     label: "MEB Yoklama",
-    icon: "✓",
+    icon: "mebAttendance",
     roles: ["admin", "teacher"],
   },
   {
     href: "/meb",
     label: "MEB Yönetimi",
-    icon: "M",
+    icon: "meb",
     roles: ["admin"],
   },
   {
     href: "/kurum-ayarlari",
     label: "Kurum Ayarları",
-    icon: "⚙",
+    icon: "settings",
     roles: ["admin"],
   },
 ];
@@ -285,8 +286,8 @@ function Navigation({
             )}
             aria-current={active ? "page" : undefined}
           >
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-current/10 text-base transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5">
-              {item.icon}
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-current/10">
+              <NavIcon name={item.icon} />
             </span>
 
             {item.label}

@@ -272,6 +272,171 @@ textarea {
   }
 }
 
+/* Sidebar ikon hareketleri (src/components/nav-icons.tsx). Hover veya klavye
+   odağında tek seferlik, kısa hareketler; reduced-motion yukarıda kapatılıyor. */
+.nav-icon {
+  overflow: visible;
+}
+
+.nav-icon,
+.nav-icon * {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.nav-flip,
+.nav-turn,
+.nav-spin {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.group:is(:hover, :focus-visible) .nav-flip {
+  transform: rotate(180deg);
+}
+
+.group:is(:hover, :focus-visible) .nav-turn {
+  transform: rotate(90deg);
+}
+
+.group:is(:hover, :focus-visible) .nav-spin {
+  transform: rotate(90deg);
+}
+
+.nav-icon .nav-needle {
+  transform-box: view-box;
+  transform-origin: 12px 16px;
+}
+
+.group:is(:hover, :focus-visible) .nav-needle {
+  animation: nav-needle 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.group:is(:hover, :focus-visible) .nav-bob {
+  animation: nav-bob 0.5s ease-out;
+}
+
+.group:is(:hover, :focus-visible) .nav-pop {
+  animation: nav-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.nav-icon .nav-swing {
+  transform-origin: top center;
+}
+
+.group:is(:hover, :focus-visible) .nav-swing {
+  animation: nav-swing 0.9s ease-out;
+}
+
+.nav-icon .nav-page {
+  transform-origin: left center;
+}
+
+.group:is(:hover, :focus-visible) .nav-page {
+  animation: nav-page 0.6s ease-in-out;
+}
+
+.group:is(:hover, :focus-visible) .nav-coin {
+  animation: nav-coin 0.6s ease-in-out;
+}
+
+.group:is(:hover, :focus-visible) .nav-slide {
+  animation: nav-slide 0.6s ease-in-out;
+}
+
+.group:is(:hover, :focus-visible) .nav-draw {
+  stroke-dasharray: 1;
+  animation: nav-draw 0.45s ease-out both;
+}
+
+.nav-icon .nav-grow {
+  transform-origin: bottom center;
+}
+
+.group:is(:hover, :focus-visible) .nav-grow {
+  animation: nav-grow 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes nav-needle {
+  0% {
+    transform: rotate(0deg);
+  }
+  35% {
+    transform: rotate(-95deg);
+  }
+  70% {
+    transform: rotate(15deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes nav-bob {
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes nav-pop {
+  from {
+    transform: scale(0.2);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes nav-swing {
+  25% {
+    transform: rotate(28deg);
+  }
+  50% {
+    transform: rotate(-18deg);
+  }
+  75% {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes nav-page {
+  50% {
+    transform: scaleX(0.15);
+  }
+}
+
+@keyframes nav-coin {
+  50% {
+    transform: scaleX(0.1);
+  }
+}
+
+@keyframes nav-slide {
+  30% {
+    transform: translateX(2px);
+  }
+  70% {
+    transform: translateX(-1.5px);
+  }
+}
+
+@keyframes nav-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes nav-grow {
+  from {
+    transform: scaleY(0.25);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
 /* Kaydırma çalışsın ama scrollbar görünmesin (ör. sidebar navigasyonu). */
 .scrollbar-hidden {
   scrollbar-width: none;

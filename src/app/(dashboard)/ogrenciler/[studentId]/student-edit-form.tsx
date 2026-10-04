@@ -79,7 +79,7 @@ export function StudentEditForm({ student, guardian }: StudentEditFormProps) {
         <h2 className="text-lg font-bold">Öğrenci bilgileri</h2>
 
         <p className="mt-1 text-sm text-text-secondary">
-          T.C. kimlik numarası güvenlik nedeniyle bu ekranda gösterilmez.
+          T.C. kimlik numarası soldaki kısa bilgiler kutusunda gösterilir.
         </p>
 
         <div className="mt-5 grid gap-5 md:grid-cols-2">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/page-header";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { requireRole } from "@/lib/auth";
 import { buildCoursePinMap, coursePinClasses } from "@/lib/course-colors";
 import { createClient } from "@/lib/supabase/server";
@@ -35,6 +36,7 @@ type StudentRow = {
   first_name: string;
   last_name: string;
   birth_date: string | null;
+  identity_number: string | null;
   gender: "female" | "male" | null;
   registration_date: string;
 
@@ -199,6 +201,7 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
         first_name,
         last_name,
         birth_date,
+        identity_number,
         gender,
         registration_date,
         status,
@@ -494,6 +497,13 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
 
           <ProfileBox title="Kısa bilgiler">
             <dl className="space-y-2 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <dt className="text-text-secondary">T.C. no</dt>
+                <dd className="flex items-center gap-2 font-medium tabular-nums text-text-primary">
+                  {student.identity_number ?? "Girilmedi"}
+                  {student.identity_number && <CopyButton value={student.identity_number} />}
+                </dd>
+              </div>
               <ProfileFact label="Durum" value={statusLabels[student.status]} />
               <ProfileFact
                 label="Doğum"

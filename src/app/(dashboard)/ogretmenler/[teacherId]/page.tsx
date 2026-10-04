@@ -233,7 +233,10 @@ export default async function TeacherProfilePage({ params, searchParams }: PageP
     }
   }
 
-  const weeklyMinutes = activeGroups.reduce(
+  // Seansların çoğu müsait saat olarak açılıyor; yük hesabı yalnızca
+  // öğrencisi olan seanslardan yapılır.
+  const occupiedGroups = activeGroups.filter((group) => (groupStudentCount.get(group.id) ?? 0) > 0);
+  const occupiedMinutes = occupiedGroups.reduce(
     (total, group) => total + (group.duration_minutes ?? 0),
     0,
   );
@@ -294,10 +297,13 @@ export default async function TeacherProfilePage({ params, searchParams }: PageP
             <ProfileBox title="Özet">
               <dl className="space-y-2 text-sm">
                 <ProfileFact label="Aktif öğrenci" value={students.length} />
-                <ProfileFact label="Haftalık seans" value={activeGroups.length} />
                 <ProfileFact
-                  label="Haftalık süre"
-                  value={weeklyMinutes > 0 ? formatMinutes(weeklyMinutes) : "—"}
+                  label="Dolu saat"
+                  value={`${occupiedGroups.length} / ${activeGroups.length}`}
+                />
+                <ProfileFact
+                  label="Haftalık ders"
+                  value={occupiedMinutes > 0 ? formatMinutes(occupiedMinutes) : "—"}
                 />
                 <ProfileFact
                   label="Açık not/talep"
@@ -348,7 +354,7 @@ export default async function TeacherProfilePage({ params, searchParams }: PageP
           subtitle={[
             "Öğretmen",
             `${students.length} öğrenci`,
-            `haftada ${activeGroups.length} seans`,
+            `${occupiedGroups.length} dolu / ${activeGroups.length} açık saat`,
           ].join(" · ")}
           tabs={profileTabs}
         >
@@ -379,7 +385,7 @@ export default async function TeacherProfilePage({ params, searchParams }: PageP
         <ProfileSection id="program">
           <ProfileCard
             title="Haftalık program"
-            description="Öğretmene atanmış aktif seanslar."
+            description="Saatin üzerine gelince ders, derslik ve doluluk görünür; tıklayınca seansı açar."
             action={
               <Link
                 href="/program/yeni"
@@ -392,52 +398,63 @@ export default async function TeacherProfilePage({ params, searchParams }: PageP
             {activeGroups.length === 0 ? (
               <p className="text-sm text-text-secondary">Aktif seans yok.</p>
             ) : (
-              <div className="space-y-4">
-                {Array.from(groupsByWeekday.keys())
-                  .sort((a, b) => a - b)
-                  .map((weekday) => (
-                    <div key={weekday}>
-                      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-secondary">
-                        {weekdayLabels[weekday] ?? "Gün"}
-                      </h3>
-                      <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
-                        {(groupsByWeekday.get(weekday) ?? []).map((group) => (
-                          <li key={group.id}>
-                            <Link
-                              href={`/program/${group.id}`}
-                              className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm transition hover:bg-surface-muted"
-                            >
-                              <span className="flex items-center gap-3">
-                                <span className="font-semibold tabular-nums">
-                                  {group.start_time.slice(0, 5)}
-                                </span>
-                                <span
-                                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                                    coursePinById.get(group.course_id) ?? coursePinClasses[0]
-                                  }`}
-                                >
-                                  {group.course?.name ?? "Ders"}
-                                </span>
-                                <span className="text-text-secondary">{group.name}</span>
-                              </span>
-                              <span className="text-xs text-text-secondary">
-                                {[
+              <>
+                <div className="mb-4 flex flex-wrap items-center gap-4 text-xs text-text-secondary">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded bg-violet-200 dark:bg-violet-900" />
+                    Öğrencisi olan saat
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded border border-dashed border-border-strong" />
+                    Boş (müsait) saat
+                  </span>
+                </div>
+
+                <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                  {Array.from(groupsByWeekday.keys())
+                    .sort((a, b) => a - b)
+                    .map((weekday) => (
+                      <div
+                        key={weekday}
+                        className="grid gap-2 px-4 py-3 sm:grid-cols-[7rem_minmax(0,1fr)] sm:items-center"
+                      >
+                        <h3 className="text-sm font-semibold text-text-primary">
+                          {weekdayLabels[weekday] ?? "Gün"}
+                        </h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {(groupsByWeekday.get(weekday) ?? []).map((group) => {
+                            const count = groupStudentCount.get(group.id) ?? 0;
+
+                            return (
+                              <Link
+                                key={group.id}
+                                href={`/program/${group.id}`}
+                                title={[
+                                  group.course?.name ?? "Ders",
                                   group.duration_minutes ? `${group.duration_minutes} dk` : null,
                                   group.room_name,
-                                  `${groupStudentCount.get(group.id) ?? 0}${
-                                    group.capacity ? `/${group.capacity}` : ""
-                                  } öğrenci`,
+                                  `${count}${group.capacity ? `/${group.capacity}` : ""} öğrenci`,
                                 ]
                                   .filter(Boolean)
                                   .join(" · ")}
-                              </span>
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-              </div>
+                                className={`rounded-lg px-2.5 py-1 text-xs font-semibold tabular-nums transition hover:ring-2 hover:ring-focus-ring/40 ${
+                                  count > 0
+                                    ? (coursePinById.get(group.course_id) ?? coursePinClasses[0])
+                                    : "border border-dashed border-border-strong text-text-secondary"
+                                }`}
+                              >
+                                {group.start_time.slice(0, 5)}
+                                {count > 0 && courses.length > 1 && (
+                                  <span className="ml-1 font-normal">{group.course?.name}</span>
+                                )}
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </>
             )}
           </ProfileCard>
         </ProfileSection>

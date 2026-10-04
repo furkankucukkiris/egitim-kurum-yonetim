@@ -323,46 +323,76 @@ export default async function CourseDetailPage({ params, searchParams }: CourseP
             {groups.length === 0 ? (
               <p className="text-sm text-text-secondary">Bu ders için seans tanımlanmamış.</p>
             ) : (
-              <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
-                {groups.map((group) => {
-                  const count = groupStudentCount.get(group.id) ?? 0;
-                  const full = group.capacity !== null && count >= group.capacity;
+              <>
+                <div className="mb-4 flex flex-wrap items-center gap-4 text-xs text-text-secondary">
+                  <span className="flex items-center gap-1.5">
+                    <span className={`h-3 w-3 rounded ${coursePin}`} />
+                    Öğrencisi olan saat
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded border border-dashed border-border-strong" />
+                    Boş (müsait) saat
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded bg-warning-soft ring-1 ring-warning" />
+                    Kontenjan dolu
+                  </span>
+                </div>
 
-                  return (
-                    <li key={group.id} className={group.is_active ? "" : "opacity-60"}>
-                      <Link
-                        href={`/program/${group.id}`}
-                        className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm transition hover:bg-surface-muted"
+                <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                  {Array.from(new Set(groups.map((group) => group.weekday)))
+                    .sort((a, b) => a - b)
+                    .map((weekday) => (
+                      <div
+                        key={weekday}
+                        className="grid gap-2 px-4 py-3 sm:grid-cols-[7rem_minmax(0,1fr)] sm:items-center"
                       >
-                        <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                          <span className="font-semibold">
-                            {weekdayLabels[group.weekday] ?? "Gün"}{" "}
-                            <span className="tabular-nums">{group.start_time.slice(0, 5)}</span>
-                          </span>
-                          <span className="text-text-secondary">{group.name}</span>
-                          {!group.is_active && (
-                            <span className="rounded-full bg-surface-muted px-2 py-0.5 text-xs text-text-secondary">
-                              Pasif
-                            </span>
-                          )}
-                        </span>
-                        <span className="flex items-center gap-3 text-xs text-text-secondary">
-                          <span>{group.teacher?.full_name ?? "Öğretmen atanmadı"}</span>
-                          {group.room_name && <span>{group.room_name}</span>}
-                          <span
-                            className={`rounded-full px-2 py-0.5 font-semibold tabular-nums ${
-                              full ? "bg-warning-soft text-warning" : "bg-surface-muted"
-                            }`}
-                          >
-                            {count}
-                            {group.capacity ? `/${group.capacity}` : ""}
-                          </span>
-                        </span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+                        <h3 className="text-sm font-semibold text-text-primary">
+                          {weekdayLabels[weekday] ?? "Gün"}
+                        </h3>
+                        <div className="flex flex-wrap gap-1.5">
+                          {groups
+                            .filter((group) => group.weekday === weekday)
+                            .map((group) => {
+                              const count = groupStudentCount.get(group.id) ?? 0;
+                              const full = group.capacity !== null && count >= group.capacity;
+
+                              return (
+                                <Link
+                                  key={group.id}
+                                  href={`/program/${group.id}`}
+                                  title={[
+                                    group.teacher?.full_name ?? "Öğretmen atanmadı",
+                                    group.room_name,
+                                    `${count}${group.capacity ? `/${group.capacity}` : ""} öğrenci`,
+                                    group.is_active ? null : "pasif",
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" · ")}
+                                  className={`rounded-lg px-2.5 py-1 text-xs font-semibold tabular-nums transition hover:ring-2 hover:ring-focus-ring/40 ${
+                                    !group.is_active
+                                      ? "bg-surface-muted text-text-secondary line-through"
+                                      : full
+                                        ? "bg-warning-soft text-warning ring-1 ring-warning"
+                                        : count > 0
+                                          ? coursePin
+                                          : "border border-dashed border-border-strong text-text-secondary"
+                                  }`}
+                                >
+                                  {group.start_time.slice(0, 5)}
+                                  {count > 0 && teachers.length > 1 && group.teacher && (
+                                    <span className="ml-1 font-normal">
+                                      {getNameInitials(group.teacher.full_name)}
+                                    </span>
+                                  )}
+                                </Link>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </>
             )}
           </ProfileCard>
         </ProfileSection>

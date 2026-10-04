@@ -3,6 +3,16 @@ import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { StatusBadge, type BadgeTone } from "@/components/ui/StatusBadge";
 import { SettingsAlert } from "@/components/settings/SettingsAlert";
+import {
+  ProfileAvatar,
+  ProfileBox,
+  ProfileFact,
+  ProfileHeader,
+  ProfileLayout,
+  ProfileSection,
+  getNameInitials,
+} from "@/components/profile/ProfileLayout";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -154,172 +164,258 @@ export default async function ProspectDetailPage({
   const isConverted = Boolean(prospect.converted_student_id);
   const hasActiveTrial = Boolean(trialLesson && !trialLesson.cancelled_at);
 
+  const fullName = `${prospect.student_first_name} ${prospect.student_last_name}`;
+  const assignedName = staffList.find(
+    (member) => member.id === prospect.assigned_profile_id,
+  )?.full_name;
+  const interestedCourses = courseList.filter((course) => selectedCourseIds.has(course.id));
+
+  const profileTabs = [
+    { href: "#bilgiler", label: "Aday bilgileri" },
+    ...(isConverted
+      ? []
+      : [
+          { href: "#durum", label: "Durum" },
+          { href: "#deneme", label: "Deneme dersi" },
+          { href: "#donustur", label: "Öğrenciye dönüştür" },
+        ]),
+  ];
+
   return (
     <>
-      <div className="mb-4">
-        <Link
-          href="/aday-ogrenciler"
-          className="text-sm text-text-secondary hover:text-text-primary"
-        >
-          ← Aday öğrenciler
-        </Link>
-      </div>
-
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">
-          {prospect.student_first_name} {prospect.student_last_name}
-        </h2>
-        <StatusBadge label={statusLabels[prospect.status]} tone={statusTones[prospect.status]} />
-      </div>
-
       <SettingsAlert success={searchParamsValue.success} error={searchParamsValue.error} />
 
-      {isConverted && (
-        <div className="mb-5 rounded-2xl border border-success/30 bg-success-soft p-4 text-sm text-success">
-          Bu aday öğrenciye dönüştürüldü.{" "}
-          <Link
-            href={`/ogrenciler/${prospect.converted_student_id}`}
-            className="font-semibold hover:underline"
-          >
-            Öğrenci kaydını görüntüle →
-          </Link>
-        </div>
-      )}
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="p-6">
-          <h3 className="mb-4 text-base font-semibold text-text-primary">Aday bilgileri</h3>
-
-          <form action={updateProspect} className="space-y-3">
-            <input type="hidden" name="prospectId" value={prospect.id} />
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-xs font-medium text-text-secondary">
-                Öğrenci adı
-                <input
-                  name="studentFirstName"
-                  required
-                  minLength={2}
-                  defaultValue={prospect.student_first_name}
-                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
-                />
-              </label>
-
-              <label className="text-xs font-medium text-text-secondary">
-                Öğrenci soyadı
-                <input
-                  name="studentLastName"
-                  required
-                  minLength={2}
-                  defaultValue={prospect.student_last_name}
-                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
-                />
-              </label>
+      <ProfileLayout
+        aside={
+          <>
+            <div className="mx-auto w-56 sm:w-64 lg:w-full">
+              <ProfileAvatar initials={getNameInitials(fullName)} />
             </div>
 
-            <label className="block text-xs font-medium text-text-secondary">
-              Veli adı
-              <input
-                name="guardianName"
-                required
-                minLength={2}
-                defaultValue={prospect.guardian_name}
-                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
-              />
-            </label>
+            <ProfileBox title="Veli ve iletişim">
+              <dl className="space-y-2 text-sm">
+                <ProfileFact label="Veli" value={prospect.guardian_name} />
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="text-text-secondary">Telefon</dt>
+                  <dd className="flex items-center gap-2 font-medium">
+                    <a href={`tel:${prospect.phone}`} className="text-primary hover:underline">
+                      {prospect.phone}
+                    </a>
+                    <CopyButton value={prospect.phone} />
+                  </dd>
+                </div>
+              </dl>
+            </ProfileBox>
 
-            <label className="block text-xs font-medium text-text-secondary">
-              Telefon
-              <input
-                name="phone"
-                required
-                defaultValue={prospect.phone}
-                className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
-              />
-            </label>
+            <ProfileBox title="Takip">
+              <dl className="space-y-2 text-sm">
+                <ProfileFact label="Kaynak" value={leadSourceLabels[prospect.lead_source]} />
+                <ProfileFact label="İlk temas" value={formatDate(prospect.initial_contact_date)} />
+                <ProfileFact
+                  label="Sonraki takip"
+                  value={
+                    prospect.next_follow_up_date
+                      ? formatDate(prospect.next_follow_up_date)
+                      : "Planlanmadı"
+                  }
+                />
+                <ProfileFact label="Sorumlu" value={assignedName ?? "Atanmadı"} />
+              </dl>
+            </ProfileBox>
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-xs font-medium text-text-secondary">
-                Kaynak
-                <select
-                  name="leadSource"
-                  required
-                  defaultValue={prospect.lead_source}
-                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
-                >
-                  {Object.entries(leadSourceLabels).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="text-xs font-medium text-text-secondary">
-                Atanan personel
-                <select
-                  name="assignedProfileId"
-                  defaultValue={prospect.assigned_profile_id ?? ""}
-                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
-                >
-                  <option value="">—</option>
-                  {staffList.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.full_name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <fieldset>
-              <legend className="text-xs font-medium text-text-secondary">
-                İlgilendiği dersler
-              </legend>
-
-              <div className="mt-2 flex flex-wrap gap-3">
-                {courseList.length === 0 ? (
-                  <p className="text-xs text-text-secondary">Henüz aktif ders yok.</p>
-                ) : (
-                  courseList.map((course) => (
-                    <label
-                      key={course.id}
-                      className="flex items-center gap-1.5 text-xs text-text-primary"
-                    >
-                      <input
-                        type="checkbox"
-                        name="courseIds"
-                        value={course.id}
-                        defaultChecked={selectedCourseIds.has(course.id)}
-                      />
-                      {course.name}
-                    </label>
-                  ))
-                )}
-              </div>
-            </fieldset>
-
-            <label className="block text-xs font-medium text-text-secondary">
-              Not
-              <textarea
-                name="notes"
-                rows={3}
-                defaultValue={prospect.notes ?? ""}
-                className="mt-1 block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
-              />
-            </label>
-
-            <button
-              type="submit"
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
+            <Link
+              href="/aday-ogrenciler"
+              className="block rounded-xl px-4 py-2 text-center text-sm font-medium text-text-secondary transition hover:bg-surface-muted"
             >
-              Kaydet
-            </button>
-          </form>
-        </Card>
+              ← Aday öğrenci listesine dön
+            </Link>
+          </>
+        }
+      >
+        <ProfileHeader
+          title={fullName}
+          badge={
+            <StatusBadge
+              label={statusLabels[prospect.status]}
+              tone={statusTones[prospect.status]}
+            />
+          }
+          subtitle={[
+            `Veli: ${prospect.guardian_name}`,
+            leadSourceLabels[prospect.lead_source],
+            `${formatDate(prospect.initial_contact_date)} tarihinde ilk temas`,
+          ].join(" · ")}
+          tabs={profileTabs}
+        >
+          <div className="flex flex-wrap gap-1.5">
+            {interestedCourses.length === 0 ? (
+              <span className="text-sm text-text-secondary">İlgilendiği ders seçilmedi.</span>
+            ) : (
+              interestedCourses.map((course) => (
+                <span
+                  key={course.id}
+                  className="rounded-full bg-surface-muted px-2.5 py-1 text-xs font-semibold text-text-primary"
+                >
+                  {course.name}
+                </span>
+              ))
+            )}
+          </div>
+        </ProfileHeader>
 
-        <div className="space-y-6">
-          {!isConverted && (
+        {isConverted && (
+          <div className="mt-6 rounded-2xl border border-success/30 bg-success-soft p-4 text-sm text-success">
+            Bu aday öğrenciye dönüştürüldü.{" "}
+            <Link
+              href={`/ogrenciler/${prospect.converted_student_id}`}
+              className="font-semibold hover:underline"
+            >
+              Öğrenci kaydını görüntüle →
+            </Link>
+          </div>
+        )}
+
+        {prospect.status === "declined" && prospect.decline_reason && (
+          <div className="mt-6 rounded-2xl border border-danger/30 bg-danger-soft p-4 text-sm text-danger">
+            Reddetme nedeni: {prospect.decline_reason}
+          </div>
+        )}
+
+        <ProfileSection id="bilgiler">
+          <Card className="p-6">
+            <h3 className="mb-4 text-base font-semibold text-text-primary">Aday bilgileri</h3>
+
+            <form action={updateProspect} className="space-y-3">
+              <input type="hidden" name="prospectId" value={prospect.id} />
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-xs font-medium text-text-secondary">
+                  Öğrenci adı
+                  <input
+                    name="studentFirstName"
+                    required
+                    minLength={2}
+                    defaultValue={prospect.student_first_name}
+                    className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
+                  />
+                </label>
+
+                <label className="text-xs font-medium text-text-secondary">
+                  Öğrenci soyadı
+                  <input
+                    name="studentLastName"
+                    required
+                    minLength={2}
+                    defaultValue={prospect.student_last_name}
+                    className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
+                  />
+                </label>
+              </div>
+
+              <label className="block text-xs font-medium text-text-secondary">
+                Veli adı
+                <input
+                  name="guardianName"
+                  required
+                  minLength={2}
+                  defaultValue={prospect.guardian_name}
+                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
+                />
+              </label>
+
+              <label className="block text-xs font-medium text-text-secondary">
+                Telefon
+                <input
+                  name="phone"
+                  required
+                  defaultValue={prospect.phone}
+                  className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
+                />
+              </label>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-xs font-medium text-text-secondary">
+                  Kaynak
+                  <select
+                    name="leadSource"
+                    required
+                    defaultValue={prospect.lead_source}
+                    className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
+                  >
+                    {Object.entries(leadSourceLabels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="text-xs font-medium text-text-secondary">
+                  Atanan personel
+                  <select
+                    name="assignedProfileId"
+                    defaultValue={prospect.assigned_profile_id ?? ""}
+                    className="mt-1 block w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
+                  >
+                    <option value="">—</option>
+                    {staffList.map((member) => (
+                      <option key={member.id} value={member.id}>
+                        {member.full_name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <fieldset>
+                <legend className="text-xs font-medium text-text-secondary">
+                  İlgilendiği dersler
+                </legend>
+
+                <div className="mt-2 flex flex-wrap gap-3">
+                  {courseList.length === 0 ? (
+                    <p className="text-xs text-text-secondary">Henüz aktif ders yok.</p>
+                  ) : (
+                    courseList.map((course) => (
+                      <label
+                        key={course.id}
+                        className="flex items-center gap-1.5 text-xs text-text-primary"
+                      >
+                        <input
+                          type="checkbox"
+                          name="courseIds"
+                          value={course.id}
+                          defaultChecked={selectedCourseIds.has(course.id)}
+                        />
+                        {course.name}
+                      </label>
+                    ))
+                  )}
+                </div>
+              </fieldset>
+
+              <label className="block text-xs font-medium text-text-secondary">
+                Not
+                <textarea
+                  name="notes"
+                  rows={3}
+                  defaultValue={prospect.notes ?? ""}
+                  className="mt-1 block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none transition focus:border-primary"
+                />
+              </label>
+
+              <button
+                type="submit"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
+              >
+                Kaydet
+              </button>
+            </form>
+          </Card>
+        </ProfileSection>
+
+        {!isConverted && (
+          <ProfileSection id="durum">
             <Card className="p-6">
               <h3 className="mb-4 text-base font-semibold text-text-primary">Durum</h3>
 
@@ -369,9 +465,11 @@ export default async function ProspectDetailPage({
                 </button>
               </form>
             </Card>
-          )}
+          </ProfileSection>
+        )}
 
-          {!isConverted && (
+        {!isConverted && (
+          <ProfileSection id="deneme">
             <Card className="p-6">
               <h3 className="mb-4 text-base font-semibold text-text-primary">Deneme dersi</h3>
 
@@ -507,9 +605,11 @@ export default async function ProspectDetailPage({
                 </div>
               </form>
             </Card>
-          )}
+          </ProfileSection>
+        )}
 
-          {!isConverted && (
+        {!isConverted && (
+          <ProfileSection id="donustur">
             <Card className="p-6">
               <h3 className="mb-1 text-base font-semibold text-text-primary">Öğrenciye dönüştür</h3>
 
@@ -598,11 +698,20 @@ export default async function ProspectDetailPage({
                 </div>
               </form>
             </Card>
-          )}
-        </div>
-      </div>
+          </ProfileSection>
+        )}
+      </ProfileLayout>
     </>
   );
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    timeZone: "Europe/Istanbul",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00.000Z`));
 }
 
 function getTodayInIstanbul() {

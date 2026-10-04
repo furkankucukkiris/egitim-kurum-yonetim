@@ -11,9 +11,11 @@ const initialState: TeacherPasswordActionState = {
 export function TeacherAccessControls({
   teacherId,
   isActive,
+  returnTo = "/ogretmenler",
 }: {
   teacherId: string;
   isActive: boolean;
+  returnTo?: string;
 }) {
   const [state, resetAction, isPending] = useActionState(resetTeacherPassword, initialState);
 
@@ -49,6 +51,7 @@ export function TeacherAccessControls({
           <input type="hidden" name="teacherId" value={teacherId} />
 
           <input type="hidden" name="isActive" value={isActive ? "false" : "true"} />
+          <input type="hidden" name="returnTo" value={returnTo} />
 
           <button
             type="submit"

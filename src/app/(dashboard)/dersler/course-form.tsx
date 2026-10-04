@@ -23,9 +23,12 @@ type CourseFormProps = {
     durationMinutes: number;
     monthlyFee: number;
   };
+
+  // Profil sayfasında form sağ sütunu tam kaplar.
+  fullWidth?: boolean;
 };
 
-export function CourseForm({ mode, course }: CourseFormProps) {
+export function CourseForm({ mode, course, fullWidth = false }: CourseFormProps) {
   const action = mode === "create" ? createCourse : updateCourse;
 
   const [state, formAction, isPending] = useActionState(action, initialState);
@@ -46,7 +49,7 @@ export function CourseForm({ mode, course }: CourseFormProps) {
   }
 
   return (
-    <form action={formAction} className="mx-auto max-w-3xl space-y-6">
+    <form action={formAction} className={fullWidth ? "space-y-6" : "mx-auto max-w-3xl space-y-6"}>
       {mode === "edit" && course && <input type="hidden" name="courseId" value={course.id} />}
 
       {state.error && (

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -178,7 +179,11 @@ export default async function TeachersPage({ searchParams }: PageProps) {
                     </div>
 
                     <div className="min-w-0">
-                      <h3 className="truncate font-bold">{teacher.full_name}</h3>
+                      <h3 className="truncate font-bold">
+                        <Link href={`/ogretmenler/${teacher.id}`} className="hover:underline">
+                          {teacher.full_name}
+                        </Link>
+                      </h3>
 
                       <p className="mt-1 truncate text-sm text-text-secondary">
                         {teacher.email ?? "E-posta tanımlı değil"}
@@ -228,6 +233,13 @@ export default async function TeachersPage({ searchParams }: PageProps) {
                     </div>
                   )}
                 </dl>
+
+                <Link
+                  href={`/ogretmenler/${teacher.id}`}
+                  className="mt-4 inline-flex text-sm font-semibold text-primary hover:underline"
+                >
+                  Profili aç →
+                </Link>
 
                 <TeacherAccessControls teacherId={teacher.id} isActive={teacher.is_active} />
               </article>

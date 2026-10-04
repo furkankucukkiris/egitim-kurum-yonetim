@@ -118,10 +118,19 @@ export async function createTeacherAccount(
   };
 }
 
+// İşlem sonrası dönülecek sayfa: liste veya öğretmen profili. Yalnızca
+// /ogretmenler altındaki yollar kabul edilir.
+function readReturnPath(formData: FormData) {
+  const value = readText(formData, "returnTo");
+
+  return /^\/ogretmenler(\/[0-9a-f-]{36})?$/.test(value) ? value : "/ogretmenler";
+}
+
 export async function setTeacherActive(formData: FormData) {
   await requireRole(["admin"]);
 
   const teacherId = readText(formData, "teacherId");
+  const returnPath = readReturnPath(formData);
 
   const isActive = readText(formData, "isActive") === "true";
 
@@ -139,14 +148,14 @@ export async function setTeacherActive(formData: FormData) {
   if (error) {
     console.error("Öğretmen hesabı durumu değiştirilemedi:", error);
 
-    redirect(`/ogretmenler?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
+    redirect(`${returnPath}?error=${encodeURIComponent(getDatabaseErrorMessage(error.message))}`);
   }
 
-  revalidatePath("/ogretmenler");
+  revalidatePath("/ogretmenler", "layout");
   revalidatePath("/program");
 
   redirect(
-    `/ogretmenler?success=${encodeURIComponent(
+    `${returnPath}?success=${encodeURIComponent(
       isActive ? "Öğretmen hesabı aktifleştirildi." : "Öğretmen hesabı pasife alındı.",
     )}`,
   );

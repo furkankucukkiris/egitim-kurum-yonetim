@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/page-header";
+import { ProfileBox, ProfileFact } from "@/components/profile/ProfileLayout";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { requireRole } from "@/lib/auth";
 import { buildCoursePinMap, coursePinClasses } from "@/lib/course-colors";
@@ -845,26 +846,6 @@ const profileTabs = [
   { href: "#kayit-bilgileri", label: "Kayıt formu bilgileri" },
   { href: "#islemler", label: "İşlemler" },
 ];
-
-function ProfileBox({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-2xl border border-border bg-surface">
-      <h3 className="border-b border-border px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-text-secondary">
-        {title}
-      </h3>
-      <div className="p-4">{children}</div>
-    </section>
-  );
-}
-
-function ProfileFact({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-3">
-      <dt className="text-text-secondary">{label}</dt>
-      <dd className="text-right font-medium text-text-primary">{value}</dd>
-    </div>
-  );
-}
 
 function getInitials(firstName: string, lastName: string) {
   return `${firstName.trim()[0] ?? ""}${lastName.trim()[0] ?? ""}`.toLocaleUpperCase("tr-TR");

@@ -9,11 +9,20 @@ type Status = "idle" | "processing" | "ready" | "error";
 type StudentPhotoManagementProps = {
   studentId: string;
   photoUrl: string | null;
+  // "profile": profil sayfasının sol üstündeki büyük fotoğraf; fotoğraf
+  // yoksa baş harfler gösterilir.
+  variant?: "card" | "profile";
+  initials?: string;
 };
 
 const initialState = { error: null as string | null };
 
-export function StudentPhotoManagement({ studentId, photoUrl }: StudentPhotoManagementProps) {
+export function StudentPhotoManagement({
+  studentId,
+  photoUrl,
+  variant = "card",
+  initials = "",
+}: StudentPhotoManagementProps) {
   const [state, formAction, isPending] = useActionState(updateStudentPhoto, initialState);
 
   const captureInputRef = useRef<HTMLInputElement>(null);
@@ -54,13 +63,19 @@ export function StudentPhotoManagement({ studentId, photoUrl }: StudentPhotoMana
     }
   }
 
-  return (
-    <section className="mt-8 rounded-2xl border border-border bg-surface p-6">
-      <h2 className="text-lg font-bold">Öğrenci fotoğrafı</h2>
+  const isProfile = variant === "profile";
 
-      <p className="mt-1 text-sm text-text-secondary">
-        Telefondan çekilen fotoğrafın arka planı otomatik olarak kaldırılır.
-      </p>
+  return (
+    <section className={isProfile ? "" : "mt-8 rounded-2xl border border-border bg-surface p-6"}>
+      {!isProfile && (
+        <>
+          <h2 className="text-lg font-bold">Öğrenci fotoğrafı</h2>
+
+          <p className="mt-1 text-sm text-text-secondary">
+            Telefondan çekilen fotoğrafın arka planı otomatik olarak kaldırılır.
+          </p>
+        </>
+      )}
 
       {state.error && (
         <div
@@ -71,12 +86,19 @@ export function StudentPhotoManagement({ studentId, photoUrl }: StudentPhotoMana
         </div>
       )}
 
-      <form action={formAction} className="mt-5 flex items-center gap-4">
+      <form
+        action={formAction}
+        className={isProfile ? "flex flex-col gap-3" : "mt-5 flex items-center gap-4"}
+      >
         <input type="hidden" name="studentId" value={studentId} />
         <input ref={hiddenInputRef} type="file" name="studentPhoto" className="hidden" />
 
         <div
-          className="grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border"
+          className={
+            isProfile
+              ? "grid aspect-square w-full place-items-center overflow-hidden rounded-2xl border-4 border-surface bg-surface-muted shadow-md ring-1 ring-border"
+              : "grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-2xl border border-border"
+          }
           style={
             previewUrl
               ? {
@@ -97,12 +119,16 @@ export function StudentPhotoManagement({ studentId, photoUrl }: StudentPhotoMana
               alt="Öğrenci fotoğrafı önizleme"
               className="h-full w-full object-cover"
             />
+          ) : isProfile && initials ? (
+            <span className="text-5xl font-semibold tracking-wide text-text-secondary">
+              {initials}
+            </span>
           ) : (
             <span className="px-2 text-center text-xs text-text-secondary">Fotoğraf yok</span>
           )}
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className={isProfile ? "grid gap-2" : "flex flex-col gap-2"}>
           <button
             type="button"
             disabled={status === "processing"}
@@ -138,7 +164,7 @@ export function StudentPhotoManagement({ studentId, photoUrl }: StudentPhotoMana
       {photoUrl && !hasPendingSelection && (
         <form
           action={removeStudentPhoto}
-          className="mt-4"
+          className={isProfile ? "mt-2" : "mt-4"}
           onSubmit={(event) => {
             const accepted = window.confirm("Öğrenci fotoğrafı kaldırılsın mı?");
 
@@ -151,7 +177,9 @@ export function StudentPhotoManagement({ studentId, photoUrl }: StudentPhotoMana
 
           <button
             type="submit"
-            className="rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-danger transition hover:bg-surface-muted"
+            className={`rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold text-danger transition hover:bg-surface-muted ${
+              isProfile ? "w-full" : ""
+            }`}
           >
             Fotoğrafı kaldır
           </button>

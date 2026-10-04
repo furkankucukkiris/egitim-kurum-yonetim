@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/page-header";
 import { requireRole } from "@/lib/auth";
+import { buildCoursePinMap, coursePinClasses } from "@/lib/course-colors";
 import { createClient } from "@/lib/supabase/server";
 
 import { ArchiveStudentForm } from "./archive-student-form";
@@ -166,6 +167,18 @@ const statusLabels: Record<StudentRow["status"], string> = {
   archived: "Arşivlendi",
 };
 
+const statusBadgeClasses: Record<StudentRow["status"], string> = {
+  active: "bg-success-soft text-success",
+  frozen: "bg-info-soft text-info",
+  left: "bg-warning-soft text-warning",
+  archived: "bg-surface-muted text-text-secondary",
+};
+
+const genderLabels: Record<"female" | "male", string> = {
+  female: "Kız",
+  male: "Erkek",
+};
+
 export default async function StudentDetailPage({ params, searchParams }: StudentDetailPageProps) {
   await requireRole(["admin"]);
 
@@ -270,27 +283,33 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
    * öğrencinin mevcut ders kayıtları ve
    * seans kontenjanları birlikte alınır.
    */
-  const [coursesResult, groupsResult, enrollmentsResult, groupCountsResult, profilesResult] =
-    await Promise.all([
-      supabase
-        .from("courses")
-        .select(
-          `
+  const [
+    coursesResult,
+    groupsResult,
+    enrollmentsResult,
+    groupCountsResult,
+    profilesResult,
+    courseOrderResult,
+  ] = await Promise.all([
+    supabase
+      .from("courses")
+      .select(
+        `
             id,
             name,
             default_monthly_fee,
             meb_status
           `,
-        )
-        .eq("is_active", true)
-        .order("name", {
-          ascending: true,
-        }),
+      )
+      .eq("is_active", true)
+      .order("name", {
+        ascending: true,
+      }),
 
-      supabase
-        .from("class_groups")
-        .select(
-          `
+    supabase
+      .from("class_groups")
+      .select(
+        `
             id,
             course_id,
             name,
@@ -302,19 +321,19 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
               full_name
             )
           `,
-        )
-        .eq("is_active", true)
-        .order("weekday", {
-          ascending: true,
-        })
-        .order("start_time", {
-          ascending: true,
-        }),
+      )
+      .eq("is_active", true)
+      .order("weekday", {
+        ascending: true,
+      })
+      .order("start_time", {
+        ascending: true,
+      }),
 
-      supabase
-        .from("enrollments")
-        .select(
-          `
+    supabase
+      .from("enrollments")
+      .select(
+        `
             id,
             course_id,
             class_group_id,
@@ -362,20 +381,27 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
               responsible_profile_id
             )
           `,
-        )
-        .eq("student_id", studentId)
-        .order("created_at", {
-          ascending: false,
-        }),
+      )
+      .eq("student_id", studentId)
+      .order("created_at", {
+        ascending: false,
+      }),
 
-      supabase
-        .from("enrollments")
-        .select("class_group_id")
-        .in("status", ["active", "frozen"])
-        .not("class_group_id", "is", null),
+    supabase
+      .from("enrollments")
+      .select("class_group_id")
+      .in("status", ["active", "frozen"])
+      .not("class_group_id", "is", null),
 
-      supabase.from("profiles").select("id, full_name").order("full_name"),
-    ]);
+    supabase.from("profiles").select("id, full_name").order("full_name"),
+
+    // Ders etiketi renkleri öğrenci listesiyle aynı olsun diye.
+    supabase
+      .from("courses")
+      .select("id")
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true }),
+  ]);
 
   if (coursesResult.error) {
     console.error("Ders seçenekleri alınamadı:", coursesResult.error);
@@ -419,30 +445,29 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
     groupCountMap.set(row.class_group_id, currentCount + 1);
   }
 
+  const fullName = `${student.first_name} ${student.last_name}`;
+
+  const coursePinById = buildCoursePinMap(
+    ((courseOrderResult.data ?? []) as { id: string }[]).map((course) => course.id),
+  );
+
+  // Profil başlığındaki ders etiketleri: aktif veya dondurulmuş kayıtlar.
+  const currentCourses = Array.from(
+    new Map(
+      enrollmentRows
+        .filter((item) => item.course && (item.status === "active" || item.status === "frozen"))
+        .map((item) => [item.course_id, { id: item.course_id, name: item.course?.name ?? "" }]),
+    ).values(),
+  ).sort((a, b) => a.name.localeCompare(b.name, "tr-TR"));
+
+  const age = student.birth_date ? calculateAge(student.birth_date) : null;
+
+  const sortedGuardians = student.student_guardians
+    .filter((relationship) => relationship.guardian)
+    .sort((a, b) => Number(b.is_primary) - Number(a.is_primary));
+
   return (
     <>
-      <PageHeader
-        title={`${student.first_name} ${student.last_name}`}
-        description={`Durum: ${statusLabels[student.status]}`}
-        action={
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={`/ogrenciler/${student.id}/kayit-formu`}
-              className="rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-primary transition hover:bg-surface-muted text-primary"
-            >
-              Kayıt formu
-            </Link>
-
-            <Link
-              href="/ogrenciler"
-              className="rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-primary transition hover:bg-surface-muted text-primary"
-            >
-              Öğrenci listesine dön
-            </Link>
-          </div>
-        }
-      />
-
       {messages.success && (
         <div className="mb-5 rounded-2xl border border-success/30 bg-success-soft p-4 text-sm text-success">
           {messages.success}
@@ -455,209 +480,397 @@ export default async function StudentDetailPage({ params, searchParams }: Studen
         </div>
       )}
 
-      {student.status === "archived" && (
-        <div className="mb-6 rounded-2xl border border-accent/30 bg-accent-soft p-5">
-          <p className="font-semibold text-accent-strong">
-            Bu öğrenci arşivlenmiş durumda.
-          </p>
+      <div className="grid gap-6 lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start xl:grid-cols-[19rem_minmax(0,1fr)]">
+        {/* Sol sütun: eski Facebook profilindeki gibi fotoğraf ve kısa bilgiler. */}
+        <aside className="space-y-4 lg:sticky lg:top-20">
+          <div className="mx-auto w-56 sm:w-64 lg:w-full">
+            <StudentPhotoManagement
+              studentId={student.id}
+              photoUrl={photoUrl}
+              variant="profile"
+              initials={getInitials(student.first_name, student.last_name)}
+            />
+          </div>
 
-          <p className="mt-2 text-sm text-accent-strong">
-            Arşiv tarihi: {student.exit_date ? formatDate(student.exit_date) : "Belirtilmedi"}
-          </p>
+          <ProfileBox title="Kısa bilgiler">
+            <dl className="space-y-2 text-sm">
+              <ProfileFact label="Durum" value={statusLabels[student.status]} />
+              <ProfileFact
+                label="Doğum"
+                value={
+                  student.birth_date
+                    ? `${formatDate(student.birth_date)}${age !== null ? ` (${age} yaş)` : ""}`
+                    : "Belirtilmedi"
+                }
+              />
+              <ProfileFact
+                label="Cinsiyet"
+                value={student.gender ? genderLabels[student.gender] : "Belirtilmedi"}
+              />
+              <ProfileFact label="Kayıt" value={formatDate(student.registration_date)} />
+            </dl>
+          </ProfileBox>
 
-          {student.exit_reason && (
-            <p className="mt-1 text-sm text-accent-strong">
-              Neden: {student.exit_reason}
-            </p>
+          <ProfileBox title={`Veliler (${sortedGuardians.length})`}>
+            <ul className="space-y-3 text-sm">
+              {sortedGuardians.map((relationship) => (
+                <li key={relationship.guardian_id}>
+                  <p className="font-semibold text-text-primary">
+                    {relationship.guardian?.full_name}
+                    {relationship.is_primary && (
+                      <span className="ml-1.5 text-xs font-normal text-text-secondary">
+                        Birincil
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-text-secondary">
+                    {relationship.relationship ?? "Veli"}
+                  </p>
+                  {relationship.guardian?.phone && (
+                    <a
+                      href={`tel:${relationship.guardian.phone}`}
+                      className="mt-0.5 inline-block text-primary hover:underline"
+                    >
+                      {relationship.guardian.phone}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </ProfileBox>
+
+          <div className="grid gap-2">
+            <Link
+              href={`/ogrenciler/${student.id}/kayit-formu`}
+              className="rounded-xl border border-border bg-surface px-4 py-2.5 text-center text-sm font-semibold text-primary transition hover:bg-surface-muted"
+            >
+              Kayıt formu
+            </Link>
+
+            <Link
+              href="/ogrenciler"
+              className="rounded-xl px-4 py-2 text-center text-sm font-medium text-text-secondary transition hover:bg-surface-muted"
+            >
+              ← Öğrenci listesine dön
+            </Link>
+          </div>
+        </aside>
+
+        {/* Sağ sütun: isim başlığı, sekme şeridi ve bölümler. */}
+        <div className="min-w-0">
+          <header className="rounded-2xl border border-border bg-surface">
+            <div className="p-5 sm:p-6">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h2 className="text-2xl font-semibold tracking-[-0.01em] text-text-primary md:text-[1.75rem]">
+                  {fullName}
+                </h2>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusBadgeClasses[student.status]}`}
+                >
+                  {statusLabels[student.status]}
+                </span>
+              </div>
+
+              <p className="mt-2 text-sm text-text-secondary">
+                {[
+                  age !== null ? `${age} yaşında` : null,
+                  student.gender ? genderLabels[student.gender] : null,
+                  `${formatDate(student.registration_date)} tarihinden beri kayıtlı`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {currentCourses.length === 0 ? (
+                  <span className="text-sm text-text-secondary">Aktif ders kaydı yok.</span>
+                ) : (
+                  currentCourses.map((course) => (
+                    <span
+                      key={course.id}
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        coursePinById.get(course.id) ?? coursePinClasses[0]
+                      }`}
+                    >
+                      {course.name}
+                    </span>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <nav
+              aria-label="Profil bölümleri"
+              className="scrollbar-hidden flex gap-1 overflow-x-auto border-t border-border px-3"
+            >
+              {profileTabs.map((tab) => (
+                <a
+                  key={tab.href}
+                  href={tab.href}
+                  className="shrink-0 border-b-2 border-transparent px-3 py-3 text-sm font-medium text-text-secondary transition-colors hover:border-accent hover:text-text-primary"
+                >
+                  {tab.label}
+                </a>
+              ))}
+            </nav>
+          </header>
+
+          {student.status === "archived" && (
+            <div className="mt-6 rounded-2xl border border-accent/30 bg-accent-soft p-5">
+              <p className="font-semibold text-accent-strong">Bu öğrenci arşivlenmiş durumda.</p>
+
+              <p className="mt-2 text-sm text-accent-strong">
+                Arşiv tarihi: {student.exit_date ? formatDate(student.exit_date) : "Belirtilmedi"}
+              </p>
+
+              {student.exit_reason && (
+                <p className="mt-1 text-sm text-accent-strong">Neden: {student.exit_reason}</p>
+              )}
+            </div>
           )}
+
+          <div id="bilgiler" className="mt-6 scroll-mt-20">
+            <StudentEditForm
+              student={{
+                id: student.id,
+
+                firstName: student.first_name,
+
+                lastName: student.last_name,
+
+                gender: student.gender ?? "",
+                birthDate: student.birth_date ?? "",
+
+                registrationDate: student.registration_date,
+
+                notes: student.notes ?? "",
+              }}
+              guardian={{
+                id: primaryGuardian.id,
+
+                fullName: primaryGuardian.full_name,
+
+                phone: primaryGuardian.phone,
+
+                secondaryPhone: primaryGuardian.secondary_phone ?? "",
+
+                email: primaryGuardian.email ?? "",
+
+                relationship: primaryRelationship.relationship ?? "Veli",
+
+                mayReceiveFinancialMessages: primaryRelationship.may_receive_financial_messages,
+              }}
+            />
+          </div>
+
+          <div id="dersler" className="scroll-mt-20">
+            <StudentEnrollmentManagement
+              studentId={student.id}
+              isArchived={student.status === "archived"}
+              courses={courseOptions.map((course) => ({
+                id: course.id,
+
+                name: course.name,
+
+                defaultMonthlyFee: Number(course.default_monthly_fee),
+
+                mebStatus: course.meb_status,
+              }))}
+              groups={groupOptions.map((group) => ({
+                id: group.id,
+
+                courseId: group.course_id,
+
+                name: group.name,
+
+                capacity: group.capacity,
+
+                studentCount: groupCountMap.get(group.id) ?? 0,
+
+                weekday: group.weekday,
+
+                startTime: group.start_time.slice(0, 5),
+
+                teacherName: group.teacher?.full_name ?? "Öğretmen atanmadı",
+              }))}
+              enrollments={enrollmentRows.map((enrollment) => {
+                const mebRegistration = enrollment.enrollment_meb_registrations?.[0];
+
+                return {
+                  id: enrollment.id,
+
+                  courseName: enrollment.course?.name ?? "Ders bulunamadı",
+
+                  groupName: enrollment.class_group?.name ?? "Seans bulunamadı",
+
+                  teacherName: enrollment.class_group?.teacher?.full_name ?? "Öğretmen atanmadı",
+
+                  weekday: enrollment.class_group?.weekday ?? null,
+
+                  startTime: enrollment.class_group?.start_time?.slice(0, 5) ?? "",
+
+                  startsOn: enrollment.starts_on,
+
+                  endsOn: enrollment.ends_on ?? "",
+
+                  status: enrollment.status,
+
+                  listMonthlyFee: Number(enrollment.list_monthly_fee),
+
+                  discountType: enrollment.discount_type,
+
+                  discountValue: Number(enrollment.discount_value),
+
+                  netMonthlyFee: Number(enrollment.net_monthly_fee),
+
+                  dueDay: enrollment.due_day,
+
+                  notes: enrollment.notes ?? "",
+
+                  courseListedFee: Number(enrollment.course?.default_monthly_fee ?? 0),
+
+                  feeHistory: [...(enrollment.enrollment_fee_changes ?? [])]
+                    .sort((a, b) => b.effective_from.localeCompare(a.effective_from))
+                    .map((change) => ({
+                      effectiveFrom: change.effective_from,
+                      listMonthlyFee: Number(change.list_monthly_fee),
+                      discountType: change.discount_type,
+                      discountValue: Number(change.discount_value),
+                      netMonthlyFee: Number(change.net_monthly_fee),
+                      note: change.note ?? "",
+                    })),
+
+                  mebStatus: mebRegistration?.status ?? "unchecked",
+
+                  mebRegistrationNumber: mebRegistration?.registration_number ?? "",
+
+                  mebValidFrom: mebRegistration?.valid_from ?? "",
+
+                  mebValidUntil: mebRegistration?.valid_until ?? "",
+
+                  mebNonRegistrationReason: mebRegistration?.non_registration_reason ?? "",
+
+                  mebNote: mebRegistration?.note ?? "",
+
+                  responsibleProfileId: mebRegistration?.responsible_profile_id ?? "",
+                };
+              })}
+              profiles={profiles}
+            />
+          </div>
+
+          <div id="veliler" className="scroll-mt-20">
+            <GuardianManagement
+              studentId={student.id}
+              isArchived={student.status === "archived"}
+              guardians={student.student_guardians
+                .filter(
+                  (
+                    relationship,
+                  ): relationship is StudentGuardianRow & {
+                    guardian: GuardianRow;
+                  } => Boolean(relationship.guardian),
+                )
+                .map((relationship) => ({
+                  id: relationship.guardian.id,
+
+                  fullName: relationship.guardian.full_name,
+
+                  phone: relationship.guardian.phone,
+
+                  secondaryPhone: relationship.guardian.secondary_phone ?? "",
+
+                  email: relationship.guardian.email ?? "",
+
+                  relationship: relationship.relationship ?? "Veli",
+
+                  isPrimary: relationship.is_primary,
+
+                  mayReceiveFinancialMessages: relationship.may_receive_financial_messages,
+                }))}
+            />
+          </div>
+
+          <div id="kayit-bilgileri" className="scroll-mt-20">
+            <RegistrationDetailsManagement
+              studentId={student.id}
+              details={{
+                homeAddress: student.home_address ?? "",
+                emergencyContactName: student.emergency_contact_name ?? "",
+                emergencyContactPhone: student.emergency_contact_phone ?? "",
+                healthNotes: student.health_notes ?? "",
+                photoVideoConsent: student.photo_video_consent,
+                kvkkConsentAccepted: student.kvkk_consent_accepted,
+                institutionRulesAccepted: student.institution_rules_accepted,
+              }}
+            />
+          </div>
+
+          <div id="islemler" className="scroll-mt-20">
+            {student.status !== "archived" && (
+              <div className="mt-8 border-t border-border pt-8">
+                <ArchiveStudentForm studentId={student.id} />
+              </div>
+            )}
+
+            <KvkkActions
+              studentId={student.id}
+              fullName={`${student.first_name} ${student.last_name}`}
+              isArchived={student.status === "archived"}
+              isAlreadyAnonymized={
+                student.first_name === "Anonim" && student.last_name === "Öğrenci"
+              }
+            />
+          </div>
         </div>
-      )}
-
-      <StudentEditForm
-        student={{
-          id: student.id,
-
-          firstName: student.first_name,
-
-          lastName: student.last_name,
-
-          gender: student.gender ?? "",
-          birthDate: student.birth_date ?? "",
-
-          registrationDate: student.registration_date,
-
-          notes: student.notes ?? "",
-        }}
-        guardian={{
-          id: primaryGuardian.id,
-
-          fullName: primaryGuardian.full_name,
-
-          phone: primaryGuardian.phone,
-
-          secondaryPhone: primaryGuardian.secondary_phone ?? "",
-
-          email: primaryGuardian.email ?? "",
-
-          relationship: primaryRelationship.relationship ?? "Veli",
-
-          mayReceiveFinancialMessages: primaryRelationship.may_receive_financial_messages,
-        }}
-      />
-
-      <StudentPhotoManagement studentId={student.id} photoUrl={photoUrl} />
-
-      <StudentEnrollmentManagement
-        studentId={student.id}
-        isArchived={student.status === "archived"}
-        courses={courseOptions.map((course) => ({
-          id: course.id,
-
-          name: course.name,
-
-          defaultMonthlyFee: Number(course.default_monthly_fee),
-
-          mebStatus: course.meb_status,
-        }))}
-        groups={groupOptions.map((group) => ({
-          id: group.id,
-
-          courseId: group.course_id,
-
-          name: group.name,
-
-          capacity: group.capacity,
-
-          studentCount: groupCountMap.get(group.id) ?? 0,
-
-          weekday: group.weekday,
-
-          startTime: group.start_time.slice(0, 5),
-
-          teacherName: group.teacher?.full_name ?? "Öğretmen atanmadı",
-        }))}
-        enrollments={enrollmentRows.map((enrollment) => {
-          const mebRegistration = enrollment.enrollment_meb_registrations?.[0];
-
-          return {
-            id: enrollment.id,
-
-            courseName: enrollment.course?.name ?? "Ders bulunamadı",
-
-            groupName: enrollment.class_group?.name ?? "Seans bulunamadı",
-
-            teacherName: enrollment.class_group?.teacher?.full_name ?? "Öğretmen atanmadı",
-
-            weekday: enrollment.class_group?.weekday ?? null,
-
-            startTime: enrollment.class_group?.start_time?.slice(0, 5) ?? "",
-
-            startsOn: enrollment.starts_on,
-
-            endsOn: enrollment.ends_on ?? "",
-
-            status: enrollment.status,
-
-            listMonthlyFee: Number(enrollment.list_monthly_fee),
-
-            discountType: enrollment.discount_type,
-
-            discountValue: Number(enrollment.discount_value),
-
-            netMonthlyFee: Number(enrollment.net_monthly_fee),
-
-            dueDay: enrollment.due_day,
-
-            notes: enrollment.notes ?? "",
-
-            courseListedFee: Number(enrollment.course?.default_monthly_fee ?? 0),
-
-            feeHistory: [...(enrollment.enrollment_fee_changes ?? [])]
-              .sort((a, b) => b.effective_from.localeCompare(a.effective_from))
-              .map((change) => ({
-                effectiveFrom: change.effective_from,
-                listMonthlyFee: Number(change.list_monthly_fee),
-                discountType: change.discount_type,
-                discountValue: Number(change.discount_value),
-                netMonthlyFee: Number(change.net_monthly_fee),
-                note: change.note ?? "",
-              })),
-
-            mebStatus: mebRegistration?.status ?? "unchecked",
-
-            mebRegistrationNumber: mebRegistration?.registration_number ?? "",
-
-            mebValidFrom: mebRegistration?.valid_from ?? "",
-
-            mebValidUntil: mebRegistration?.valid_until ?? "",
-
-            mebNonRegistrationReason: mebRegistration?.non_registration_reason ?? "",
-
-            mebNote: mebRegistration?.note ?? "",
-
-            responsibleProfileId: mebRegistration?.responsible_profile_id ?? "",
-          };
-        })}
-        profiles={profiles}
-      />
-
-      <GuardianManagement
-        studentId={student.id}
-        isArchived={student.status === "archived"}
-        guardians={student.student_guardians
-          .filter(
-            (
-              relationship,
-            ): relationship is StudentGuardianRow & {
-              guardian: GuardianRow;
-            } => Boolean(relationship.guardian),
-          )
-          .map((relationship) => ({
-            id: relationship.guardian.id,
-
-            fullName: relationship.guardian.full_name,
-
-            phone: relationship.guardian.phone,
-
-            secondaryPhone: relationship.guardian.secondary_phone ?? "",
-
-            email: relationship.guardian.email ?? "",
-
-            relationship: relationship.relationship ?? "Veli",
-
-            isPrimary: relationship.is_primary,
-
-            mayReceiveFinancialMessages: relationship.may_receive_financial_messages,
-          }))}
-      />
-
-      <RegistrationDetailsManagement
-        studentId={student.id}
-        details={{
-          homeAddress: student.home_address ?? "",
-          emergencyContactName: student.emergency_contact_name ?? "",
-          emergencyContactPhone: student.emergency_contact_phone ?? "",
-          healthNotes: student.health_notes ?? "",
-          photoVideoConsent: student.photo_video_consent,
-          kvkkConsentAccepted: student.kvkk_consent_accepted,
-          institutionRulesAccepted: student.institution_rules_accepted,
-        }}
-      />
-
-      {student.status !== "archived" && (
-        <div className="mt-8 border-t border-border pt-8">
-          <ArchiveStudentForm studentId={student.id} />
-        </div>
-      )}
-
-      <KvkkActions
-        studentId={student.id}
-        fullName={`${student.first_name} ${student.last_name}`}
-        isArchived={student.status === "archived"}
-        isAlreadyAnonymized={student.first_name === "Anonim" && student.last_name === "Öğrenci"}
-      />
+      </div>
     </>
   );
+}
+
+const profileTabs = [
+  { href: "#bilgiler", label: "Bilgiler" },
+  { href: "#dersler", label: "Dersler" },
+  { href: "#veliler", label: "Veliler" },
+  { href: "#kayit-bilgileri", label: "Kayıt formu bilgileri" },
+  { href: "#islemler", label: "İşlemler" },
+];
+
+function ProfileBox({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-border bg-surface">
+      <h3 className="border-b border-border px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-text-secondary">
+        {title}
+      </h3>
+      <div className="p-4">{children}</div>
+    </section>
+  );
+}
+
+function ProfileFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-3">
+      <dt className="text-text-secondary">{label}</dt>
+      <dd className="text-right font-medium text-text-primary">{value}</dd>
+    </div>
+  );
+}
+
+function getInitials(firstName: string, lastName: string) {
+  return `${firstName.trim()[0] ?? ""}${lastName.trim()[0] ?? ""}`.toLocaleUpperCase("tr-TR");
+}
+
+// Doğum tarihine göre İstanbul saatiyle bugünkü yaş.
+function calculateAge(birthDate: string) {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul" }).format(
+    new Date(),
+  );
+  const [todayYear, todayMonth, todayDay] = today.split("-").map(Number);
+  const [birthYear, birthMonth, birthDay] = birthDate.split("-").map(Number);
+  const hadBirthday =
+    todayMonth > birthMonth || (todayMonth === birthMonth && todayDay >= birthDay);
+
+  return todayYear - birthYear - (hadBirthday ? 0 : 1);
 }
 
 function formatDate(value: string) {

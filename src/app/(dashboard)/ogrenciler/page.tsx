@@ -315,14 +315,14 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
                       </td>
 
                       <td className="px-2 py-3">
-                        <Link href={`/ogrenciler/${student.id}`} className="block w-fit">
+                        <Link href={`/ogrenciler/${student.id}`} className="group block w-fit">
                           {photoUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={photoUrl}
                               alt={`${student.first_name} ${student.last_name}`}
                               loading="lazy"
-                              className="h-11 w-11 rounded-full border border-border bg-surface-muted object-cover"
+                              className="relative h-11 w-11 origin-left rounded-full border border-border bg-surface-muted object-cover transition-transform duration-200 ease-out group-hover:z-10 group-hover:scale-160 group-hover:border-2 group-hover:border-surface group-hover:shadow-lg group-hover:ring-2 group-hover:ring-accent group-focus-visible:z-10 group-focus-visible:scale-160 motion-reduce:transition-none"
                             />
                           ) : (
                             <span className="grid h-11 w-11 place-items-center rounded-full bg-surface-muted text-xs font-semibold text-text-secondary">

@@ -22,7 +22,9 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(data.title || "Bildirim", {
       body: data.body || "",
       icon: "/apple-icon.png",
-      badge: "/icon.png",
+      // Android durum çubuğu ikonu: yalnızca şekli (şeffaflık) kullanılır,
+      // renkler yok sayılır. Yuvarlak logo burada düz daireye dönüşüyordu.
+      badge: "/notification-badge.png",
       tag: data.tag,
       data: { url: data.url || "/" },
     }),
